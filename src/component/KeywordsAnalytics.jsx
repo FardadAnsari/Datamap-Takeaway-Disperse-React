@@ -1,0 +1,151 @@
+import { useEffect, useState } from "react";
+import instance from "./api";
+
+const KeywordsAnalytics = ({ locationId }) => {
+  const [isLoading, setIsLoading] = useState(false);
+  const [searchInsights, setSearchInsights] = useState([]);
+
+  const [sortConfig, setSortConfig] = useState({
+    key: null,
+    direction: "ascending",
+  });
+
+  useEffect(() => {
+    const fetchPerformanceData = async () => {
+      if (locationId) {
+        setIsLoading(true);
+        try {
+          const response = await instance.get(
+            `api/v1/google/performance/${locationId}`
+          );
+          const processedData = response.data.allResults.map((item) => ({
+            ...item,
+            insightsValue: {
+              ...item.insightsValue,
+              value:
+                item.insightsValue.value !== undefined
+                  ? Number(item.insightsValue.value)
+                  : Number(item.insightsValue.threshold),
+            },
+          }));
+
+          setSearchInsights(processedData);
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    fetchPerformanceData();
+  }, [locationId]);
+
+  const handleSort = (key) => {
+    let direction = "ascending";
+
+    if (sortConfig.key === key && sortConfig.direction === "ascending") {
+      direction = "descending";
+    }
+
+    setSortConfig({ key, direction });
+
+    const sortedData = [...searchInsights].sort((a, b) => {
+      let aValue;
+      let bValue;
+
+      if (key === "insightsValue.value") {
+        aValue =
+          a.insightsValue.value !== undefined
+            ? a.insightsValue.value
+            : a.insightsValue.threshold;
+        bValue =
+          b.insightsValue.value !== undefined
+            ? b.insightsValue.value
+            : b.insightsValue.threshold;
+      } else {
+        aValue = a[key];
+        bValue = b[key];
+      }
+
+      if (typeof aValue === "number" && typeof bValue === "number") {
+        return direction === "ascending" ? aValue - bValue : bValue - aValue;
+      }
+
+      if (typeof aValue === "string" && typeof bValue === "string") {
+        const aLower = aValue.toLowerCase();
+        const bLower = bValue.toLowerCase();
+        if (aLower < bLower) return direction === "ascending" ? -1 : 1;
+        if (aLower > bLower) return direction === "ascending" ? 1 : -1;
+        return 0;
+      }
+
+      return 0;
+    });
+
+    setSearchInsights(sortedData);
+  };
+
+  const getSortIndicator = (key) => {
+    if (sortConfig.key === key) {
+      return sortConfig.direction === "ascending" ? " ↑" : " ↓";
+    }
+    return "";
+  };
+
+  return (
+    <>
+      <div className="flex justify-center py-2">
+        <span className="text-xl font-medium pb-2">Keywords Analytics</span>
+      </div>
+      {locationId && (
+        <div className="max-h-72 overflow-auto">
+          <table className="w-full bg-white">
+            <thead>
+              <tr className="sticky top-0 bg-gray-200">
+                <th className="py-2 px-4 text-start border-b-2">No</th>
+                <th
+                  onClick={() => handleSort("searchKeyword")}
+                  className="py-2 px-4 text-start cursor-pointer border-b-2"
+                >
+                  Keyword
+                  <span className="ml-1">
+                    {getSortIndicator("searchKeyword")}
+                  </span>
+                </th>
+                <th
+                  onClick={() => handleSort("insightsValue.value")}
+                  className="py-2 px-4 text-center cursor-pointer border-b-2"
+                >
+                  Search Volume
+                  <span className="ml-1">
+                    {getSortIndicator("insightsValue.value")}
+                  </span>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {searchInsights.map((item, index) => (
+                <tr key={index} className="border-b-2">
+                  <td className="py-2 px-4 text-start">{index + 1}</td>
+                  <td className="py-2 px-4 text-start">{item.searchKeyword}</td>
+                  <td className="py-2 px-4 text-center">
+                    {item.insightsValue.value !== undefined
+                      ? item.insightsValue.value
+                      : item.insightsValue.threshold}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {isLoading && (
+            <div className="flex justify-center py-4">Loading...</div>
+          )}
+          {!isLoading && searchInsights.length === 0 && (
+            <div className="flex justify-center py-4">No data available.</div>
+          )}
+        </div>
+      )}
+    </>
+  );
+};
+
+export default KeywordsAnalytics;
