@@ -55,7 +55,7 @@ const Login = () => {
           className="h-full flex flex-col justify-between"
           onSubmit={handleSubmit(handleLogin)}
         >
-          <div className="w-44 h-10 bg-cover self-center bg-mealzo-logo"></div>
+          <div className="w-44 h-10 bg-cover self-center bg-mealzo-logo mb-6"></div>
           <p className="text-sm font-bold  text-orange-500 mb-1">Login</p>
           <p className="text-xl font-bold text-gray-800 mb-1">
             Good to see you again!
@@ -76,7 +76,7 @@ const Login = () => {
               } rounded focus:outline-none focus:ring-1`}
             />
           </div>
-          <div className="mb-10">
+          <div className="mb-2">
             <div className="relative w-full">
               <input
                 type={passwordVisible ? "text" : "password"}
