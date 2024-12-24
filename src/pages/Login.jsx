@@ -50,9 +50,12 @@ const Login = () => {
 
   return (
     <div className="flex items-center justify-center h-screen bg-cover bg-login-background">
-      <div className="w-1/4 h-4/6 flex flex-col bg-white rounded-lg shadow-lg overflow-hidden p-8">
-        <div className="w-44 h-10 bg-cover self-center bg-mealzo-logo my-6"></div>
-        <form className="flex flex-col" onSubmit={handleSubmit(handleLogin)}>
+      <div className="w-1/4 h-max flex flex-col bg-white rounded-lg shadow-lg overflow-hidden p-8">
+        <form
+          className="h-full flex flex-col justify-between"
+          onSubmit={handleSubmit(handleLogin)}
+        >
+          <div className="w-44 h-10 bg-cover self-center bg-mealzo-logo"></div>
           <p className="text-sm font-bold  text-orange-500 mb-1">Login</p>
           <p className="text-xl font-bold text-gray-800 mb-1">
             Good to see you again!
@@ -60,6 +63,7 @@ const Login = () => {
           <p className="text-sm text-gray-400 mb-4">
             Please enter your username and password
           </p>
+
           <div className="mb-2">
             <input
               type="text"
@@ -77,7 +81,9 @@ const Login = () => {
               <input
                 type={passwordVisible ? "text" : "password"}
                 placeholder="Password"
-                {...register("password", { required: "Password is required" })}
+                {...register("password", {
+                  required: "Password is required",
+                })}
                 className={`w-full px-4 py-2 border border-2 ${
                   error || errors.password
                     ? "border-red-500 focus:ring-red-500"
@@ -98,43 +104,39 @@ const Login = () => {
             </div>
           </div>
 
-          {errors.username && !errors.password && (
-            <div className="flex bg-red-100 items-center p-2 gap-2 rounded">
-              <MdError color="red" size={22} />
-              <p className="text-red-500 text-sm text-center">
-                {errors.username.message}
-              </p>
+          <div>
+            <div className="h-10">
+              {errors.username ? (
+                // If username has an error (regardless of password):
+                <div className="flex bg-red-100 items-center p-2 gap-2 rounded">
+                  <MdError color="red" size={22} />
+                  <p className="text-red-500 text-sm text-center">
+                    {errors.username.message}
+                  </p>
+                </div>
+              ) : errors.password ? (
+                // Else, if password has an error:
+                <div className="flex bg-red-100 items-center p-2 gap-2 rounded">
+                  <MdError color="red" size={22} />
+                  <p className="text-red-500 text-sm text-center">
+                    {errors.password.message}
+                  </p>
+                </div>
+              ) : null}
+              {(!errors.username || errors.password) && error ? (
+                <div className="flex bg-red-100 items-center p-2 gap-2 rounded">
+                  <MdError color="red" size={22} />
+                  <p className="text-red-500 text-sm text-center">{error}</p>
+                </div>
+              ) : null}
             </div>
-          )}
-          {errors.password && !errors.username && (
-            <div className="flex bg-red-100 items-center p-2 gap-2 rounded">
-              <MdError color="red" size={22} />
-              <p className="text-red-500 text-sm text-center">
-                {errors.password.message}
-              </p>
-            </div>
-          )}
-          {errors.username && errors.password && (
-            <div className="flex bg-red-100 items-center p-2 gap-2 rounded">
-              <MdError color="red" size={22} />
-              <p className="text-red-500 text-sm text-center">
-                {errors.username.message}
-              </p>
-            </div>
-          )}
-
-          {error && (
-            <div className="flex bg-red-100 items-center p-2 gap-2 rounded">
-              <MdError color="red" size={22} />
-              <p className="text-red-500 text-sm text-center">{error}</p>
-            </div>
-          )}
-          <button
-            type="submit"
-            className="w-full py-2 mt-3 self-end text-white bg-orange-500 rounded hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition"
-          >
-            Login
-          </button>
+            <button
+              type="submit"
+              className="w-full py-2 mt-3 self-end text-white bg-orange-500 rounded hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition"
+            >
+              Login
+            </button>
+          </div>
         </form>
       </div>
     </div>
