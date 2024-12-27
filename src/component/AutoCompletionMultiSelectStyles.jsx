@@ -1,66 +1,37 @@
 const AutoCompletionMultiSelectStyles = {
-  control: (provided, state) => ({
+  control: (provided) => ({
     ...provided,
-    background: "#f0f4f8",
-    borderColor: state.isFocused ? "#2684FF" : "#cbd5e0",
-    boxShadow: state.isFocused ? "0 0 0 1px #2684FF" : "none",
+    border: "1px solid #ccc",
+    borderRadius: "8px",
+    padding: "5px",
+    boxShadow: "none",
     "&:hover": {
-      borderColor: "#2684FF",
-    },
-    borderRadius: "8px",
-    padding: "2px",
-  }),
-  menu: (provided) => ({
-    ...provided,
-    background: "#ffffff",
-    borderRadius: "8px",
-    boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-    marginTop: "4px",
-  }),
-  option: (provided, state) => ({
-    ...provided,
-    background: state.isSelected
-      ? "#2684FF"
-      : state.isFocused
-        ? "#e6f7ff"
-        : "#ffffff",
-    color: state.isSelected ? "#ffffff" : "#333333",
-    padding: "10px 12px",
-    cursor: "pointer",
-    "&:active": {
-      background: "#2684FF",
-      color: "#ffffff",
+      borderColor: "#888",
     },
   }),
   multiValue: (provided) => ({
     ...provided,
-    backgroundColor: "#e6f7ff",
-    borderRadius: "4px",
-    padding: "2px",
+    backgroundColor: "#f0f8ff", // رنگ پس‌زمینه برای تگ‌های انتخاب‌شده
+    borderRadius: "5px",
+    display: "flex",
+    alignItems: "center",
   }),
   multiValueLabel: (provided) => ({
     ...provided,
-    color: "#2684FF",
-    fontWeight: "500",
+    color: "#333", // رنگ متن تگ‌ها
+    fontWeight: "bold",
   }),
   multiValueRemove: (provided) => ({
     ...provided,
-    color: "#2684FF",
-    ":hover": {
-      backgroundColor: "#2684FF",
-      color: "#ffffff",
-      cursor: "pointer",
+    color: "#888",
+    cursor: "pointer",
+    "&:hover": {
+      color: "#e74c3c",
     },
   }),
   placeholder: (provided) => ({
     ...provided,
-    color: "#a0aec0",
-    fontSize: "14px",
-  }),
-  singleValue: (provided) => ({
-    ...provided,
-    color: "#333333",
-    fontWeight: "500",
+    color: "#aaa",
   }),
 };
 

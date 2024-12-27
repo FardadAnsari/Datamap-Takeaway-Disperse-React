@@ -10,7 +10,9 @@ import {
 import "leaflet/dist/leaflet.css";
 import Supercluster from "supercluster";
 import L from "leaflet";
-import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
+import { HiAdjustments } from "react-icons/hi";
+import { IoIosArrowBack } from "react-icons/io";
+import { RiAccountCircleFill } from "react-icons/ri";
 import instance from "../component/api";
 import ClusterMarker from "../component/ClusterMarker";
 import { Controller, useForm } from "react-hook-form";
@@ -170,17 +172,17 @@ const parseGoogleBusiness = (item, company) => {
     typeof item.latlng.longitude === "undefined" ||
     typeof item.latlng.latitude === "undefined"
   ) {
-    console.warn(
-      `Location data missing for shop_id: ${item.shop_id || "Unknown"}`
-    );
+    console.warn(`
+      Location data missing for shop_id: ${item.shop_id || "Unknown"}
+    `);
     return null;
   }
   const lon = parseFloat(item.latlng.longitude);
   const lat = parseFloat(item.latlng.latitude);
   if (isNaN(lat) || isNaN(lon)) {
-    console.warn(
-      `Invalid coordinates for shop_id: ${item.shop_id || "Unknown"}`
-    );
+    console.warn(`
+      Invalid coordinates for shop_id: ${item.shop_id || "Unknown"}
+    `);
     return null;
   }
 
@@ -230,24 +232,28 @@ const transformData = (items, company) => {
     })
     .filter((item) => item !== null);
 
-  console.log(`Transformed data for ${company.name}:`, transformed);
+  console.log(`Transformed data for ${company.name}:, transformed`);
   return transformed;
 };
 
 const createCustomIcon = (color) => {
   const svgIcon = `
-    <svg xmlns="http://www.w3.org/2000/svg" 
-         width="24" height="24" 
-         viewBox="0 0 24 24" 
-         fill="${color}" 
-         stroke="white" 
-         stroke-width="2" 
-         stroke-linecap="round" 
-         stroke-linejoin="round">
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="${color}"
+      stroke="white"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
       <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 1 1 18 0z"></path>
       <circle cx="12" cy="10" r="3"></circle>
     </svg>
   `;
+
   return L.divIcon({
     html: svgIcon,
     className: "",
@@ -296,9 +302,9 @@ const UpdateMapBounds = ({ setMapBounds, setZoom }) => {
     const update = () => {
       const newBounds = map.getBounds();
       const newZoom = map.getZoom();
-      console.log(
-        `Map bounds updated: ${newBounds.toBBoxString()}, Zoom: ${newZoom}`
-      );
+      console.log(`
+        Map bounds updated: ${newBounds.toBBoxString()}, Zoom: ${newZoom}
+      `);
       setMapBounds(newBounds);
       setZoom(newZoom);
     };
@@ -338,7 +344,8 @@ const DataMap = () => {
   const [apiData, setApiData] = useState([]);
   const [mapBounds, setMapBounds] = useState(null);
   const [zoom, setZoom] = useState(13);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
@@ -377,7 +384,7 @@ const DataMap = () => {
   }, []);
 
   const getRegionData = async (selectedRegion) => {
-    const url = `https://ons-dp-prod-cdn.s3.eu-west-2.amazonaws.com/maptiles/ap-geos/v3/${selectedRegion.substring(0, 3)}/${selectedRegion}.json`;
+    const url = ` https://ons-dp-prod-cdn.s3.eu-west-2.amazonaws.com/maptiles/ap-geos/v3/${selectedRegion.substring(0, 3)}/${selectedRegion}.json`;
     try {
       const response = await fetch(url);
       if (!response.ok) {
@@ -633,23 +640,38 @@ const DataMap = () => {
 
   return (
     <div className="relative h-screen w-screen overflow-hidden">
-      <button
-        className="absolute top-1/2 -translate-y-1/2 left-0 z-10 py-6 px-1 bg-blue-600 text-white rounded-r-full hover:bg-blue-700 focus:outline-none"
-        onClick={() => setIsSidebarOpen(true)}
-      >
-        <IoIosArrowForward />
-      </button>
-
+      <div className="bg-white w-20 h-screen absolute left-0 z-20 flex flex-col items-center">
+        <div className="mt-2 bg-cover bg-mealzo-sidebar-icon w-12 h-12"></div>
+        <div className="h-full flex flex-col justify-between ">
+          <button
+            className="py-6 px-1 bg-white hover:text-orange-600 focus:outline-none text-center flex flex-col items-center"
+            onClick={() => {
+              setIsFilterOpen(true) && setIsProfileOpen(null);
+            }}
+          >
+            <HiAdjustments size={30} style={{ transform: "rotate(90deg)" }} />
+            Filters
+          </button>
+          <button
+            className="py-6 px-1 bg-white hover:text-orange-600 focus:outline-none text-center flex flex-col items-center"
+            onClick={() => {
+              setIsProfileOpen(true) && setIsFilterOpen(null);
+            }}
+          >
+            <RiAccountCircleFill size={40} />
+          </button>
+        </div>
+      </div>
       <div
-        className={` absolute top-0 left-0 h-full bg-gradient-to-b from-blue-200 to-white shadow-md z-20 transition-transform duration-300 ease-in-out ${
-          isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+        className={`absolute top-0 left-20 h-full bg-white shadow-md z-10 transition-transform duration-300 ease-in-out ${
+          isFilterOpen ? "translate-x-0" : "-translate-x-full"
         }`}
         style={{ width: "20rem" }}
       >
         <div className="p-4 h-full flex flex-col">
           <button
-            className="w-8 mb-4 p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none"
-            onClick={() => setIsSidebarOpen(false)}
+            className="w-8 mb-4 p-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 focus:outline-none"
+            onClick={() => setIsFilterOpen(false)}
           >
             <IoIosArrowBack />
           </button>
@@ -660,14 +682,13 @@ const DataMap = () => {
             style={{ direction: "ltr" }}
           >
             <div className="transform scale-x-[-1]">
-              <h2 className="text-lg font-bold my-2">Enter Shop Name</h2>
               <input
                 type="text"
                 {...register("searchTerm")}
-                className="w-full px-1 py-2 border border-gray-300 rounded"
-                placeholder="Enter shop name"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg mb-4"
+                placeholder="Serach Shop"
               />
-              <h2 className="text-lg font-bold mb-2">Select Region</h2>
+
               <Controller
                 name="region"
                 control={control}
@@ -675,7 +696,8 @@ const DataMap = () => {
                 render={({ field }) => (
                   <Select
                     {...field}
-                    placeholder="Select Region"
+                    className="mb-4"
+                    placeholder="Select Regions"
                     options={region.map((r) => ({
                       value: r.value,
                       label: r.label,
@@ -687,8 +709,6 @@ const DataMap = () => {
                   />
                 )}
               />
-
-              <h2 className="text-lg font-bold mb-2">Select Cuisine</h2>
               <Controller
                 name="cuisine"
                 control={control}
@@ -696,7 +716,7 @@ const DataMap = () => {
                 render={({ field }) => (
                   <Select
                     {...field}
-                    placeholder="Select Cuisine"
+                    placeholder="Select Categories"
                     options={cuisine.map((c) => ({
                       value: c.cuisine_name.toLowerCase(),
                       label: c.cuisine_name,
@@ -720,7 +740,7 @@ const DataMap = () => {
                     id={company.id}
                     {...register("selectedCompanies")}
                     value={company.apiUrl}
-                    className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                    className="h-4 w-4 text-orange-600 border-gray-300 rounded focus:ring-orange-500"
                   />
                   <label htmlFor={company.id} className="text-sm">
                     {company.name}
@@ -735,7 +755,7 @@ const DataMap = () => {
                   <div className="px-2 py-2">
                     <ReactSlider
                       className="relative w-full h-6 my-4"
-                      thumbClassName="bg-blue-500 h-10 w-10 rounded-full cursor-grab border-2 border-white flex items-center justify-center text-white font-bold transform -translate-y-1/2 top-1/2"
+                      thumbClassName="bg-orange-500 h-10 w-10 rounded-full cursor-grab border-2 border-white flex items-center justify-center text-white font-bold transform -translate-y-1/2 top-1/2"
                       trackClassName="bg-gray-300 h-1 top-1/2 transform -translate-y-1/2 rounded"
                       min={0}
                       max={5}
@@ -752,7 +772,7 @@ const DataMap = () => {
                 )}
               />
               <h2 className="text-lg font-bold my-2">Select Review Range</h2>
-              <div className="flex space-x-4">
+              <div className="flex justify-between">
                 <div className="flex flex-col">
                   <label htmlFor="minReview" className="text-sm mb-1">
                     Min Reviews
@@ -804,7 +824,7 @@ const DataMap = () => {
             <div className="transform scale-x-[-1]">
               <button
                 type="submit"
-                className="mt-4 w-full py-2 bg-blue-600 text-white rounded hover:bg-blue-700 focus:outline-none disabled:bg-blue-300"
+                className="mt-4 w-full py-2 bg-orange-600 text-white rounded hover:bg-orange-700 focus:outline-none disabled:bg-orange-300"
                 disabled={loading}
               >
                 {loading ? "Is Loading ..." : "Filter"}
@@ -815,6 +835,21 @@ const DataMap = () => {
               <div className="mt-4 text-center text-red-600">{error}</div>
             )}
           </form>
+        </div>
+      </div>
+      <div
+        className={`absolute top-0 left-20 h-full bg-gradient-to-b from-orange-200 to-white shadow-md z-10 transition-transform duration-300 ease-in-out ${
+          isProfileOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+        style={{ width: "20rem" }}
+      >
+        <div className="p-4 h-full flex flex-col">
+          <button
+            className="w-8 mb-4 p-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 focus:outline-none"
+            onClick={() => setIsProfileOpen(false)}
+          >
+            <IoIosArrowBack />
+          </button>
         </div>
       </div>
       <div className="relative z-0 h-full w-full">
