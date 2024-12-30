@@ -11,7 +11,7 @@ import "leaflet/dist/leaflet.css";
 import Supercluster from "supercluster";
 import L from "leaflet";
 import { HiAdjustments } from "react-icons/hi";
-import { IoIosArrowBack } from "react-icons/io";
+import { IoIosArrowBack, IoIosArrowDown, IoIosArrowUp } from "react-icons/io";
 import { RiAccountCircleFill } from "react-icons/ri";
 import instance from "../component/api";
 import ClusterMarker from "../component/ClusterMarker";
@@ -345,9 +345,14 @@ const DataMap = () => {
   const [mapBounds, setMapBounds] = useState(null);
   const [zoom, setZoom] = useState(13);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [isResultOpen, setIsResultOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+
+  const toggleResult = () => {
+    setIsResultOpen((prev) => !prev);
+  };
 
   const clusterRef = useRef(
     new Supercluster({
@@ -555,6 +560,7 @@ const DataMap = () => {
 
       points = points.filter(combinedFilter);
       console.log("Points after combined filtering:", points);
+      console.log(points);
 
       setApiData(points);
     } catch (error) {
@@ -638,13 +644,25 @@ const DataMap = () => {
     return L.latLngBounds(latLngs);
   }, [apiData]);
 
+  // const groupedResults = useMemo(() => {
+  //   const groups = {};
+  //   apiData.forEach((shop) => {
+  //     const company = shop.properties.company;
+  //     if (!groups[company]) {
+  //       groups[company] = [];
+  //     }
+  //     groups[company].push(shop);
+  //   });
+  //   return groups;
+  // }, [apiData]);
+
   return (
     <div className="relative h-screen w-screen overflow-hidden">
-      <div className="bg-white w-20 h-screen absolute left-0 z-20 flex flex-col items-center">
-        <div className="mt-2 bg-cover bg-mealzo-sidebar-icon w-12 h-12"></div>
-        <div className="h-full flex flex-col justify-between ">
+      <div className="bg-white w-20 h-screen absolute left-0 z-20 flex flex-col items-center border-r">
+        <div className="my-2 bg-cover bg-mealzo-sidebar-icon w-12 h-12"></div>
+        <div className="w-full h-full flex flex-col justify-between ">
           <button
-            className="py-6 px-1 bg-white hover:text-orange-600 focus:outline-none text-center flex flex-col items-center"
+            className="py-4 focus:bg-orange-100 hover:text-orange-600 focus:text-orange-600 focus:outline-none text-center flex flex-col items-center"
             onClick={() => {
               setIsFilterOpen(true) && setIsProfileOpen(null);
             }}
@@ -662,33 +680,64 @@ const DataMap = () => {
           </button>
         </div>
       </div>
+
       <div
-        className={`absolute top-0 left-20 h-full bg-white shadow-md z-10 transition-transform duration-300 ease-in-out ${
+        className={`w-80 absolute top-0 left-20 flex flex-col h-full bg-white z-10 transition-transform duration-300 ease-in-out ${
           isFilterOpen ? "translate-x-0" : "-translate-x-full"
         }`}
-        style={{ width: "20rem" }}
       >
-        <div className="p-4 h-full flex flex-col">
+        <div
+          className="mx-4 flex py-2 justify-between items-center border-b-2"
+          style={{ height: "10%" }}
+        >
+          <h2 className="text-2xl font-bold">Filter</h2>
           <button
-            className="w-8 mb-4 p-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 focus:outline-none"
+            className="w-8 p-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 focus:outline-none"
             onClick={() => setIsFilterOpen(false)}
           >
             <IoIosArrowBack />
           </button>
+        </div>
 
-          <form
-            onSubmit={handleSubmit(onSubmit)}
-            className="px-2 flex-1 overflow-y-auto transform scale-x-[-1]"
-            style={{ direction: "ltr" }}
-          >
-            <div className="transform scale-x-[-1]">
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="p-4 flex flex-col"
+          style={{ height: "90%" }}
+        >
+          <div className="px-2 flex-1 overflow-y-auto">
+            <div className="border-b pb-3">
               <input
                 type="text"
                 {...register("searchTerm")}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg mb-4"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg"
                 placeholder="Serach Shop"
               />
+            </div>
 
+            <div className="border-b py-3">
+              <h2 className="text-lg font-normal mb-2">
+                Select Company (required)
+              </h2>
+              {companies.map((company) => (
+                <div
+                  key={company.id}
+                  className="flex items-center space-x-2 mb-2"
+                >
+                  <input
+                    type="checkbox"
+                    id={company.id}
+                    {...register("selectedCompanies")}
+                    value={company.apiUrl}
+                    className="h-4 w-4 text-orange-600 border-gray-300 rounded focus:ring-orange-500 accent-orange-400"
+                  />
+                  <label htmlFor={company.id} className="text-sm">
+                    {company.name}
+                  </label>
+                </div>
+              ))}
+            </div>
+            <div className="border-b py-3">
+              <h2 className="text-lg font-normal mb-2">Select Regions</h2>
               <Controller
                 name="region"
                 control={control}
@@ -709,6 +758,10 @@ const DataMap = () => {
                   />
                 )}
               />
+            </div>
+
+            <div className="border-b py-3">
+              <h2 className="text-lg font-normal mb-2">Select Categories</h2>
               <Controller
                 name="cuisine"
                 control={control}
@@ -716,6 +769,7 @@ const DataMap = () => {
                 render={({ field }) => (
                   <Select
                     {...field}
+                    className="mb-4"
                     placeholder="Select Categories"
                     options={cuisine.map((c) => ({
                       value: c.cuisine_name.toLowerCase(),
@@ -728,26 +782,9 @@ const DataMap = () => {
                   />
                 )}
               />
-
-              <h2 className="text-lg font-bold my-2">Select Company</h2>
-              {companies.map((company) => (
-                <div
-                  key={company.id}
-                  className="flex items-center space-x-2 mb-2"
-                >
-                  <input
-                    type="checkbox"
-                    id={company.id}
-                    {...register("selectedCompanies")}
-                    value={company.apiUrl}
-                    className="h-4 w-4 text-orange-600 border-gray-300 rounded focus:ring-orange-500"
-                  />
-                  <label htmlFor={company.id} className="text-sm">
-                    {company.name}
-                  </label>
-                </div>
-              ))}
-              <h2 className="text-lg font-bold my-2">Select Rating Range</h2>
+            </div>
+            <div className="border-b py-3">
+              <h2 className="text-lg font-normal mb-2">Select Rating Range</h2>
               <Controller
                 name="ratingRange"
                 control={control}
@@ -771,8 +808,10 @@ const DataMap = () => {
                   </div>
                 )}
               />
-              <h2 className="text-lg font-bold my-2">Select Review Range</h2>
-              <div className="flex justify-between">
+            </div>
+            <div className="py-3">
+              <h2 className="text-lg font-normal mb-2">Select Review Range</h2>
+              <div className="flex justify-between mb-4">
                 <div className="flex flex-col">
                   <label htmlFor="minReview" className="text-sm mb-1">
                     Min Reviews
@@ -821,27 +860,27 @@ const DataMap = () => {
                 </div>
               </div>
             </div>
-            <div className="transform scale-x-[-1]">
-              <button
-                type="submit"
-                className="mt-4 w-full py-2 bg-orange-600 text-white rounded hover:bg-orange-700 focus:outline-none disabled:bg-orange-300"
-                disabled={loading}
-              >
-                {loading ? "Is Loading ..." : "Filter"}
-              </button>
-            </div>
+          </div>
+
+          <div className="border-t-2">
+            <button
+              type="submit"
+              className="my-4 w-full py-2 bg-orange-600 text-white rounded hover:bg-orange-700 focus:outline-none disabled:bg-orange-300"
+              disabled={loading}
+            >
+              {loading ? "Is Loading ..." : "Filter"}
+            </button>
 
             {error && (
               <div className="mt-4 text-center text-red-600">{error}</div>
             )}
-          </form>
-        </div>
+          </div>
+        </form>
       </div>
       <div
-        className={`absolute top-0 left-20 h-full bg-gradient-to-b from-orange-200 to-white shadow-md z-10 transition-transform duration-300 ease-in-out ${
+        className={`w-80 absolute top-0 left-20 flex flex-col h-full bg-white z-10 transition-transform duration-300 ease-in-out ${
           isProfileOpen ? "translate-x-0" : "-translate-x-full"
         }`}
-        style={{ width: "20rem" }}
       >
         <div className="p-4 h-full flex flex-col">
           <button
@@ -852,6 +891,55 @@ const DataMap = () => {
           </button>
         </div>
       </div>
+
+      {/* <button
+        className="bg-white w-80 h-16 absolute top-5 right-5 z-30 flex justify-between items-center px-4 border rounded-lg py-4 hover:text-orange-600 focus:outline-none transition-colors duration-200"
+        onClick={toggleResult}
+      >
+        <h2 className="text-xl font-medium">Results</h2>
+        {isResultOpen ? (
+          <IoIosArrowUp size={24} />
+        ) : (
+          <IoIosArrowDown size={24} />
+        )}
+      </button>
+
+      <div
+        className={`w-80 absolute top-24 right-5 flex flex-col h-5/6 bg-white z-20 shadow-md rounded-lg transition-transform duration-3000 ease-in-out ${
+          isResultOpen ? " opacity-100" : "opacity-0"
+        }`}
+      >
+        <div className="p-4 h-full flex flex-col">
+          <div className="flex-1 overflow-y-auto">
+            {apiData.length === 0 ? (
+              <p className="text-center text-gray-500">نتیجه‌ای یافت نشد.</p>
+            ) : (
+              Object.entries(groupedResults).map(([company, shops]) => (
+                <div key={company} className="mb-6">
+                  <h3 className="text-lg font-semibold mb-2">{company}</h3>
+                  <ul className="space-y-2">
+                    {shops.map((shop) => (
+                      <li
+                        key={shop.properties.shop_id}
+                        className="flex justify-between items-center px-2 py-2 bg-gray-100 rounded"
+                      >
+                        <span className="font-medium">
+                          {shop.properties.shopName}
+                        </span>
+                        <span className="text-sm text-gray-600">
+                          امتیاز: {shop.properties.rating} | نظرات:{" "}
+                          {shop.properties.totalReviews}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </div> */}
+
       <div className="relative z-0 h-full w-full">
         <div
           className={`relative h-full w-full transition-all duration-300 ${
