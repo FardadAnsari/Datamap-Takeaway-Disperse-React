@@ -12,7 +12,7 @@ import Supercluster from "supercluster";
 import L from "leaflet";
 import { HiAdjustments } from "react-icons/hi";
 import { IoIosArrowBack, IoIosArrowDown, IoIosArrowUp } from "react-icons/io";
-import { FaStar } from "react-icons/fa6";
+
 import { RiAccountCircleFill } from "react-icons/ri";
 import instance from "../component/api";
 import ClusterMarker from "../component/ClusterMarker";
@@ -27,6 +27,8 @@ import {
   setCachedCompanyData,
   clearOldCaches,
 } from "../component/indexedDB";
+
+import ResultBar from "../component/Resultbar";
 
 const companies = [
   {
@@ -429,7 +431,7 @@ const DataMap = () => {
   };
 
   const onSubmit = async (data) => {
-    console.log("فرم ارسال شد:", data);
+    console.log("form submitted:", data);
     setLoading(true);
     setError(null);
 
@@ -508,7 +510,7 @@ const DataMap = () => {
           );
         });
 
-      console.log("نقاط پس از فیلتر اولیه:", points);
+      console.log("Points after first filter:", points);
 
       const { searchTerm, ratingRange, reviewRange, cuisine } = data;
       const [minRating, maxRating] = ratingRange || [0, 5];
@@ -583,13 +585,13 @@ const DataMap = () => {
       };
 
       points = points.filter(combinedFilter);
-      console.log("نقاط پس از فیلتر ترکیبی:", points);
+      console.log("Points after combined filter:", points);
       console.log(points);
 
       setApiData(points);
     } catch (error) {
       console.error(error.message);
-      setError("خطا در دریافت داده‌ها");
+      setError("error in fetching data");
     } finally {
       setLoading(false);
     }
@@ -679,6 +681,20 @@ const DataMap = () => {
     });
     return groups;
   }, [apiData]);
+
+  const [expandedCompanies, setExpandedCompanies] = useState({});
+
+  const toggleCompany = (company) => {
+    setExpandedCompanies((prev) => ({
+      ...prev,
+      [company]: !prev[company],
+    }));
+  };
+
+  const companyList = useMemo(
+    () => Object.keys(groupedResults),
+    [groupedResults]
+  );
 
   return (
     <div className="relative h-screen w-screen overflow-hidden">
@@ -928,55 +944,14 @@ const DataMap = () => {
         )}
       </button>
 
-      <div
-        className={`w-80 absolute top-24 right-5 flex flex-col h-5/6 bg-white z-20 shadow-md rounded-lg transition-transform duration-3000 ease-in-out ${
-          isResultOpen ? " opacity-100" : "opacity-0"
-        }`}
-      >
-        <div className="p-4 h-full flex flex-col">
-          <div className="flex-1 overflow-y-auto">
-            {apiData.length === 0 ? (
-              <p className="text-center text-gray-500">Result not found</p>
-            ) : (
-              Object.entries(groupedResults).map(([company, shops]) => (
-                <div key={company} className="mb-6 overflow-x-hidden">
-                  <h3 className="text-lg font-semibold mb-2">{company}</h3>
-                  <ul className="space-y-2 overflow-y-auto">
-                    {shops.map((shop) => (
-                      <li
-                        key={shop.properties.shop_id}
-                        className="flex flex-col justify-between px-2 py-2 bg-gray-100 rounded"
-                      >
-                        <span className="text-sm font-medium">
-                          {shop.properties.shopName}
-                        </span>
-                        <span className="text-sm font-base">
-                          {shop.properties.postcode}
-                        </span>
-                        <div className="flex gap-1">
-                          <span className="text-sm text-gray-600">
-                            {shop.properties.rating && (
-                              <div className="flex gap-1">
-                                <FaStar color="gold" />
-                                <p>{shop.properties.rating}</p>
-                              </div>
-                            )}
-                          </span>
-                          <span className="text-sm text-gray-600">
-                            {shop.properties.totalReviews && (
-                              <div>({shop.properties.totalReviews})</div>
-                            )}
-                          </span>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-      </div>
+      {isResultOpen && (
+        <ResultBar
+          groupedResults={groupedResults}
+          companyList={companyList}
+          expandedCompanies={expandedCompanies}
+          toggleCompany={toggleCompany}
+        />
+      )}
 
       <div className="relative z-0 h-full w-full">
         <div
