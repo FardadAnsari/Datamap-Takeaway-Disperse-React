@@ -12,6 +12,7 @@ import Supercluster from "supercluster";
 import L from "leaflet";
 import { HiAdjustments } from "react-icons/hi";
 import { IoIosArrowBack, IoIosArrowDown, IoIosArrowUp } from "react-icons/io";
+import { FaStar } from "react-icons/fa6";
 import { RiAccountCircleFill } from "react-icons/ri";
 import instance from "../component/api";
 import ClusterMarker from "../component/ClusterMarker";
@@ -21,6 +22,11 @@ import AutoCompletionMultiSelectStyles from "../component/AutoCompletionMultiSel
 import pointInPolygon from "point-in-polygon";
 import ReactSlider from "react-slider";
 import { ColorRing } from "react-loader-spinner";
+import {
+  getCachedCompanyData,
+  setCachedCompanyData,
+  clearOldCaches,
+} from "../component/indexedDB";
 
 const companies = [
   {
@@ -423,11 +429,13 @@ const DataMap = () => {
   };
 
   const onSubmit = async (data) => {
-    console.log("Form Data Submitted:", data);
+    console.log("فرم ارسال شد:", data);
     setLoading(true);
     setError(null);
 
     try {
+      await clearOldCaches(24 * 60 * 60 * 1000);
+
       setRegionBoundaryData(null);
       setApiData([]);
 
@@ -461,17 +469,33 @@ const DataMap = () => {
         return;
       }
 
+      const fetchCompanyData = async (company) => {
+        const cachedData = await getCachedCompanyData(company.id);
+        if (cachedData) {
+          console.log(`استفاده از داده‌های کش شده برای ${company.name}`);
+          return cachedData;
+        } else {
+          try {
+            const response = await instance.get(company.apiUrl);
+            await setCachedCompanyData(company.id, response.data);
+            console.log(`دریافت و کش کردن داده‌های ${company.name}`);
+            return response.data;
+          } catch (error) {
+            console.error(`خطا در دریافت داده‌های ${company.name}:`, error);
+            throw error;
+          }
+        }
+      };
+
       const requests = selectedCompanyList.map((company) =>
-        instance.get(company.apiUrl)
+        fetchCompanyData(company)
       );
 
       const responses = await Promise.all(requests);
-      console.log("Responses from companies:", responses);
+      console.log("پاسخ‌ها از شرکت‌ها:", responses);
 
       let points = responses
-        .flatMap((res, index) =>
-          transformData(res.data, selectedCompanyList[index])
-        )
+        .flatMap((res, index) => transformData(res, selectedCompanyList[index]))
         .filter((point) => {
           const [lon, lat] = point.geometry.coordinates;
           return (
@@ -484,7 +508,7 @@ const DataMap = () => {
           );
         });
 
-      console.log("Points after initial filtering:", points);
+      console.log("نقاط پس از فیلتر اولیه:", points);
 
       const { searchTerm, ratingRange, reviewRange, cuisine } = data;
       const [minRating, maxRating] = ratingRange || [0, 5];
@@ -559,13 +583,13 @@ const DataMap = () => {
       };
 
       points = points.filter(combinedFilter);
-      console.log("Points after combined filtering:", points);
+      console.log("نقاط پس از فیلتر ترکیبی:", points);
       console.log(points);
 
       setApiData(points);
     } catch (error) {
       console.error(error.message);
-      setError("Error fetching data");
+      setError("خطا در دریافت داده‌ها");
     } finally {
       setLoading(false);
     }
@@ -644,17 +668,17 @@ const DataMap = () => {
     return L.latLngBounds(latLngs);
   }, [apiData]);
 
-  // const groupedResults = useMemo(() => {
-  //   const groups = {};
-  //   apiData.forEach((shop) => {
-  //     const company = shop.properties.company;
-  //     if (!groups[company]) {
-  //       groups[company] = [];
-  //     }
-  //     groups[company].push(shop);
-  //   });
-  //   return groups;
-  // }, [apiData]);
+  const groupedResults = useMemo(() => {
+    const groups = {};
+    apiData.forEach((shop) => {
+      const company = shop.properties.company;
+      if (!groups[company]) {
+        groups[company] = [];
+      }
+      groups[company].push(shop);
+    });
+    return groups;
+  }, [apiData]);
 
   return (
     <div className="relative h-screen w-screen overflow-hidden">
@@ -892,7 +916,7 @@ const DataMap = () => {
         </div>
       </div>
 
-      {/* <button
+      <button
         className="bg-white w-80 h-16 absolute top-5 right-5 z-30 flex justify-between items-center px-4 border rounded-lg py-4 hover:text-orange-600 focus:outline-none transition-colors duration-200"
         onClick={toggleResult}
       >
@@ -912,24 +936,38 @@ const DataMap = () => {
         <div className="p-4 h-full flex flex-col">
           <div className="flex-1 overflow-y-auto">
             {apiData.length === 0 ? (
-              <p className="text-center text-gray-500">نتیجه‌ای یافت نشد.</p>
+              <p className="text-center text-gray-500">Result not found</p>
             ) : (
               Object.entries(groupedResults).map(([company, shops]) => (
-                <div key={company} className="mb-6">
+                <div key={company} className="mb-6 overflow-x-hidden">
                   <h3 className="text-lg font-semibold mb-2">{company}</h3>
-                  <ul className="space-y-2">
+                  <ul className="space-y-2 overflow-y-auto">
                     {shops.map((shop) => (
                       <li
                         key={shop.properties.shop_id}
-                        className="flex justify-between items-center px-2 py-2 bg-gray-100 rounded"
+                        className="flex flex-col justify-between px-2 py-2 bg-gray-100 rounded"
                       >
-                        <span className="font-medium">
+                        <span className="text-sm font-medium">
                           {shop.properties.shopName}
                         </span>
-                        <span className="text-sm text-gray-600">
-                          امتیاز: {shop.properties.rating} | نظرات:{" "}
-                          {shop.properties.totalReviews}
+                        <span className="text-sm font-base">
+                          {shop.properties.postcode}
                         </span>
+                        <div className="flex gap-1">
+                          <span className="text-sm text-gray-600">
+                            {shop.properties.rating && (
+                              <div className="flex gap-1">
+                                <FaStar color="gold" />
+                                <p>{shop.properties.rating}</p>
+                              </div>
+                            )}
+                          </span>
+                          <span className="text-sm text-gray-600">
+                            {shop.properties.totalReviews && (
+                              <div>({shop.properties.totalReviews})</div>
+                            )}
+                          </span>
+                        </div>
                       </li>
                     ))}
                   </ul>
@@ -938,7 +976,7 @@ const DataMap = () => {
             )}
           </div>
         </div>
-      </div> */}
+      </div>
 
       <div className="relative z-0 h-full w-full">
         <div
