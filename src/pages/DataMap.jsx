@@ -13,7 +13,7 @@ import L from "leaflet";
 import { HiAdjustments } from "react-icons/hi";
 import { IoIosArrowBack, IoIosArrowDown, IoIosArrowUp } from "react-icons/io";
 
-import { RiAccountCircleFill } from "react-icons/ri";
+import { RiAccountCircleFill, RiLogoutCircleRLine } from "react-icons/ri";
 import instance from "../component/api";
 import ClusterMarker from "../component/ClusterMarker";
 import { Controller, useForm } from "react-hook-form";
@@ -29,6 +29,8 @@ import {
 } from "../component/indexedDB";
 
 import ResultBar from "../component/Resultbar";
+import { Link, useNavigate } from "react-router-dom";
+import { MdAccountCircle } from "react-icons/md";
 
 const companies = [
   {
@@ -79,14 +81,14 @@ const companies = [
     type: "type2",
     color: "#e9540d",
   },
-  {
-    id: "mnl",
-    name: "Menu List",
-    apiUrl: "/api/v1/companies/menulist/",
-    requiresAuth: true,
-    type: "type1",
-    color: "#7f9741",
-  },
+  // {
+  //   id: "mnl",
+  //   name: "Menu List",
+  //   apiUrl: "/api/v1/companies/menulist/",
+  //   requiresAuth: true,
+  //   type: "type1",
+  //   color: "#7f9741",
+  // },
   {
     id: "scf",
     name: "Scoffable",
@@ -219,6 +221,7 @@ const parseGoogleBusiness = (item, company) => {
       newReviewUri: item.metadata.newReviewUri,
       description: item.description,
       color: company.color,
+      locationId: item.name.split("/")[1],
     },
   };
 };
@@ -335,6 +338,11 @@ const MapBounds = ({ bounds }) => {
 };
 
 const DataMap = () => {
+  const navigate = useNavigate();
+  const goToShop = (locationId) => {
+    navigate(`/panel/${locationId}`);
+  };
+
   const { register, handleSubmit, control, watch } = useForm({
     defaultValues: {
       selectedCompanies: [],
@@ -474,16 +482,16 @@ const DataMap = () => {
       const fetchCompanyData = async (company) => {
         const cachedData = await getCachedCompanyData(company.id);
         if (cachedData) {
-          console.log(`استفاده از داده‌های کش شده برای ${company.name}`);
+          console.log(`using cached data for${company.name}`);
           return cachedData;
         } else {
           try {
             const response = await instance.get(company.apiUrl);
             await setCachedCompanyData(company.id, response.data);
-            console.log(`دریافت و کش کردن داده‌های ${company.name}`);
+            console.log(`recieve and cache data for ${company.name}`);
             return response.data;
           } catch (error) {
-            console.error(`خطا در دریافت داده‌های ${company.name}:`, error);
+            console.error(`error in fetching data ${company.name}:`, error);
             throw error;
           }
         }
@@ -494,7 +502,7 @@ const DataMap = () => {
       );
 
       const responses = await Promise.all(requests);
-      console.log("پاسخ‌ها از شرکت‌ها:", responses);
+      console.log("response from companies", responses);
 
       let points = responses
         .flatMap((res, index) => transformData(res, selectedCompanyList[index]))
@@ -730,7 +738,7 @@ const DataMap = () => {
           className="mx-4 flex py-2 justify-between items-center border-b-2"
           style={{ height: "10%" }}
         >
-          <h2 className="text-2xl font-bold">Filter</h2>
+          <span className="text-2xl font-bold">Filter</span>
           <button
             className="w-8 p-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 focus:outline-none"
             onClick={() => setIsFilterOpen(false)}
@@ -755,9 +763,9 @@ const DataMap = () => {
             </div>
 
             <div className="border-b py-3">
-              <h2 className="text-lg font-normal mb-2">
+              <span className="text-lg font-normal mb-2">
                 Select Company (required)
-              </h2>
+              </span>
               {companies.map((company) => (
                 <div
                   key={company.id}
@@ -777,7 +785,7 @@ const DataMap = () => {
               ))}
             </div>
             <div className="border-b py-3">
-              <h2 className="text-lg font-normal mb-2">Select Regions</h2>
+              <span className="text-lg font-normal mb-2">Select Regions</span>
               <Controller
                 name="region"
                 control={control}
@@ -801,7 +809,9 @@ const DataMap = () => {
             </div>
 
             <div className="border-b py-3">
-              <h2 className="text-lg font-normal mb-2">Select Categories</h2>
+              <span className="text-lg font-normal mb-2">
+                Select Categories
+              </span>
               <Controller
                 name="cuisine"
                 control={control}
@@ -824,7 +834,9 @@ const DataMap = () => {
               />
             </div>
             <div className="border-b py-3">
-              <h2 className="text-lg font-normal mb-2">Select Rating Range</h2>
+              <span className="text-lg font-normal mb-2">
+                Select Rating Range
+              </span>
               <Controller
                 name="ratingRange"
                 control={control}
@@ -850,7 +862,9 @@ const DataMap = () => {
               />
             </div>
             <div className="py-3">
-              <h2 className="text-lg font-normal mb-2">Select Review Range</h2>
+              <span className="text-lg font-normal mb-2">
+                Select Review Range
+              </span>
               <div className="flex justify-between mb-4">
                 <div className="flex flex-col">
                   <label htmlFor="minReview" className="text-sm mb-1">
@@ -922,13 +936,39 @@ const DataMap = () => {
           isProfileOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        <div className="p-4 h-full flex flex-col">
-          <button
-            className="w-8 mb-4 p-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 focus:outline-none"
-            onClick={() => setIsProfileOpen(false)}
-          >
-            <IoIosArrowBack />
-          </button>
+        <div className="p-4 w-full h-full flex flex-col justify-between">
+          <div>
+            <div className="flex justify-between">
+              <span className="text-2xl font-bold">Profile</span>
+              <button
+                className="w-8 mb-4 p-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 focus:outline-none"
+                onClick={() => setIsProfileOpen(false)}
+              >
+                <IoIosArrowBack />
+              </button>
+            </div>
+            <div className="px-2 py-2 bg-gray-50 flex flex-col rounded-lg border">
+              <div className="flex items-center">
+                <MdAccountCircle size={80} color="gray" />
+                <span>User</span>
+              </div>
+              <span>Department</span>
+            </div>
+          </div>
+          <div className="w-full justify-self-end">
+            <button
+              className="w-full flex items-center gap-2 px-2 py-2 rounded border border-gray-200 hover:border-red-600 focus:outline-none focus:ring-2 focus:ring-red-300 focus:ring-offset-2 transition"
+              onClick={() => {
+                sessionStorage.removeItem("accessToken");
+                navigate("/login");
+              }}
+            >
+              <div>
+                <RiLogoutCircleRLine color="red" size={25} />
+              </div>
+              <span className="hidden lg:block md:block sm:hidden">Logout</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -936,7 +976,7 @@ const DataMap = () => {
         className="bg-white w-80 h-16 absolute top-5 right-5 z-30 flex justify-between items-center px-4 border rounded-lg py-4 hover:text-orange-600 focus:outline-none transition-colors duration-200"
         onClick={toggleResult}
       >
-        <h2 className="text-xl font-medium">Results</h2>
+        <span className="text-xl font-medium">Results</span>
         {isResultOpen ? (
           <IoIosArrowUp size={24} />
         ) : (
@@ -1145,6 +1185,16 @@ const DataMap = () => {
                       <span>Description:</span>
                       {marker.properties.description}
                     </div>
+                    {marker.properties.company.toLowerCase() ===
+                    "google business" ? (
+                      <div className="flex justify-between">
+                        <button
+                          onClick={() => goToShop(marker.properties.locationId)}
+                        >
+                          Click to visit Dashboard
+                        </button>
+                      </div>
+                    ) : null}
                   </div>
                 </Popup>
               </Marker>

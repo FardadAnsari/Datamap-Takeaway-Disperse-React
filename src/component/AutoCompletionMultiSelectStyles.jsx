@@ -11,14 +11,14 @@ const AutoCompletionMultiSelectStyles = {
   }),
   multiValue: (provided) => ({
     ...provided,
-    backgroundColor: "#f0f8ff", // رنگ پس‌زمینه برای تگ‌های انتخاب‌شده
+    backgroundColor: "#f0f8ff",
     borderRadius: "5px",
     display: "flex",
     alignItems: "center",
   }),
   multiValueLabel: (provided) => ({
     ...provided,
-    color: "#333", // رنگ متن تگ‌ها
+    color: "#333",
     fontWeight: "bold",
   }),
   multiValueRemove: (provided) => ({
@@ -32,6 +32,10 @@ const AutoCompletionMultiSelectStyles = {
   placeholder: (provided) => ({
     ...provided,
     color: "#aaa",
+  }),
+  menu: (provided) => ({
+    ...provided,
+    zIndex: 9999,
   }),
 };
 

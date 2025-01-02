@@ -21,7 +21,7 @@ const App = () => {
           }
         />
         <Route
-          path="/panel"
+          path="/panel/:locationId"
           element={
             <PrivateRoute>
               <Panel />
