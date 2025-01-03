@@ -8,16 +8,29 @@ const PrivateRoute = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const checkAuth = async () => {
+    const channel = new BroadcastChannel("auth");
+
+    const handleAuth = async () => {
       try {
         const accessToken = sessionStorage.getItem("accessToken");
         if (!accessToken) {
-          throw new Error("No access token found");
+          channel.postMessage({ type: "REQUEST_TOKEN" });
+        } else {
+          await validateToken(accessToken);
         }
+      } catch (error) {
+        console.error("Error during authentication check:", error);
+        setIsAuthenticated(false);
+        setLoading(false);
+      }
+    };
+
+    const validateToken = async (token) => {
+      try {
         await instance.get("/account/user/", {
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${accessToken}`,
+            Authorization: `Bearer ${token}`,
           },
         });
         setIsAuthenticated(true);
@@ -29,7 +42,31 @@ const PrivateRoute = ({ children }) => {
       }
     };
 
-    checkAuth();
+    const onMessage = async (event) => {
+      const { type, token } = event.data;
+      if (type === "LOGIN" && token) {
+        sessionStorage.setItem("accessToken", token);
+        setIsAuthenticated(true);
+        setLoading(false);
+      } else if (type === "LOGOUT") {
+        sessionStorage.removeItem("accessToken");
+        setIsAuthenticated(false);
+        setLoading(false);
+      } else if (type === "REQUEST_TOKEN") {
+        const token = sessionStorage.getItem("accessToken");
+        if (token) {
+          channel.postMessage({ type: "LOGIN", token });
+        }
+      }
+    };
+
+    channel.addEventListener("message", onMessage);
+    handleAuth();
+
+    return () => {
+      channel.removeEventListener("message", onMessage);
+      channel.close();
+    };
   }, []);
 
   if (loading) {
