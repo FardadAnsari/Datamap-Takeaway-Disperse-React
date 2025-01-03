@@ -24,10 +24,9 @@ const Panel = () => {
 
   const { locationId } = useParams();
 
-  const navigate = useNavigate();
-
   const [open, setOpen] = useState(null);
   const [editOpen, setEditOpen] = useState(null);
+  const [shopTitle, setShopTitle] = useState("");
 
   const handleEditOpen = (id) => {
     if (editOpen === id) {
@@ -56,6 +55,18 @@ const Panel = () => {
   const selectedBusInfo = watchFilter("businessInformation");
 
   const [shopActivityStatus, setShopActivityStatus] = useState("");
+
+  useEffect(() => {
+    instance
+      .get(`/api/v1/google/get-title/${locationId}`)
+      .then((response) => {
+        console.log(response.data.location.title);
+
+        setShopTitle(response.data.location.title);
+        console.log(shopTitle);
+      })
+      .catch();
+  }, [locationId]);
 
   useEffect(() => {
     instance
@@ -180,65 +191,39 @@ const Panel = () => {
   }, [locationId]);
 
   return (
-    <div className="font-sans bg-yellow-100">
-      <div className="flex justify-between px-12 py-6 mb-6 border-solid bg-orange-300">
+    <div className="font-sans bg-yellow-50">
+      <div className="flex justify-between px-12 py-6 mb-6 border-solid bg-white shadow-md">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 bg-cover bg-center bg-google-business"></div>
           <p className="text-xl md:text-2xl lg:text-3xl font-medium text-teal-700 m-0">
             Google Business Dashboard
           </p>
         </div>
-        <button
-          className="flex items-center gap-2 px-2 py-2 text-white bg-teal-500 rounded hover:bg-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 transition"
-          onClick={() => {
-            sessionStorage.removeItem("accessToken");
-            navigate("/login");
-          }}
-        >
-          <div>
-            <RiLogoutCircleRLine size={25} />
-          </div>
-          <span className="hidden lg:block md:block sm:hidden">Logout</span>
-        </button>
       </div>
-      <div className="flex flex-col gap-2 mx-4 lg:mx-6 md:grid md:grid-cols-6 md:grid-rows-27 lg:grid lg:grid-cols-6 lg:grid-rows-9">
+      <div className="flex flex-col gap-2 mx-4 lg:mx-6 md:grid md:grid-cols-6 md:grid-rows-27 lg:grid lg:grid-cols-6 lg:grid-rows-8">
         <DialogDefault
           open={!isVerified}
           setClose={setIsVerified}
           message={"This Bussiness is not verified yet!"}
         />
-        <div className="md:col-span-3 md:row-span-6 md:row-start-2 md:col-start-1 lg:col-span-2 lg:row-span-6 lg:col-start-5 rounded-2xl bg-white">
-          <div className="flex flex-col px-4 pt-4 ">
+        <div className="md:col-span-3 md:row-span-6 md:row-start-2 md:col-start-1 lg:col-span-2 lg:row-span-5 lg:col-start-5 rounded-2xl bg-white shadow-md">
+          <div className="flex flex-col px-4 pt-4">
             <div className="h-10 flex gap-2 justify-between items-center border-gray-600 border-b-2 pb-4">
-              {!selectedBusInfo && (
-                <p className="text-teal-900 text-sm font-light text-center">
-                  Select the account name and the relevant business information
-                </p>
-              )}
-              {selectedBusInfo ? (
-                <>
-                  {editOpen === 4 ? (
-                    <ShopNameEdit
-                      locationId={locationId}
-                      shopName={selectedBusInfo.label}
-                    />
-                  ) : (
-                    <p
-                      className={`${selectedBusInfo.label.length < 45 ? "text-lg" : "text-base"} font-medium`}
-                    >
-                      {selectedBusInfo.label}
-                    </p>
-                  )}
-                  <button
-                    onClick={() => handleEditOpen(4)}
-                    className={`flex justify-between items-center py-2 px-2 text-lg font-medium text-left  border-2 border-gray-300 rounded-xl hover:border-gray-400 ${editOpen === 1 ? "focus:border-gray-500" : ""} transition ease-in delay-190`}
-                  >
-                    <span>
-                      {editOpen === 4 ? <LuPencilLine /> : <LuPencil />}
-                    </span>
-                  </button>
-                </>
-              ) : null}
+              <>
+                {editOpen === 4 ? (
+                  <ShopNameEdit locationId={locationId} shopName={shopTitle} />
+                ) : (
+                  <p>{shopTitle}</p>
+                )}
+                <button
+                  onClick={() => handleEditOpen(4)}
+                  className={`flex justify-between items-center py-2 px-2 text-lg font-medium text-left  border-2 border-gray-300 rounded-xl hover:border-gray-400 ${editOpen === 1 ? "focus:border-gray-500" : ""} transition ease-in delay-190`}
+                >
+                  <span>
+                    {editOpen === 4 ? <LuPencilLine /> : <LuPencil />}
+                  </span>
+                </button>
+              </>
             </div>
             <div className="border-b">
               <div className="flex justify-between items-center py-2">
@@ -385,7 +370,7 @@ const Panel = () => {
             </div>
           </div>
         </div>
-        <div className="h-full w-full px-2 flex flex-col md:col-span-3 md:col-start-1 md:row-span-6 md:row-start-8 lg:row-span-6 lg:col-span-2 lg:row-start-1 rounded-2xl bg-white">
+        <div className="h-full w-full px-2 flex flex-col md:col-span-3 md:col-start-1 md:row-span-6 md:row-start-8 lg:row-span-5 lg:col-span-2 lg:row-start-1 rounded-2xl bg-white shadow-md">
           <div className="flex justify-center py-2 border-b-2">
             <p className="text-xl font-medium">By searching on Google</p>
           </div>
@@ -395,7 +380,7 @@ const Panel = () => {
             onPieEnter={onPieEnterSearch}
           />
         </div>
-        <div className="h-full w-full px-2 flex flex-col md:col-span-3 md:row-span-6 md:row-start-8 md:col-start-4 lg:row-span-6 lg:col-span-2 lg:col-start-3 lg:row-start-1 md:row-start-8 rounded-2xl bg-white">
+        <div className="h-full w-full px-2 flex flex-col md:col-span-3 md:row-span-6 md:row-start-8 md:col-start-4 lg:row-span-5 lg:col-span-2 lg:col-start-3 lg:row-start-1 md:row-start-8 rounded-2xl bg-white shadow-md">
           <div className="flex justify-center py-2 border-b-2">
             <p className="text-xl font-medium">By using Google map service</p>
           </div>
@@ -405,10 +390,10 @@ const Panel = () => {
             onPieEnter={onPieEnterMap}
           />
         </div>
-        <div className="md:row-start-14 md:row-span-6 md:col-span-6 lg:col-span-4 lg:row-span-4 lg:row-start-7 rounded-2xl p-2 bg-white">
+        <div className="md:row-start-14 md:row-span-6 md:col-span-6 lg:col-span-4 lg:row-span-5 lg:row-start-6 rounded-2xl p-2 bg-white shadow-md">
           <KeywordsAnalytics locationId={locationId} />
         </div>
-        <div className="md:row-start-2 md:col-span-3 md:row-span-6 md:col-start-4 lg:row-start-7 lg:col-span-2 lg:row-span-4 lg:col-start-5  rounded-2xl p-2 bg-white">
+        <div className="md:row-start-2 md:col-span-3 md:row-span-6 md:col-start-4 lg:row-start-6 lg:col-span-2 lg:row-span-5 lg:col-start-5  rounded-2xl p-2 bg-white shadow-md">
           <TotalInteractions webCallCount={webCallCount} />
         </div>
       </div>

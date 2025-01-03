@@ -31,6 +31,7 @@ import {
 import ResultBar from "../component/Resultbar";
 import { Link, useNavigate } from "react-router-dom";
 import { MdAccountCircle } from "react-icons/md";
+import Logout from "../component/Logout";
 
 const companies = [
   {
@@ -41,14 +42,14 @@ const companies = [
     type: "type1",
     color: "#572349",
   },
-  {
-    id: "fhs",
-    name: "Food House",
-    apiUrl: "/api/v1/companies/foodhouse/",
-    requiresAuth: true,
-    type: "type1",
-    color: "#c2008e",
-  },
+  // {
+  //   id: "fhs",
+  //   name: "Food House",
+  //   apiUrl: "/api/v1/companies/foodhouse/",
+  //   requiresAuth: true,
+  //   type: "type1",
+  //   color: "#c2008e",
+  // },
   {
     id: "fhb",
     name: "Food Hub",
@@ -113,14 +114,14 @@ const companies = [
     type: "type1",
     color: "#0bab0b",
   },
-  {
-    id: "wtf",
-    name: "What The Fork",
-    apiUrl: "/api/v1/companies/whatthefork/",
-    requiresAuth: true,
-    type: "type1",
-    color: "#f7d205",
-  },
+  // {
+  //   id: "wtf",
+  //   name: "What The Fork",
+  //   apiUrl: "/api/v1/companies/whatthefork/",
+  //   requiresAuth: true,
+  //   type: "type1",
+  //   color: "#f7d205",
+  // },
 ];
 
 const parseType1 = (item, company) => {
@@ -925,9 +926,7 @@ const DataMap = () => {
               {loading ? "Is Loading ..." : "Filter"}
             </button>
 
-            {error && (
-              <div className="mt-4 text-center text-red-600">{error}</div>
-            )}
+            {error && <div className="text-center text-red-600">{error}</div>}
           </div>
         </form>
       </div>
@@ -956,18 +955,7 @@ const DataMap = () => {
             </div>
           </div>
           <div className="w-full justify-self-end">
-            <button
-              className="w-full flex items-center gap-2 px-2 py-2 rounded border border-gray-200 hover:border-red-600 focus:outline-none focus:ring-2 focus:ring-red-300 focus:ring-offset-2 transition"
-              onClick={() => {
-                sessionStorage.removeItem("accessToken");
-                navigate("/login");
-              }}
-            >
-              <div>
-                <RiLogoutCircleRLine color="red" size={25} />
-              </div>
-              <span className="hidden lg:block md:block sm:hidden">Logout</span>
-            </button>
+            <Logout />
           </div>
         </div>
       </div>
@@ -1097,7 +1085,7 @@ const DataMap = () => {
                         <span>None</span>
                       </div>
                     )}
-                    {marker.properties.menu ? (
+                    {/* {marker.properties.menu ? (
                       <div className="flex justify-between">
                         <span>Menu:</span>
                         <a
@@ -1113,7 +1101,7 @@ const DataMap = () => {
                         <span>Menu:</span>
                         <span>None</span>
                       </div>
-                    )}
+                    )} */}
                     {marker.properties.googlemap ? (
                       <div className="flex justify-between">
                         <span>Google map:</span>
@@ -1131,7 +1119,7 @@ const DataMap = () => {
                         <span>None</span>
                       </div>
                     )}
-                    {marker.properties.app ? (
+                    {/* {marker.properties.app ? (
                       <div className="flex justify-between">
                         <span>Mobile app:</span>
                         <a
@@ -1147,7 +1135,7 @@ const DataMap = () => {
                         <span>Mobile app:</span>
                         <span>None</span>
                       </div>
-                    )}
+                    )} */}
                     {marker.properties.rating ? (
                       <div className="flex justify-between">
                         <span>Rating:</span>
@@ -1181,18 +1169,20 @@ const DataMap = () => {
                         <span>None</span>
                       </div>
                     )}
-                    <div className="flex flex-col justify-between gap-1">
+                    {/* <div className="flex flex-col justify-between gap-1">
                       <span>Description:</span>
                       {marker.properties.description}
-                    </div>
+                    </div> */}
                     {marker.properties.company.toLowerCase() ===
                     "google business" ? (
                       <div className="flex justify-between">
-                        <button
-                          onClick={() => goToShop(marker.properties.locationId)}
+                        <Link
+                          to={`/panel/${marker.properties.locationId}`}
+                          target="_blank"
+                          className="py-2 px-4 text-white rounded"
                         >
                           Click to visit Dashboard
-                        </button>
+                        </Link>
                       </div>
                     ) : null}
                   </div>
