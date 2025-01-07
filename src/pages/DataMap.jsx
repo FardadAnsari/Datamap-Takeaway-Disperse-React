@@ -13,7 +13,7 @@ import L from "leaflet";
 import { HiAdjustments } from "react-icons/hi";
 import { IoIosArrowBack, IoIosArrowDown, IoIosArrowUp } from "react-icons/io";
 
-import { RiAccountCircleFill, RiLogoutCircleRLine } from "react-icons/ri";
+import { RiAccountCircleFill } from "react-icons/ri";
 import instance from "../component/api";
 import ClusterMarker from "../component/ClusterMarker";
 import { Controller, useForm } from "react-hook-form";
@@ -28,28 +28,22 @@ import {
   clearOldCaches,
 } from "../component/indexedDB";
 
+import companyIcons from "../assets/checkbox-icon/checkboxIcons";
+
 import ResultBar from "../component/Resultbar";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { MdAccountCircle } from "react-icons/md";
 import Logout from "../component/Logout";
 
 const companies = [
   {
     id: "dlv",
-    name: "Delivero",
+    name: "Deliveroo",
     apiUrl: "/api/v1/companies/deliveroo/",
     requiresAuth: true,
     type: "type1",
     color: "#572349",
   },
-  // {
-  //   id: "fhs",
-  //   name: "Food House",
-  //   apiUrl: "/api/v1/companies/foodhouse/",
-  //   requiresAuth: true,
-  //   type: "type1",
-  //   color: "#c2008e",
-  // },
   {
     id: "fhb",
     name: "Food Hub",
@@ -82,14 +76,7 @@ const companies = [
     type: "type2",
     color: "#e9540d",
   },
-  // {
-  //   id: "mnl",
-  //   name: "Menu List",
-  //   apiUrl: "/api/v1/companies/menulist/",
-  //   requiresAuth: true,
-  //   type: "type1",
-  //   color: "#7f9741",
-  // },
+
   {
     id: "scf",
     name: "Scoffable",
@@ -114,14 +101,6 @@ const companies = [
     type: "type1",
     color: "#0bab0b",
   },
-  // {
-  //   id: "wtf",
-  //   name: "What The Fork",
-  //   apiUrl: "/api/v1/companies/whatthefork/",
-  //   requiresAuth: true,
-  //   type: "type1",
-  //   color: "#f7d205",
-  // },
 ];
 
 const parseType1 = (item, company) => {
@@ -339,11 +318,6 @@ const MapBounds = ({ bounds }) => {
 };
 
 const DataMap = () => {
-  const navigate = useNavigate();
-  const goToShop = (locationId) => {
-    navigate(`/panel/${locationId}`);
-  };
-
   const { register, handleSubmit, control, watch } = useForm({
     defaultValues: {
       selectedCompanies: [],
@@ -764,29 +738,40 @@ const DataMap = () => {
             </div>
 
             <div className="border-b py-3">
-              <span className="text-lg font-normal mb-2">
+              <p className="text-lg font-normal mb-2">
                 Select Company (required)
-              </span>
-              {companies.map((company) => (
-                <div
-                  key={company.id}
-                  className="flex items-center space-x-2 mb-2"
-                >
-                  <input
-                    type="checkbox"
-                    id={company.id}
-                    {...register("selectedCompanies")}
-                    value={company.apiUrl}
-                    className="h-4 w-4 text-orange-600 border-gray-300 rounded focus:ring-orange-500 accent-orange-400"
-                  />
-                  <label htmlFor={company.id} className="text-sm">
-                    {company.name}
-                  </label>
-                </div>
-              ))}
+              </p>
+              {companies.map((company) => {
+                const IconComponent =
+                  companyIcons[
+                    company.name
+                      .replace(/^(\S+)\s+(\S+)$/, "$1$2")
+                      .toLowerCase()
+                  ];
+                return (
+                  <div
+                    key={company.id}
+                    className="flex items-center justify-between mb-2"
+                  >
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        id={company.id}
+                        {...register("selectedCompanies")}
+                        value={company.apiUrl}
+                        className="h-4 w-4 text-orange-600 border-gray-500 rounded focus:ring-orange-500 accent-orange-400"
+                      />
+                      <label htmlFor={company.id} className="text-sm">
+                        {company.name}
+                      </label>
+                    </div>
+                    {IconComponent && <IconComponent width={24} height={24} />}
+                  </div>
+                );
+              })}
             </div>
             <div className="border-b py-3">
-              <span className="text-lg font-normal mb-2">Select Regions</span>
+              <p className="text-lg font-normal mb-2">Select Regions</p>
               <Controller
                 name="region"
                 control={control}
@@ -810,9 +795,7 @@ const DataMap = () => {
             </div>
 
             <div className="border-b py-3">
-              <span className="text-lg font-normal mb-2">
-                Select Categories
-              </span>
+              <p className="text-lg font-normal mb-2">Select Categories</p>
               <Controller
                 name="cuisine"
                 control={control}
@@ -835,9 +818,7 @@ const DataMap = () => {
               />
             </div>
             <div className="border-b py-3">
-              <span className="text-lg font-normal mb-2">
-                Select Rating Range
-              </span>
+              <p className="text-lg font-normal mb-2">Select Rating Range</p>
               <Controller
                 name="ratingRange"
                 control={control}
@@ -863,9 +844,7 @@ const DataMap = () => {
               />
             </div>
             <div className="py-3">
-              <span className="text-lg font-normal mb-2">
-                Select Review Range
-              </span>
+              <p className="text-lg font-normal mb-2">Select Review Range</p>
               <div className="flex justify-between mb-4">
                 <div className="flex flex-col">
                   <label htmlFor="minReview" className="text-sm mb-1">
@@ -1016,179 +995,164 @@ const DataMap = () => {
               />
             ))}
 
-            {markersToRender.map((marker) => (
-              <Marker
-                key={`marker-${marker.properties.shop_id}`}
-                position={[
-                  marker.geometry.coordinates[1],
-                  marker.geometry.coordinates[0],
-                ]}
-                icon={createCustomIcon(marker.properties.color)}
-              >
-                <Popup className="p-0 m-0">
-                  <div className="flex flex-col w-96 py-2 pr-3 gap-2">
-                    <div className="flex justify-between items-center border-b-2 pb-2">
-                      <span className="font-bold text-xl">
-                        {marker.properties.shopName}
-                      </span>
-                      <span className="font-bold text-base">
-                        {marker.properties.company}
-                      </span>
+            {markersToRender.map((marker) => {
+              const IconComponent =
+                companyIcons[
+                  marker.properties.company
+                    .replace(/^(\S+)\s+(\S+)$/, "$1$2")
+                    .toLowerCase()
+                ];
+              return (
+                <Marker
+                  key={`marker-${marker.properties.shop_id}`}
+                  position={[
+                    marker.geometry.coordinates[1],
+                    marker.geometry.coordinates[0],
+                  ]}
+                  icon={createCustomIcon(marker.properties.color)}
+                >
+                  <Popup className="p-0 m-0">
+                    <div className="flex flex-col w-96 py-2 pr-3 gap-2">
+                      <div className="flex gap-2 justify-between">
+                        <span className="font-bold text-xl">
+                          {marker.properties.shopName}
+                        </span>
+
+                        {IconComponent && (
+                          <IconComponent width={28} height={28} />
+                        )}
+                      </div>
+                      <div className="flex w-full items-center py-2">
+                        <span className="w-2/6">Restaurant Details</span>
+                        <div className="w-4/6 h-px bg-gray-500"></div>
+                      </div>
+                      {marker.properties.phone ? (
+                        <div className="flex justify-between">
+                          <span>Phone No.</span>
+                          <span>{marker.properties.phone}</span>
+                        </div>
+                      ) : (
+                        <div className="flex justify-between">
+                          <span>Phone No.</span>
+                          <span>None</span>
+                        </div>
+                      )}
+
+                      {marker.properties.postcode ? (
+                        <div className="flex justify-between">
+                          <span>Postcode</span>
+                          <span>{marker.properties.postcode}</span>
+                        </div>
+                      ) : (
+                        <div className="flex justify-between">
+                          <span>Postcode</span>
+                          <span>None</span>
+                        </div>
+                      )}
+                      {marker.properties.cuisines ? (
+                        <div className="flex justify-between">
+                          <span>Cuisines</span>
+                          <span>{marker.properties.cuisines}</span>
+                        </div>
+                      ) : (
+                        <div className="flex justify-between">
+                          <span>Cuisines</span>
+                          <span>None</span>
+                        </div>
+                      )}
+                      {marker.properties.rating ? (
+                        <div className="flex justify-between">
+                          <span>Rating</span>
+                          <span>{marker.properties.rating}</span>
+                        </div>
+                      ) : (
+                        <div className="flex justify-between">
+                          <span>Rating</span>
+                          <span>None</span>
+                        </div>
+                      )}
+                      {marker.properties.totalReviews ? (
+                        <div className="flex justify-between">
+                          <span>Reviews</span>
+                          <span>{marker.properties.totalReviews}</span>
+                        </div>
+                      ) : (
+                        <div className="flex justify-between">
+                          <span>Reviews</span>
+                          <span>None</span>
+                        </div>
+                      )}
+                      {marker.properties.address ? (
+                        <div className="flex justify-between">
+                          <span>Address</span>
+                          <span>{marker.properties.address}</span>
+                        </div>
+                      ) : (
+                        <div className="flex justify-between">
+                          <span>Address</span>
+                          <span>None</span>
+                        </div>
+                      )}
+                      <div className="flex w-full items-center py-2">
+                        <span className="w-2/6">Quick Access Links</span>
+                        <div className="w-4/6 h-px bg-gray-500"></div>
+                      </div>
+                      {marker.properties.website ? (
+                        <div className="flex justify-between">
+                          <span>Website</span>
+                          <a
+                            href={marker.properties.website}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            {marker.properties.website}
+                          </a>
+                        </div>
+                      ) : (
+                        <div className="flex justify-between">
+                          <span>Website</span>
+                          <span>None</span>
+                        </div>
+                      )}
+                      {marker.properties.googlemap ? (
+                        <div className="flex justify-between">
+                          <span>Google Maps</span>
+                          <a
+                            href={marker.properties.googlemap}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            Google Map
+                          </a>
+                        </div>
+                      ) : (
+                        <div className="flex justify-between">
+                          <span>Google Maps</span>
+                          <span>None</span>
+                        </div>
+                      )}
+                      {marker.properties.company.toLowerCase() ===
+                      "google business" ? (
+                        <div className="flex justify-between">
+                          <span>Google Business</span>
+                          <Link
+                            to={`/panel/${marker.properties.locationId}`}
+                            target="_blank"
+                            className=" text-white rounded"
+                          >
+                            Google Business Dashboard
+                          </Link>
+                        </div>
+                      ) : null}
+                      {/* <div className="flex w-full items-center">
+                        <span className="w-2/5">Additional Information</span>
+                        <div className="w-3/5 h-px bg-gray-500"></div>
+                      </div> */}
                     </div>
-                    {marker.properties.address ? (
-                      <div className="flex justify-between">
-                        <span>Address:</span>
-                        <span>{marker.properties.address}</span>
-                      </div>
-                    ) : (
-                      <div className="flex justify-between">
-                        <span>Address:</span>
-                        <span>None</span>
-                      </div>
-                    )}
-                    {marker.properties.postcode ? (
-                      <div className="flex justify-between">
-                        <span>Postcode:</span>
-                        <span>{marker.properties.postcode}</span>
-                      </div>
-                    ) : (
-                      <div className="flex justify-between">
-                        <span>Postcode:</span>
-                        <span>None</span>
-                      </div>
-                    )}
-                    {marker.properties.cuisines ? (
-                      <div className="flex justify-between">
-                        <span>Cuisines:</span>
-                        <span>{marker.properties.cuisines}</span>
-                      </div>
-                    ) : (
-                      <div className="flex justify-between">
-                        <span>Cuisines:</span>
-                        <span>None</span>
-                      </div>
-                    )}
-                    {marker.properties.website ? (
-                      <div className="flex justify-between">
-                        <span>Website:</span>
-                        <a
-                          href={marker.properties.website}
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          Click to visit shop website
-                        </a>
-                      </div>
-                    ) : (
-                      <div className="flex justify-between">
-                        <span>Website:</span>
-                        <span>None</span>
-                      </div>
-                    )}
-                    {/* {marker.properties.menu ? (
-                      <div className="flex justify-between">
-                        <span>Menu:</span>
-                        <a
-                          href={marker.properties.menu}
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          Click to visit shop menu
-                        </a>
-                      </div>
-                    ) : (
-                      <div className="flex justify-between">
-                        <span>Menu:</span>
-                        <span>None</span>
-                      </div>
-                    )} */}
-                    {marker.properties.googlemap ? (
-                      <div className="flex justify-between">
-                        <span>Google map:</span>
-                        <a
-                          href={marker.properties.googlemap}
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          Click to visit google map
-                        </a>
-                      </div>
-                    ) : (
-                      <div className="flex justify-between">
-                        <span>Google map:</span>
-                        <span>None</span>
-                      </div>
-                    )}
-                    {/* {marker.properties.app ? (
-                      <div className="flex justify-between">
-                        <span>Mobile app:</span>
-                        <a
-                          href={marker.properties.app}
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          Click to download mobile app
-                        </a>
-                      </div>
-                    ) : (
-                      <div className="flex justify-between">
-                        <span>Mobile app:</span>
-                        <span>None</span>
-                      </div>
-                    )} */}
-                    {marker.properties.rating ? (
-                      <div className="flex justify-between">
-                        <span>Rating:</span>
-                        <span>{marker.properties.rating}</span>
-                      </div>
-                    ) : (
-                      <div className="flex justify-between">
-                        <span>Rating:</span>
-                        <span>None</span>
-                      </div>
-                    )}
-                    {marker.properties.totalReviews ? (
-                      <div className="flex justify-between">
-                        <span>Reviews:</span>
-                        <span>{marker.properties.totalReviews}</span>
-                      </div>
-                    ) : (
-                      <div className="flex justify-between">
-                        <span>Reviews:</span>
-                        <span>None</span>
-                      </div>
-                    )}
-                    {marker.properties.phone ? (
-                      <div className="flex justify-between">
-                        <span>Phone:</span>
-                        <span>{marker.properties.phone}</span>
-                      </div>
-                    ) : (
-                      <div className="flex justify-between">
-                        <span>Phone:</span>
-                        <span>None</span>
-                      </div>
-                    )}
-                    {/* <div className="flex flex-col justify-between gap-1">
-                      <span>Description:</span>
-                      {marker.properties.description}
-                    </div> */}
-                    {marker.properties.company.toLowerCase() ===
-                    "google business" ? (
-                      <div className="flex justify-between">
-                        <Link
-                          to={`/panel/${marker.properties.locationId}`}
-                          target="_blank"
-                          className="py-2 px-4 text-white rounded"
-                        >
-                          Click to visit Dashboard
-                        </Link>
-                      </div>
-                    ) : null}
-                  </div>
-                </Popup>
-              </Marker>
-            ))}
+                  </Popup>
+                </Marker>
+              );
+            })}
           </MapContainer>
         </div>
 
