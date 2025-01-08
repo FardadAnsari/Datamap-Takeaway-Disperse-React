@@ -32,7 +32,7 @@ const Login = () => {
       );
       sessionStorage.setItem("accessToken", response.data.access);
 
-      navigate("/");
+      navigate("/datamap");
     } catch (error) {
       if (error.response) {
         if (error.response.status === 401) {

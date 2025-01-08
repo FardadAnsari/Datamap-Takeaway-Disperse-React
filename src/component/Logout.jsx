@@ -11,7 +11,7 @@ const Logout = () => {
 
     channel.postMessage({ type: "LOGOUT" });
 
-    navigate("/login");
+    navigate("/");
   };
 
   return (
