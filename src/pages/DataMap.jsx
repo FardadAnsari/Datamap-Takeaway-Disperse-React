@@ -1,4 +1,5 @@
 import React, { useState, useRef, useMemo, useEffect } from "react";
+import ReactDOMServer from "react-dom/server";
 import {
   MapContainer,
   TileLayer,
@@ -34,6 +35,7 @@ import ResultBar from "../component/Resultbar";
 import { Link } from "react-router-dom";
 import { MdAccountCircle } from "react-icons/md";
 import Logout from "../component/Logout";
+import companyPins from "../assets/pins/pins";
 
 const companies = [
   {
@@ -227,29 +229,42 @@ const transformData = (items, company) => {
   return transformed;
 };
 
-const createCustomIcon = (color) => {
-  const svgIcon = `
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="${color}"
-      stroke="white"
-      stroke-width="2"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-    >
-      <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 1 1 18 0z"></path>
-      <circle cx="12" cy="10" r="3"></circle>
-    </svg>
-  `;
+// const createCustomIcon = (color) => {
+//   const svgIcon = `
+//     <svg
+//       xmlns="http://www.w3.org/2000/svg"
+//       width="24"
+//       height="24"
+//       viewBox="0 0 24 24"
+//       fill="${color}"
+//       stroke="white"
+//       stroke-width="2"
+//       stroke-linecap="round"
+//       stroke-linejoin="round"
+//     >
+//       <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 1 1 18 0z"></path>
+//       <circle cx="12" cy="10" r="3"></circle>
+//     </svg>
+//   `;
+
+//   return L.divIcon({
+//     html: svgIcon,
+//     className: "",
+//     iconSize: [24, 24],
+//     popupAnchor: [0, -12],
+//   });
+// };
+const createCustomIcon = (PinComponent, options = {}) => {
+  const { width = 40, height = 40 } = options;
+
+  const iconHTML = ReactDOMServer.renderToString(
+    <PinComponent width={width} height={height} />
+  );
 
   return L.divIcon({
-    html: svgIcon,
+    html: iconHTML,
     className: "",
-    iconSize: [24, 24],
-    popupAnchor: [0, -12],
+    iconSize: [width, height],
   });
 };
 
@@ -1002,6 +1017,16 @@ const DataMap = () => {
                     .replace(/^(\S+)\s+(\S+)$/, "$1$2")
                     .toLowerCase()
                 ];
+              const PinComponent =
+                companyPins[
+                  marker.properties.company
+                    .replace(/^(\S+)\s+(\S+)$/, "$1$2")
+                    .toLowerCase()
+                ];
+              const pin = createCustomIcon(PinComponent, {
+                width: 44,
+                height: 44,
+              });
               return (
                 <Marker
                   key={`marker-${marker.properties.shop_id}`}
@@ -1009,7 +1034,7 @@ const DataMap = () => {
                     marker.geometry.coordinates[1],
                     marker.geometry.coordinates[0],
                   ]}
-                  icon={createCustomIcon(marker.properties.color)}
+                  icon={pin}
                 >
                   <Popup className="p-0 m-0">
                     <div className="flex flex-col w-96 py-2 pr-3 gap-2">
