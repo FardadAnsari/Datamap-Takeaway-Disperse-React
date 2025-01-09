@@ -694,6 +694,36 @@ const DataMap = () => {
     [groupedResults]
   );
 
+  const mapRef = useRef(null);
+
+  const [activeMarker, setActiveMarker] = useState(null);
+  const markerRefs = useRef({});
+  const focusOnMarker = (coordinates, shopId) => {
+    if (mapRef.current) {
+      const map = mapRef.current;
+
+      // Close previous popup if exists
+      if (activeMarker && markerRefs.current[activeMarker]) {
+        markerRefs.current[activeMarker].closePopup();
+      }
+
+      // Update active marker
+      setActiveMarker(shopId);
+
+      // Set map view with animation
+      map.flyTo([coordinates[1], coordinates[0]], 18, {
+        duration: 2,
+        easeLinearity: 0.1,
+      });
+
+      setTimeout(() => {
+        if (markerRefs.current[shopId]) {
+          markerRefs.current[shopId].openPopup();
+        }
+      }, 2000);
+    }
+  };
+
   return (
     <div className="relative h-screen w-screen overflow-hidden">
       <div className="bg-white w-20 h-screen absolute left-0 z-20 flex flex-col items-center border-r">
@@ -972,6 +1002,8 @@ const DataMap = () => {
           companyList={companyList}
           expandedCompanies={expandedCompanies}
           toggleCompany={toggleCompany}
+          onMarkerFocus={focusOnMarker}
+          activeMarker={activeMarker}
         />
       )}
 
@@ -982,6 +1014,7 @@ const DataMap = () => {
           }`}
         >
           <MapContainer
+            ref={mapRef}
             center={mapCenter}
             zoom={zoom}
             maxZoom={22}
@@ -1035,6 +1068,16 @@ const DataMap = () => {
                     marker.geometry.coordinates[0],
                   ]}
                   icon={pin}
+                  ref={(ref) => {
+                    if (ref) {
+                      markerRefs.current[marker.properties.shop_id] = ref;
+                    }
+                  }}
+                  eventHandlers={{
+                    click: () => {
+                      setActiveMarker(marker.properties.shop_id);
+                    },
+                  }}
                 >
                   <Popup className="p-0 m-0">
                     <div className="flex flex-col w-96 py-2 pr-3 gap-2">

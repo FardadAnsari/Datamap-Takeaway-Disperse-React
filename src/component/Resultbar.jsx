@@ -8,29 +8,16 @@ const ResultBar = ({
   companyList,
   expandedCompanies,
   toggleCompany,
+  onMarkerFocus,
+  activeMarker,
 }) => {
   const [visibleShops, setVisibleShops] = useState({});
   const [showCommonShops, setShowCommonShops] = useState(false);
 
-  // const findCommonShops = () => {
-  //   const shopMap = new Map();
-
-  //   Object.entries(groupedResults).forEach(([company, shops]) => {
-  //     shops.forEach((shop) => {
-  //       const key =
-  //         `${shop.properties.shopName}-${shop.properties.postcode}`.toLowerCase();
-  //       if (!shopMap.has(key)) {
-  //         shopMap.set(key, { shop, companies: [company] });
-  //       } else {
-  //         shopMap.get(key).companies.push(company);
-  //       }
-  //     });
-  //   });
-
-  //   return Array.from(shopMap.values())
-  //     .filter(({ companies }) => companies.length > 1)
-  //     .map(({ shop, companies }) => ({ ...shop, commonIn: companies }));
-  // };
+  const handleShopClick = (shop) => {
+    const coordinates = shop.geometry.coordinates;
+    onMarkerFocus(coordinates, shop.properties.shop_id);
+  };
 
   const findCommonShops = () => {
     const shopMap = new Map();
@@ -154,7 +141,8 @@ const ResultBar = ({
                         {shops.slice(0, visibleCount).map((shop) => (
                           <div
                             key={shop.properties.shop_id}
-                            className="flex flex justify-between items-center px-4 py-2 bg-white shadow-sm rounded"
+                            className={`flex ... cursor-pointer border-b ${activeMarker === shop.properties.shop_id ? "bg-orange-100" : ""}`}
+                            onClick={() => handleShopClick(shop)}
                           >
                             <div>
                               <h3 className="text-sm font-normal text-gray-700">
