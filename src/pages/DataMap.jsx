@@ -695,32 +695,45 @@ const DataMap = () => {
   );
 
   const mapRef = useRef(null);
-
-  const [activeMarker, setActiveMarker] = useState(null);
   const markerRefs = useRef({});
+  const [activeMarker, setActiveMarker] = useState(null);
+  const [isMapMoving, setIsMapMoving] = useState(false);
+
+  useEffect(() => {
+    if (activeMarker && markerRefs.current[activeMarker] && !isMapMoving) {
+      setTimeout(() => {
+        if (markerRefs.current[activeMarker]) {
+          markerRefs.current[activeMarker].openPopup();
+        }
+      }, 100);
+    }
+  }, [activeMarker, isMapMoving]);
+
   const focusOnMarker = (coordinates, shopId) => {
     if (mapRef.current) {
       const map = mapRef.current;
 
-      // Close previous popup if exists
+      // Close previous popup
       if (activeMarker && markerRefs.current[activeMarker]) {
         markerRefs.current[activeMarker].closePopup();
       }
 
-      // Update active marker
+      setIsMapMoving(true);
       setActiveMarker(shopId);
 
-      // Set map view with animation
       map.flyTo([coordinates[1], coordinates[0]], 18, {
         duration: 2,
         easeLinearity: 0.1,
+        noMoveStart: true,
       });
 
-      setTimeout(() => {
-        if (markerRefs.current[shopId]) {
-          markerRefs.current[shopId].openPopup();
-        }
-      }, 2000);
+      // Listen for the end of movement
+      const handleMoveEnd = () => {
+        setIsMapMoving(false);
+        map.off("moveend", handleMoveEnd);
+      };
+
+      map.on("moveend", handleMoveEnd);
     }
   };
 
@@ -985,7 +998,7 @@ const DataMap = () => {
       </div>
 
       <button
-        className="bg-white w-80 h-16 absolute top-5 right-5 z-30 flex justify-between items-center px-4 border rounded-lg py-4 hover:text-orange-600 focus:outline-none transition-colors duration-200"
+        className="bg-white w-96 h-16 absolute top-5 right-5 z-30 flex justify-between items-center px-4 border rounded-lg py-4 hover:text-orange-600 focus:outline-none transition-colors duration-200"
         onClick={toggleResult}
       >
         <span className="text-xl font-medium">Results</span>
