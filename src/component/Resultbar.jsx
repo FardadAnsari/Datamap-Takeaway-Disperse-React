@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Virtuoso } from "react-virtuoso";
 import { IoIosArrowDown, IoIosArrowUp } from "react-icons/io";
 import { FaStar } from "react-icons/fa6";
@@ -13,7 +13,7 @@ const ResultBar = ({
 }) => {
   const [visibleCommonShops, setVisibleCommonShops] = useState(3);
   const [visibleShops, setVisibleShops] = useState({});
-  const [activeTab, setActiveTab] = useState("byCompany"); // مقدار اولیه: 'byCompany'
+  const [activeTab, setActiveTab] = useState("byCompany");
 
   const handleShopClick = (shop) => {
     const coordinates = shop.geometry.coordinates;
@@ -59,26 +59,26 @@ const ResultBar = ({
   return (
     <div className="w-96 absolute top-24 right-5 flex flex-col h-5/6 bg-white z-20 shadow-md rounded-lg transition-transform duration-300 ease-in-out">
       <div className="p-4 h-full flex flex-col">
-        <div className="flex justify-center">
+        <div className="w-full flex justify-center mb-2 h-10 gap-2">
           <button
-            className={`text-base font-medium px-5 py-2 rounded-l flex justify-between items-center ${
+            className={`w-1/2 text-base font-light text-center rounded border ${
               activeTab === "byCompany"
-                ? "bg-orange-200 text-orange-800"
-                : "bg-orange-50 text-orange-700"
+                ? "bg-orange-500 text-white"
+                : "bg-white"
             }`}
             onClick={() => setActiveTab("byCompany")}
           >
             By Company ({companyList.length})
           </button>
           <button
-            className={`text-base font-medium px-5 py-2 rounded-r flex justify-between items-center ${
+            className={`w-1/2 text-base font-light text-center rounded border ${
               activeTab === "commonShops"
-                ? "bg-orange-200 text-orange-800"
-                : "bg-orange-50 text-orange-700"
+                ? "bg-orange-500 text-white"
+                : "bg-white"
             }`}
             onClick={() => setActiveTab("commonShops")}
           >
-            Common Shops ({commonShops.length})
+            Common shops
           </button>
         </div>
 
@@ -87,6 +87,7 @@ const ResultBar = ({
             <p className="text-center text-gray-500 mt-8">Result not found</p>
           ) : (
             <div className="flex-1 overflow-y-auto">
+              <p>Total result {commonShops.length}</p>
               <Virtuoso
                 style={{ height: "90%", width: "100%" }}
                 totalCount={visibleCommonShops}
@@ -148,7 +149,7 @@ const ResultBar = ({
                   const visibleCount = visibleShops[company] || 3;
 
                   return (
-                    <div key={company} className="mb-4">
+                    <div key={company} className="mb-2">
                       <button
                         className={`w-full flex justify-between items-center px-4 py-2 ${
                           isExpanded ? "rounded-t-lg" : "rounded-lg"
