@@ -44,7 +44,13 @@ const companies = [
     apiUrl: "/api/v1/companies/deliveroo/",
     requiresAuth: true,
     type: "type1",
-    color: "#572349",
+  },
+  {
+    id: "fhs",
+    name: "Food House",
+    apiUrl: "/api/v1/companies/foodhouse/",
+    requiresAuth: true,
+    type: "type1",
   },
   {
     id: "fhb",
@@ -52,7 +58,6 @@ const companies = [
     apiUrl: "/api/v1/companies/foodhub/",
     requiresAuth: true,
     type: "type1",
-    color: "#cc171b",
   },
   {
     id: "gbs",
@@ -60,7 +65,6 @@ const companies = [
     apiUrl: "/api/v1/google/business-info/front/103526686887949354169/",
     requiresAuth: false,
     type: "type3",
-    color: "#0000FF",
   },
   {
     id: "jet",
@@ -68,7 +72,13 @@ const companies = [
     apiUrl: "/api/v1/companies/justeat/",
     requiresAuth: true,
     type: "type1",
-    color: "#c0f70a",
+  },
+  {
+    id: "kck",
+    name: "Kuick",
+    apiUrl: "/api/v1/companies/kuick/",
+    requiresAuth: true,
+    type: "type1",
   },
   {
     id: "mlz",
@@ -76,16 +86,13 @@ const companies = [
     apiUrl: "/api/v1/zoho/mealzo/",
     requiresAuth: true,
     type: "type2",
-    color: "#e9540d",
   },
-
   {
     id: "scf",
     name: "Scoffable",
     apiUrl: "/api/v1/companies/scoffable/",
     requiresAuth: false,
     type: "type1",
-    color: "#d9685b",
   },
   {
     id: "stf",
@@ -93,15 +100,20 @@ const companies = [
     apiUrl: "/api/v1/companies/straightfrom/",
     requiresAuth: true,
     type: "type1",
-    color: "#5bd9a5",
   },
   {
     id: "uet",
     name: "Uber Eats",
-    apiUrl: "/api/v1/companies/ubereats",
+    apiUrl: "/api/v1/companies/ubereats/",
     requiresAuth: true,
     type: "type1",
-    color: "#0bab0b",
+  },
+  {
+    id: "wtf",
+    name: "What the fork",
+    apiUrl: "/api/v1/companies/whatthefork/",
+    requiresAuth: true,
+    type: "type1",
   },
 ];
 
@@ -229,31 +241,6 @@ const transformData = (items, company) => {
   return transformed;
 };
 
-// const createCustomIcon = (color) => {
-//   const svgIcon = `
-//     <svg
-//       xmlns="http://www.w3.org/2000/svg"
-//       width="24"
-//       height="24"
-//       viewBox="0 0 24 24"
-//       fill="${color}"
-//       stroke="white"
-//       stroke-width="2"
-//       stroke-linecap="round"
-//       stroke-linejoin="round"
-//     >
-//       <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 1 1 18 0z"></path>
-//       <circle cx="12" cy="10" r="3"></circle>
-//     </svg>
-//   `;
-
-//   return L.divIcon({
-//     html: svgIcon,
-//     className: "",
-//     iconSize: [24, 24],
-//     popupAnchor: [0, -12],
-//   });
-// };
 const createCustomIcon = (PinComponent, options = {}) => {
   const { width = 40, height = 40 } = options;
 
@@ -801,11 +788,7 @@ const DataMap = () => {
               </p>
               {companies.map((company) => {
                 const IconComponent =
-                  companyIcons[
-                    company.name
-                      .replace(/^(\S+)\s+(\S+)$/, "$1$2")
-                      .toLowerCase()
-                  ];
+                  companyIcons[company.name.replace(/\s+/g, "").toLowerCase()];
                 return (
                   <div
                     key={company.id}
@@ -1057,18 +1040,11 @@ const DataMap = () => {
             ))}
 
             {markersToRender.map((marker) => {
-              const IconComponent =
-                companyIcons[
-                  marker.properties.company
-                    .replace(/^(\S+)\s+(\S+)$/, "$1$2")
-                    .toLowerCase()
-                ];
-              const PinComponent =
-                companyPins[
-                  marker.properties.company
-                    .replace(/^(\S+)\s+(\S+)$/, "$1$2")
-                    .toLowerCase()
-                ];
+              const companyKey = marker.properties.company
+                .replace(/\s+/g, "")
+                .toLowerCase();
+              const IconComponent = companyIcons[companyKey];
+              const PinComponent = companyPins[companyKey];
               const pin = createCustomIcon(PinComponent, {
                 width: 44,
                 height: 44,
