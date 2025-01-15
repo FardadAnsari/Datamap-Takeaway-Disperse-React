@@ -180,10 +180,7 @@ const ResultBar = ({
                       shop.properties;
 
                     return (
-                      <div
-                        key={shop_id}
-                        className="p-3 cursor-pointer border-b-2"
-                      >
+                      <div key={shop_id} className="p-3 border-b-2">
                         <div className="flex justify-between items-start">
                           <div>
                             <h3 className="text-sm font-medium text-gray-800">
