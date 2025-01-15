@@ -13,6 +13,7 @@ import Supercluster from "supercluster";
 import L from "leaflet";
 import { HiAdjustments } from "react-icons/hi";
 import { IoIosArrowBack, IoIosArrowDown, IoIosArrowUp } from "react-icons/io";
+import { GoOrganization } from "react-icons/go";
 
 import { RiAccountCircleFill } from "react-icons/ri";
 import instance from "../component/api";
@@ -36,6 +37,7 @@ import { Link } from "react-router-dom";
 import { MdAccountCircle } from "react-icons/md";
 import Logout from "../component/Logout";
 import companyPins from "../assets/pins/pins";
+import { useUser } from "../component/userPermission";
 
 const companies = [
   {
@@ -382,7 +384,7 @@ const DataMap = () => {
   }, []);
 
   const getRegionData = async (selectedRegion) => {
-    const url = ` https://ons-dp-prod-cdn.s3.eu-west-2.amazonaws.com/maptiles/ap-geos/v3/${selectedRegion.substring(0, 3)}/${selectedRegion}.json`;
+    const url = `https://ons-dp-prod-cdn.s3.eu-west-2.amazonaws.com/maptiles/ap-geos/v3/${selectedRegion.substring(0, 3)}/${selectedRegion}.json`;
     try {
       const response = await fetch(url);
       if (!response.ok) {
@@ -724,6 +726,9 @@ const DataMap = () => {
     }
   };
 
+  const { user } = useUser();
+  console.log(user);
+
   return (
     <div className="relative h-screen w-screen overflow-hidden">
       <div className="bg-white w-20 h-screen absolute left-0 z-20 flex flex-col items-center border-r">
@@ -966,12 +971,15 @@ const DataMap = () => {
                 <IoIosArrowBack />
               </button>
             </div>
-            <div className="px-2 py-2 bg-gray-50 flex flex-col rounded-lg border">
+            <div className="px-2 py-2 bg-gray-50 flex flex-col rounded-lg border shadow-md">
               <div className="flex items-center">
                 <MdAccountCircle size={80} color="gray" />
-                <span>User</span>
+                <span>{user?.full_name}</span>
               </div>
-              <span>Department</span>
+              <div className="flex items-center gap-1 bg-teal-50 w-max p-2 rounded shadow-md">
+                <GoOrganization color="teal" />
+                <span className="text-teal-900">{user?.department}</span>
+              </div>
             </div>
           </div>
           <div className="w-full justify-self-end">
@@ -1189,7 +1197,9 @@ const DataMap = () => {
                         </div>
                       )}
                       {marker.properties.company.toLowerCase() ===
-                      "google business" ? (
+                        "google business" &&
+                      user.access.is_allowed_change &&
+                      user.access.is_marketing ? (
                         <div className="flex justify-between">
                           <span>Google Business</span>
                           <Link
