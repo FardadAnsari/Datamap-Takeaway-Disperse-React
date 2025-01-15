@@ -183,7 +183,6 @@ const ResultBar = ({
                       <div
                         key={shop_id}
                         className="p-3 cursor-pointer border-b-2"
-                        onClick={() => handleShopClick(shop)}
                       >
                         <div className="flex justify-between items-start">
                           <div>
