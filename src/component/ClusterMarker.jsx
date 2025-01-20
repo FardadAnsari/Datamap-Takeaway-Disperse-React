@@ -1,4 +1,3 @@
-// ClusterMarker.jsx
 import { useCallback } from "react";
 import { Marker } from "react-leaflet";
 import { useMap } from "react-leaflet/hooks";

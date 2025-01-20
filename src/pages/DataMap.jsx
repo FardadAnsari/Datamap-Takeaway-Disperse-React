@@ -12,17 +12,15 @@ import "leaflet/dist/leaflet.css";
 import Supercluster from "supercluster";
 import L from "leaflet";
 import { HiAdjustments } from "react-icons/hi";
-import { IoIosArrowBack, IoIosArrowDown, IoIosArrowUp } from "react-icons/io";
-import { GoOrganization } from "react-icons/go";
+import { IoIosArrowDown, IoIosArrowUp } from "react-icons/io";
 
 import { RiAccountCircleFill } from "react-icons/ri";
 import instance from "../component/api";
 import ClusterMarker from "../component/ClusterMarker";
-import { Controller, useForm } from "react-hook-form";
-import Select from "react-select";
-import AutoCompletionMultiSelectStyles from "../component/AutoCompletionMultiSelectStyles";
+import { useForm } from "react-hook-form";
+
 import pointInPolygon from "point-in-polygon";
-import ReactSlider from "react-slider";
+
 import { ColorRing } from "react-loader-spinner";
 import {
   getCachedCompanyData,
@@ -34,214 +32,12 @@ import companyIcons from "../assets/checkbox-icon/checkboxIcons";
 
 import ResultBar from "../component/Resultbar";
 import { Link } from "react-router-dom";
-import { MdAccountCircle } from "react-icons/md";
-import Logout from "../component/Logout";
 import companyPins from "../assets/pins/pins";
 import { useUser } from "../component/userPermission";
-
-const companies = [
-  {
-    id: "dlv",
-    name: "Deliveroo",
-    apiUrl: "/api/v1/companies/deliveroo/",
-    requiresAuth: true,
-    type: "type1",
-  },
-  {
-    id: "fhs",
-    name: "Food House",
-    apiUrl: "/api/v1/companies/foodhouse/",
-    requiresAuth: true,
-    type: "type1",
-  },
-  {
-    id: "fhb",
-    name: "Food Hub",
-    apiUrl: "/api/v1/companies/foodhub/",
-    requiresAuth: true,
-    type: "type1",
-  },
-  {
-    id: "gbs",
-    name: "Google Business",
-    apiUrl: "/api/v1/google/business-info/front/103526686887949354169/",
-    requiresAuth: false,
-    type: "type3",
-  },
-  {
-    id: "jet",
-    name: "Just Eat",
-    apiUrl: "/api/v1/companies/justeat/",
-    requiresAuth: true,
-    type: "type1",
-  },
-  {
-    id: "kck",
-    name: "Kuick",
-    apiUrl: "/api/v1/companies/kuick/",
-    requiresAuth: true,
-    type: "type1",
-  },
-  {
-    id: "mlz",
-    name: "Mealzo",
-    apiUrl: "/api/v1/zoho/mealzo/",
-    requiresAuth: true,
-    type: "type2",
-  },
-  {
-    id: "scf",
-    name: "Scoffable",
-    apiUrl: "/api/v1/companies/scoffable/",
-    requiresAuth: false,
-    type: "type1",
-  },
-  {
-    id: "stf",
-    name: "Straight From",
-    apiUrl: "/api/v1/companies/straightfrom/",
-    requiresAuth: true,
-    type: "type1",
-  },
-  {
-    id: "uet",
-    name: "Uber Eats",
-    apiUrl: "/api/v1/companies/ubereats/",
-    requiresAuth: true,
-    type: "type1",
-  },
-  {
-    id: "wtf",
-    name: "What the fork",
-    apiUrl: "/api/v1/companies/whatthefork/",
-    requiresAuth: true,
-    type: "type1",
-  },
-];
-
-const parseType1 = (item, company) => {
-  const lon = parseFloat(item.longitude);
-  const lat = parseFloat(item.latitude);
-  if (isNaN(lat) || isNaN(lon)) return null;
-
-  return {
-    type: "Feature",
-    geometry: {
-      type: "Point",
-      coordinates: [lon, lat],
-    },
-    properties: {
-      cluster: false,
-      shop_id: item.id || `${company.id}-${lon}-${lat}`,
-      shopName: item.shop_name,
-      company: company.name,
-      address: item.address,
-      postcode: item.postcode,
-      cuisines: item.cuisines,
-      googlemap: item.map_url,
-      rating: item.rating,
-      totalReviews: item.total_reviews,
-      phone: item.phone,
-      description: item.description,
-      color: company.color,
-    },
-  };
-};
-
-const parseType2 = (item, company) => {
-  const lon = parseFloat(item.Longitude);
-  const lat = parseFloat(item.Latitude);
-  if (isNaN(lat) || isNaN(lon)) return null;
-
-  return {
-    type: "Feature",
-    geometry: {
-      type: "Point",
-      coordinates: [lon, lat],
-    },
-    properties: {
-      cluster: false,
-      shop_id: item.id || `${company.id}-${lon}-${lat}`,
-      shopName: item.Account_Name,
-      company: company.name,
-      postcode: item.Billing_Code,
-      rating: item.Rating,
-      phone: item.Phone,
-      color: company.color,
-    },
-  };
-};
-
-const parseGoogleBusiness = (item, company) => {
-  if (
-    !item.latlng ||
-    typeof item.latlng.longitude === "undefined" ||
-    typeof item.latlng.latitude === "undefined"
-  ) {
-    console.warn(`
-      Location data missing for shop_id: ${item.shop_id || "Unknown"}
-    `);
-    return null;
-  }
-  const lon = parseFloat(item.latlng.longitude);
-  const lat = parseFloat(item.latlng.latitude);
-  if (isNaN(lat) || isNaN(lon)) {
-    console.warn(`
-      Invalid coordinates for shop_id: ${item.shop_id || "Unknown"}
-    `);
-    return null;
-  }
-
-  return {
-    type: "Feature",
-    geometry: {
-      type: "Point",
-      coordinates: [lon, lat],
-    },
-    properties: {
-      cluster: false,
-      shop_id: item.shop_id || `${company.id}-${lon}-${lat}`,
-      shopName: item.title,
-      company: company.name,
-      address: `${item?.storefrontAddress.addressLines || ""} ${
-        item?.storefrontAddress.locality || ""
-      }`,
-      postcode: item.storefrontAddress.postalCode,
-      website: item.websiteUri,
-      googlemap: item.metadata.mapsUri,
-      phone: item.phoneNumbers.primaryPhone,
-      canDelete: item.metadata.canDelete,
-      canHaveFoodMenus: item.metadata.canHaveFoodMenus,
-      hasGoogleUpdated: item.metadata.hasGoogleUpdated,
-      hasVoiceOfMerchant: item.metadata.hasVoiceOfMerchant,
-      newReviewUri: item.metadata.newReviewUri,
-      description: item.description,
-      color: company.color,
-      locationId: item.name.split("/")[1],
-    },
-  };
-};
-
-const transformData = (items, company) => {
-  const transformed = items
-    .map((item) => {
-      switch (company.type) {
-        case "type1":
-          return parseType1(item, company);
-        case "type2":
-          return parseType2(item, company);
-        case "type3":
-          return parseGoogleBusiness(item, company);
-        default:
-          console.warn(`company type unknown: ${company.type}`);
-          return null;
-      }
-    })
-    .filter((item) => item !== null);
-
-  console.log(`Transformed data for ${company.name}:, transformed`);
-  return transformed;
-};
+import Filterbar from "../component/Filterbar";
+import Profilebar from "../component/Profilebar";
+import { companies } from "../component/companies";
+import { transformData } from "../component/parsers";
 
 const createCustomIcon = (PinComponent, options = {}) => {
   const { width = 40, height = 40 } = options;
@@ -715,8 +511,6 @@ const DataMap = () => {
         easeLinearity: 0.1,
         noMoveStart: true,
       });
-
-      // Listen for the end of movement
       const handleMoveEnd = () => {
         setIsMapMoving(false);
         map.off("moveend", handleMoveEnd);
@@ -753,240 +547,25 @@ const DataMap = () => {
           </button>
         </div>
       </div>
-
-      <div
-        className={`w-80 absolute top-0 left-20 flex flex-col h-full bg-white z-10 transition-transform duration-300 ease-in-out ${
-          isFilterOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
-      >
-        <div
-          className="mx-4 flex py-2 justify-between items-center border-b-2"
-          style={{ height: "10%" }}
-        >
-          <span className="text-2xl font-bold">Filter</span>
-          <button
-            className="w-8 p-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 focus:outline-none"
-            onClick={() => setIsFilterOpen(false)}
-          >
-            <IoIosArrowBack />
-          </button>
-        </div>
-
-        <form
-          onSubmit={handleSubmit(onSubmit)}
-          className="p-4 flex flex-col"
-          style={{ height: "90%" }}
-        >
-          <div className="px-2 flex-1 overflow-y-auto">
-            <div className="border-b pb-3">
-              <input
-                type="text"
-                {...register("searchTerm")}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg"
-                placeholder="Serach Shop"
-              />
-            </div>
-
-            <div className="border-b py-3">
-              <p className="text-lg font-normal mb-2">
-                Select Company (required)
-              </p>
-              {companies.map((company) => {
-                const IconComponent =
-                  companyIcons[company.name.replace(/\s+/g, "").toLowerCase()];
-                return (
-                  <div
-                    key={company.id}
-                    className="flex items-center justify-between mb-2"
-                  >
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        id={company.id}
-                        {...register("selectedCompanies")}
-                        value={company.apiUrl}
-                        className="h-4 w-4 text-orange-600 border-gray-500 rounded focus:ring-orange-500 accent-orange-400"
-                      />
-                      <label htmlFor={company.id} className="text-sm">
-                        {company.name}
-                      </label>
-                    </div>
-                    {IconComponent && <IconComponent width={24} height={24} />}
-                  </div>
-                );
-              })}
-            </div>
-            <div className="border-b py-3">
-              <p className="text-lg font-normal mb-2">Select Regions</p>
-              <Controller
-                name="region"
-                control={control}
-                defaultValue={[]}
-                render={({ field }) => (
-                  <Select
-                    {...field}
-                    className="mb-4"
-                    placeholder="Select Regions"
-                    options={region.map((r) => ({
-                      value: r.value,
-                      label: r.label,
-                    }))}
-                    onChange={field.onChange}
-                    isSearchable
-                    isMulti
-                    styles={AutoCompletionMultiSelectStyles}
-                  />
-                )}
-              />
-            </div>
-
-            <div className="border-b py-3">
-              <p className="text-lg font-normal mb-2">Select Categories</p>
-              <Controller
-                name="cuisine"
-                control={control}
-                defaultValue={[]}
-                render={({ field }) => (
-                  <Select
-                    {...field}
-                    className="mb-4"
-                    placeholder="Select Categories"
-                    options={cuisine.map((c) => ({
-                      value: c.cuisine_name.toLowerCase(),
-                      label: c.cuisine_name,
-                    }))}
-                    onChange={field.onChange}
-                    isSearchable
-                    isMulti
-                    styles={AutoCompletionMultiSelectStyles}
-                  />
-                )}
-              />
-            </div>
-            <div className="border-b py-3">
-              <p className="text-lg font-normal mb-2">Select Rating Range</p>
-              <Controller
-                name="ratingRange"
-                control={control}
-                render={({ field: { onChange, value } }) => (
-                  <div className="px-2 py-2">
-                    <ReactSlider
-                      className="relative w-full h-6 my-4"
-                      thumbClassName="bg-orange-500 h-10 w-10 rounded-full cursor-grab border-2 border-white flex items-center justify-center text-white font-bold transform -translate-y-1/2 top-1/2"
-                      trackClassName="bg-gray-300 h-1 top-1/2 transform -translate-y-1/2 rounded"
-                      min={0}
-                      max={5}
-                      step={0.1}
-                      value={value}
-                      onChange={onChange}
-                      ariaLabel={["Minimum rating", "Maximum rating"]}
-                      ariaValuetext={(state) => `Rating: ${state.valueNow}`}
-                      renderThumb={(props, state) => (
-                        <div {...props}>{state.valueNow}</div>
-                      )}
-                    />
-                  </div>
-                )}
-              />
-            </div>
-            <div className="py-3">
-              <p className="text-lg font-normal mb-2">Select Review Range</p>
-              <div className="flex justify-between mb-4">
-                <div className="flex flex-col">
-                  <label htmlFor="minReview" className="text-sm mb-1">
-                    Min Reviews
-                  </label>
-                  <input
-                    type="number"
-                    id="minReview"
-                    {...register("reviewRange.min", {
-                      valueAsNumber: true,
-                      min: {
-                        value: 0,
-                        message: "Minimum reviews must be at least 0",
-                      },
-                      validate: (value) =>
-                        isNaN(value) ||
-                        value <= watch("reviewRange.max") ||
-                        "Min reviews cannot exceed Max reviews",
-                    })}
-                    className="w-28 px-1 py-2 border border-gray-300 rounded"
-                    min={0}
-                    placeholder="Min"
-                  />
-                </div>
-                <div className="flex flex-col">
-                  <label htmlFor="maxReview" className="text-sm mb-1">
-                    Max Reviews
-                  </label>
-                  <input
-                    type="number"
-                    id="maxReview"
-                    {...register("reviewRange.max", {
-                      valueAsNumber: true,
-                      min: {
-                        value: 0,
-                        message: "Maximum reviews must be at least 0",
-                      },
-                      validate: (value) =>
-                        isNaN(value) ||
-                        value >= watch("reviewRange.min") ||
-                        "Max reviews cannot be less than Min reviews",
-                    })}
-                    className="w-28 px-1 py-2 border border-gray-300 rounded"
-                    min={0}
-                    placeholder="Max"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="border-t-2">
-            <button
-              type="submit"
-              className="my-4 w-full py-2 bg-orange-600 text-white rounded hover:bg-orange-700 focus:outline-none disabled:bg-orange-300"
-              disabled={loading}
-            >
-              {loading ? "Is Loading ..." : "Filter"}
-            </button>
-
-            {error && <div className="text-center text-red-600">{error}</div>}
-          </div>
-        </form>
-      </div>
-      <div
-        className={`w-80 absolute top-0 left-20 flex flex-col h-full bg-white z-10 transition-transform duration-300 ease-in-out ${
-          isProfileOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
-      >
-        <div className="p-4 w-full h-full flex flex-col justify-between">
-          <div>
-            <div className="flex justify-between">
-              <span className="text-2xl font-bold">Profile</span>
-              <button
-                className="w-8 mb-4 p-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 focus:outline-none"
-                onClick={() => setIsProfileOpen(false)}
-              >
-                <IoIosArrowBack />
-              </button>
-            </div>
-            <div className="px-2 py-2 bg-gray-50 flex flex-col rounded-lg border shadow-md">
-              <div className="flex items-center">
-                <MdAccountCircle size={80} color="gray" />
-                <span>{user?.full_name}</span>
-              </div>
-              <div className="flex items-center gap-1 bg-teal-50 w-max p-2 rounded shadow-md">
-                <GoOrganization color="teal" />
-                <span className="text-teal-900">{user?.department}</span>
-              </div>
-            </div>
-          </div>
-          <div className="w-full justify-self-end">
-            <Logout />
-          </div>
-        </div>
-      </div>
+      <Filterbar
+        isOpen={isFilterOpen}
+        setIsFilterOpen={setIsFilterOpen}
+        register={register}
+        handleSubmit={handleSubmit}
+        control={control}
+        watch={watch}
+        region={region}
+        cuisine={cuisine}
+        companies={companies}
+        onSubmit={onSubmit}
+        loading={loading}
+        error={error}
+      />
+      <Profilebar
+        isOpen={isProfileOpen}
+        setIsProfileOpen={setIsProfileOpen}
+        user={user}
+      />
 
       <button
         className="bg-white w-96 h-16 absolute top-5 right-5 z-30 flex justify-between items-center px-4 border rounded-lg py-4 hover:text-orange-600 focus:outline-none transition-colors duration-200"
