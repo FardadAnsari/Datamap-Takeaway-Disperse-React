@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { Virtuoso } from "react-virtuoso";
 import { IoIosArrowDown, IoIosArrowUp } from "react-icons/io";
 import { FaStar } from "react-icons/fa6";
+import companyIcons from "../assets/checkbox-icon/checkboxIcons";
 
 import React from "react";
 
@@ -162,6 +163,7 @@ const ResultBar = ({
                   totalCount={Math.min(visibleCommonShops, commonShops.length)}
                   itemContent={(index) => {
                     const shop = commonShops[index];
+
                     if (!shop || !shop.properties) {
                       console.warn(
                         `Common shop at index ${index} is invalid:`,
@@ -193,7 +195,7 @@ const ResultBar = ({
                           {commonIn.map((company) => (
                             <span
                               key={company}
-                              className="px-2 py-1 text-xs bg-orange-50 rounded-full text-orange-700"
+                              className="mt-1 px-2 py-1 text-xs bg-orange-50 rounded-full text-orange-700"
                             >
                               {company}
                             </span>
@@ -228,8 +230,10 @@ const ResultBar = ({
                     const company = companyList[index];
                     const shops = groupedResults[company];
                     const isExpanded = expandedCompanies[company] || false;
-
                     const visibleCount = visibleShops[company] || 3;
+
+                    const IconComponent =
+                      companyIcons[company.replace(/\s+/g, "").toLowerCase()];
 
                     if (!shops || !Array.isArray(shops)) {
                       console.warn(
@@ -252,6 +256,9 @@ const ResultBar = ({
                           onClick={() => toggleCompany(company)}
                         >
                           <div className="flex justify-center items-center gap-2">
+                            {IconComponent && (
+                              <IconComponent width={24} height={24} />
+                            )}
                             <span className="text-lg font-medium text-gray-800">
                               {company}
                             </span>
