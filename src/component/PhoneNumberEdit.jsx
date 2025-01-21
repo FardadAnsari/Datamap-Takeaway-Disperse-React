@@ -57,28 +57,31 @@ const PhoneNumberEdit = ({ locationId, phoneNumber }) => {
   };
 
   return (
-    <div className="w-full">
+    <>
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="flex items-center overflow-y-auto gap-2"
+        className="w-full flex items-end gap-2"
       >
-        <input
-          type="tel"
-          {...register("primaryPhone", {
-            required: "Phone number is required",
-            pattern: {
-              value: /^[0-9\s]+$/,
-              message: "Only numbers are allowed.",
-            },
-          })}
-          className={`w-full border max-w-64 ${errors.primaryPhone ? "border-red-500" : "border-gray-300"} rounded p-2`}
-          defaultValue={phoneNumber}
-        />
+        <div className="w-full flex flex-col">
+          <label>Phone Number</label>
+          <input
+            type="tel"
+            {...register("primaryPhone", {
+              required: "Phone number is required",
+              pattern: {
+                value: /^[0-9\s]+$/,
+                message: "Only numbers are allowed.",
+              },
+            })}
+            className={`border ${errors.primaryPhone ? "border-red-500" : "border-gray-300"} rounded-lg p-2`}
+            defaultValue={phoneNumber}
+          />
+        </div>
         <button
           type="submit"
-          className="flex justify-center items-center w-8 h-8 bg-teal-500 text-white rounded"
+          className="px-6 py-2 justify-center items-center bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition"
         >
-          <FaRegSave size={20} />
+          Save
         </button>
         <ToastContainer
           position="top-center"
@@ -98,7 +101,7 @@ const PhoneNumberEdit = ({ locationId, phoneNumber }) => {
           {errors.primaryPhone.message}
         </p>
       )}
-    </div>
+    </>
   );
 };
 

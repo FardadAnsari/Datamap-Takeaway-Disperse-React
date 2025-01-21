@@ -1,27 +1,17 @@
 import { useEffect, useState } from "react";
-import { useForm, Controller } from "react-hook-form";
-import Select from "react-select";
-import AutoCompletionCustomStyles from "../component/AutoCompletionCustomStyles";
 import instance from "../component/api";
-
-import DialogDefault from "../component/DialogDefault/DialogDefault";
 import PieChartSection from "../component/PieChartSection";
 import KeywordsAnalytics from "../component/KeywordsAnalytics";
 import TotalInteractions from "../component/TotalInteractions";
-import { IoIosArrowDown } from "react-icons/io";
-import { LuPencil, LuPencilLine } from "react-icons/lu";
-import { RiLogoutCircleRLine } from "react-icons/ri";
+import { HiOutlineEnvelope } from "react-icons/hi2";
+import { IoInformationCircleSharp } from "react-icons/io5";
+import { PiPhone } from "react-icons/pi";
 import BusinessHoursDisplay from "../component/BusinessHoursDisplay";
-import BusinessHoursEdit from "../component/BusinessHoursEdit";
-import { useNavigate, useParams } from "react-router-dom";
-import PhoneNumberEdit from "../component/PhoneNumberEdit";
-import ShopNameEdit from "../component/ShopNameEdit";
-import WebSiteUriEdit from "../component/WebSiteUriEdit";
-import { toast, ToastContainer } from "react-toastify";
+import { useParams } from "react-router-dom";
+import { ToastContainer } from "react-toastify";
+import GoogleBusinessModal from "../component/GoogleBusinessModal";
 
 const Panel = () => {
-  const { watch: watchFilter } = useForm();
-
   const { locationId } = useParams();
 
   const [open, setOpen] = useState(null);
@@ -37,22 +27,11 @@ const Panel = () => {
     }
   };
 
-  const handleOpen = (id) => {
-    if (open === id) {
-      setOpen(null);
-    } else {
-      setOpen(id);
-      setEditOpen(null);
-    }
-  };
-
   const [activeIndexSearch, setActiveIndexSearch] = useState(0);
   const onPieEnterSearch = (_, index) => setActiveIndexSearch(index);
 
   const [activeIndexMap, setActiveIndexMap] = useState(0);
   const onPieEnterMap = (_, index) => setActiveIndexMap(index);
-
-  const selectedBusInfo = watchFilter("businessInformation");
 
   const [shopActivityStatus, setShopActivityStatus] = useState("");
 
@@ -192,42 +171,77 @@ const Panel = () => {
 
   return (
     <div className="font-sans bg-yellow-50">
-      <div className="flex justify-between px-12 py-6 mb-6 border-solid bg-white shadow-md">
+      <div className="flex justify-between px-12 py-6 mb-6 border-solid bg-white shadow">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 bg-cover bg-center bg-google-business"></div>
-          <p className="text-xl md:text-2xl lg:text-3xl font-medium text-teal-700 m-0">
+          <p className="text-xl md:text-2xl lg:text-3xl font-medium m-0">
             Google Business Dashboard
           </p>
         </div>
       </div>
-      <div className="flex flex-col gap-2 mx-4 lg:mx-6 md:grid md:grid-cols-6 md:grid-rows-27 lg:grid lg:grid-cols-6 lg:grid-rows-8">
-        <DialogDefault
-          open={!isVerified}
-          setClose={setIsVerified}
-          message={"This Bussiness is not verified yet!"}
-        />
-        <div className="md:col-span-3 md:row-span-6 md:row-start-2 md:col-start-1 lg:col-span-2 lg:row-span-5 lg:col-start-5 rounded-2xl bg-white shadow-md">
+      <div className="flex flex-col md:gap-6 lg:gap-8 mx-4 lg:mx-6 md:grid md:grid-cols-6 md:grid-rows-27 lg:grid lg:grid-cols-6  pb-6">
+        <div className="md:col-span-3 md:row-span-6 md:row-start-2 md:col-start-1 lg:col-span-2 lg:row-span-3 lg:col-start-5 rounded-lg bg-white shadow-md">
           <div className="flex flex-col px-4 pt-4">
-            <div className="h-10 flex gap-2 justify-between items-center border-gray-600 border-b-2 pb-4">
-              <>
-                {editOpen === 4 ? (
-                  <ShopNameEdit locationId={locationId} shopName={shopTitle} />
-                ) : (
-                  <p>{shopTitle}</p>
-                )}
-                <button
-                  onClick={() => handleEditOpen(4)}
-                  className={`flex justify-between items-center py-2 px-2 text-lg font-medium text-left  border-2 border-gray-300 rounded-xl hover:border-gray-400 ${editOpen === 1 ? "focus:border-gray-500" : ""} transition ease-in delay-190`}
-                >
-                  <span>
-                    {editOpen === 4 ? <LuPencilLine /> : <LuPencil />}
-                  </span>
-                </button>
-              </>
+            <div className="h-10 flex gap-2 justify-between items-center pb-4">
+              <p className="text-xl font-medium">Google Business Details</p>
+              <button
+                onClick={() => handleEditOpen(4)}
+                className={`flex justify-between items-center py-2 px-2 text-lg text-orange-500 text-left transition ease-in delay-190`}
+              >
+                Edit
+              </button>
             </div>
-            <div className="border-b">
+            <div className="flex items-center gap-2 border-2 border-orange-300 p-2 rounded-lg">
+              <IoInformationCircleSharp color="orange" size={26} />
+              <p className="text-lg">
+                Edits will appear after at least 10 minutes or more.
+              </p>
+            </div>
+            {editOpen === 4 && (
+              <GoogleBusinessModal
+                isOpen={true}
+                onClose={() => setEditOpen(null)}
+                locationId={locationId}
+                shopTitle={shopTitle}
+                webUrl={weburl}
+                phoneNumber={shopPhone.primaryPhone}
+                shopAddress={shopAddress}
+              />
+            )}
+
+            <div className="bodrer-t-2">
+              <p className="text-lg py-2">Shop Information</p>
               <div className="flex justify-between items-center py-2">
-                <span className="text-base">Open Hour</span>
+                <div className="flex">
+                  <p className="text-base text-gray-500">Shop Name</p>
+                </div>
+
+                <p>{shopTitle}</p>
+              </div>
+              <div className="flex justify-between items-center py-2">
+                <div className="flex">
+                  <p className="text-base text-gray-500">Phone Number</p>
+                </div>
+
+                <p>{shopPhone?.primaryPhone}</p>
+              </div>
+              <div className="flex justify-between items-center py-2">
+                <div className="flex">
+                  <p className="text-base text-gray-500">Website</p>
+                </div>
+
+                <p>{weburl}</p>
+              </div>
+              <div className="flex justify-between gap-12 items-start py-2">
+                <div className="flex">
+                  <p className="text-base text-gray-500">Address</p>
+                </div>
+                <p>{`${shopAddress?.addressLines || ""} ${shopAddress?.locality || ""} ${shopAddress?.postalCode || ""}`}</p>
+              </div>
+            </div>
+            <div className="border-t-2">
+              <div className="flex justify-between items-center py-2">
+                <span className="text-lg">Opening Hours</span>
                 <div className="flex gap-2 items-center">
                   {shopActivityStatus === "OPEN" ? (
                     <p className="text-green-500">Open</p>
@@ -238,162 +252,53 @@ const Panel = () => {
                   ) : (
                     <p></p>
                   )}
-                  <button
-                    onClick={() => handleEditOpen(1)}
-                    className={`flex justify-between items-center py-2 px-2 text-lg font-medium text-left  border-2 border-gray-300 rounded-xl hover:border-gray-400 ${editOpen === 1 ? "focus:border-gray-500" : ""} transition ease-in delay-190`}
-                  >
-                    <span>
-                      {editOpen === 1 ? <LuPencilLine /> : <LuPencil />}
-                    </span>
-                  </button>
-                  <button
-                    onClick={() => handleOpen(1)}
-                    className={`flex justify-between items-center py-2 px-2 text-lg font-medium text-left  border-2 border-gray-300 rounded-xl hover:border-gray-400 ${open === 1 ? "focus:border-gray-500" : ""} transition ease-in delay-190`}
-                  >
-                    <span>
-                      {open === 1 ? (
-                        <IoIosArrowDown
-                          style={{ transform: "rotate(180deg)" }}
-                        />
-                      ) : (
-                        <IoIosArrowDown locationId={locationId} />
-                      )}
-                    </span>
-                  </button>
                 </div>
               </div>
-              {open === 1 && <BusinessHoursDisplay locationId={locationId} />}
-              {editOpen === 1 && <BusinessHoursEdit locationId={locationId} />}
-            </div>
-            <div className="border-b">
-              <div className="flex justify-between items-center py-2">
-                <span className="text-base">Phone Number</span>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => handleEditOpen(2)}
-                    className={`flex justify-between items-center py-2 px-2 text-lg font-medium text-left  border-2 border-gray-300 rounded-xl hover:border-gray-400 ${editOpen === 1 ? "focus:border-gray-500" : ""} transition ease-in delay-190`}
-                  >
-                    <span>
-                      {editOpen === 2 ? <LuPencilLine /> : <LuPencil />}
-                    </span>
-                  </button>
-                  <button
-                    onClick={() => handleOpen(2)}
-                    className={`flex justify-between items-center py-2 px-2 text-lg font-medium text-left  border-2 border-gray-300 rounded-xl hover:border-gray-400 ${open === 2 ? "focus:border-gray-500" : ""} transition ease-in delay-190`}
-                  >
-                    <span>
-                      {open === 2 ? (
-                        <IoIosArrowDown
-                          style={{ transform: "rotate(180deg)" }}
-                        />
-                      ) : (
-                        <IoIosArrowDown />
-                      )}
-                    </span>
-                  </button>
-                </div>
-              </div>
-              {open === 2 && (
-                <div className="px-4 py-2 text-teal-700">
-                  <p>{shopPhone?.primaryPhone}</p>
-                </div>
-              )}
-              {editOpen === 2 && (
-                <div className="px-4 py-2 text-teal-700">
-                  <PhoneNumberEdit
-                    locationId={locationId}
-                    phoneNumber={shopPhone.primaryPhone}
-                  />
-                </div>
-              )}
-            </div>
-            <div className="border-b">
-              <div className="flex justify-between items-center py-2">
-                <span className="text-base">Website</span>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => handleEditOpen(3)}
-                    className={`flex justify-between items-center py-2 px-2 text-lg font-medium text-left  border-2 border-gray-300 rounded-xl hover:border-gray-400 ${editOpen === 1 ? "focus:border-gray-500" : ""} transition ease-in delay-190`}
-                  >
-                    <span>
-                      {editOpen === 3 ? <LuPencilLine /> : <LuPencil />}
-                    </span>
-                  </button>
-                  <button
-                    onClick={() => handleOpen(3)}
-                    className={`flex justify-between items-center py-2 px-2 text-lg font-medium text-left  border-2 border-gray-300 rounded-xl hover:border-gray-400 ${open === 2 ? "focus:border-gray-500" : ""} transition ease-in delay-190`}
-                  >
-                    <span>
-                      {open === 3 ? (
-                        <IoIosArrowDown
-                          style={{ transform: "rotate(180deg)" }}
-                        />
-                      ) : (
-                        <IoIosArrowDown />
-                      )}
-                    </span>
-                  </button>
-                </div>
-              </div>
-              {open === 3 && (
-                <div className="py-2 text-teal-700">
-                  <p>{weburl}</p>
-                </div>
-              )}
-              {editOpen === 3 && (
-                <div className="py-2 text-teal-700">
-                  <WebSiteUriEdit locationId={locationId} webUrl={weburl} />
-                </div>
-              )}
-            </div>
-            <div className="border-b">
-              <div className="flex justify-between items-center py-2">
-                <span className="text-base">Address</span>
-                <button
-                  onClick={() => handleOpen(4)}
-                  className={`flex justify-between items-center py-2 px-2 text-lg font-medium text-left  border-2 border-gray-300 rounded-xl hover:border-gray-400 ${open === 3 ? "focus:border-gray-500" : ""} transition ease-in delay-190`}
-                >
-                  <span>
-                    {open === 4 ? (
-                      <IoIosArrowDown style={{ transform: "rotate(180deg)" }} />
-                    ) : (
-                      <IoIosArrowDown />
-                    )}
-                  </span>
-                </button>
-              </div>
-              {open === 4 && (
-                <div className="px-4 py-2 text-teal-700">
-                  <p>{`${shopAddress?.addressLines || ""} ${shopAddress?.locality || ""} ${shopAddress?.postalCode || ""}`}</p>
-                </div>
-              )}
+              <BusinessHoursDisplay locationId={locationId} />
             </div>
           </div>
         </div>
-        <div className="h-full w-full px-2 flex flex-col md:col-span-3 md:col-start-1 md:row-span-6 md:row-start-8 lg:row-span-5 lg:col-span-2 lg:row-start-1 rounded-2xl bg-white shadow-md">
-          <div className="flex justify-center py-2 border-b-2">
-            <p className="text-xl font-medium">By searching on Google</p>
+        <div className="p-4 flex flex-col gap-3 md:col-span-3 md:col-start-1 md:row-span-6 md:row-start-8 lg:row-span-1 lg:col-span-4 lg:row-start-1 rounded-lg bg-white shadow-md">
+          <p className="text-xl">{shopTitle}</p>
+          <div className="flex gap-6">
+            <div className="flex gap-2">
+              <div className="flex gap-1 items-center">
+                <PiPhone size={22} color="gray" />
+                <p className="text-base text-gray-500">Phone No.</p>
+              </div>
+              <p>{shopPhone?.primaryPhone}</p>
+            </div>
+            <span className="text-gray-500">|</span>
+            <div className="flex gap-2">
+              <div className="flex gap-1 items-center">
+                <HiOutlineEnvelope size={22} color="gray" />
+                <p className="text-base text-gray-500">Postcode</p>
+              </div>
+              <p>{shopAddress?.postalCode}</p>
+            </div>
           </div>
+        </div>
+        <div className="p-4 flex flex-col md:col-span-3 md:col-start-1 md:row-span-6 md:row-start-8 lg:row-span-2 lg:col-span-2 lg:row-start-2 rounded-lg bg-white shadow-md">
+          <p className="text-xl font-medium">By searching on Google</p>
           <PieChartSection
             activeIndex={activeIndexSearch}
             data={googleSearchData}
             onPieEnter={onPieEnterSearch}
           />
         </div>
-        <div className="h-full w-full px-2 flex flex-col md:col-span-3 md:row-span-6 md:row-start-8 md:col-start-4 lg:row-span-5 lg:col-span-2 lg:col-start-3 lg:row-start-1 md:row-start-8 rounded-2xl bg-white shadow-md">
-          <div className="flex justify-center py-2 border-b-2">
-            <p className="text-xl font-medium">By using Google map service</p>
-          </div>
+        <div className="p-4 flex flex-col md:col-span-3 md:row-span-6 md:row-start-8 md:col-start-4 lg:row-span-2 lg:col-span-2 lg:col-start-3 lg:row-start-2 md:row-start-8 rounded-lg bg-white shadow-md">
+          <p className="text-xl font-medium">By using Google map service</p>
+
           <PieChartSection
             activeIndex={activeIndexMap}
             data={googleMapData}
             onPieEnter={onPieEnterMap}
           />
         </div>
-        <div className="md:row-start-14 md:row-span-6 md:col-span-6 lg:col-span-4 lg:row-span-5 lg:row-start-6 rounded-2xl p-2 bg-white shadow-md">
+        <div className="md:row-start-14 md:row-span-6 md:col-span-6 lg:col-span-4 lg:row-span-2 lg:row-start-4 rounded-lg bg-white shadow-md">
           <KeywordsAnalytics locationId={locationId} />
         </div>
-        <div className="md:row-start-2 md:col-span-3 md:row-span-6 md:col-start-4 lg:row-start-6 lg:col-span-2 lg:row-span-5 lg:col-start-5  rounded-2xl p-2 bg-white shadow-md">
+        <div className="md:row-start-2 md:col-span-3 md:row-span-6 md:col-start-4 lg:row-start-4 lg:col-span-2 lg:row-span-1 lg:col-start-5 rounded-lg p-2 bg-white shadow-md">
           <TotalInteractions webCallCount={webCallCount} />
         </div>
       </div>

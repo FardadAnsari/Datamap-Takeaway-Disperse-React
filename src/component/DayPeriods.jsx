@@ -1,7 +1,7 @@
 import React from "react";
 import { useFormContext, Controller, useFieldArray } from "react-hook-form";
 import { FaRegTrashAlt } from "react-icons/fa";
-import { MdOutlineMoreTime } from "react-icons/md";
+import { CiCirclePlus } from "react-icons/ci";
 import { GoDash } from "react-icons/go";
 
 const DayPeriods = ({ dayIndex }) => {
@@ -98,7 +98,7 @@ const DayPeriods = ({ dayIndex }) => {
                 type="number"
                 {...field}
                 placeholder="HH"
-                className="border-2 px-1 py-1 rounded w-10 text-center"
+                className="border px-1 py-1 rounded w-10 text-center"
                 onFocus={() => {
                   if (field.value === 0) {
                     field.onChange("");
@@ -148,18 +148,18 @@ const DayPeriods = ({ dayIndex }) => {
           <button
             type="button"
             onClick={() => handleRemovePeriod(periodIndex)}
-            className="flex justify-center items-center w-8 h-8 bg-red-500 text-white rounded"
+            className="flex justify-center items-center p-2 text-white rounded bg-gray-100"
           >
-            <FaRegTrashAlt size={16} />
+            <FaRegTrashAlt color="red" size={16} />
           </button>
         </div>
       ))}
       <button
         type="button"
         onClick={handleAddPeriod}
-        className="flex bg-teal-500 px-1 py-1 rounded hover:bg-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 transition ml-2"
+        className="flex p-2 bg-gray-100 rounded focus:outline-none focus:ring-2 focus:ring-offset-2 transition ml-2"
       >
-        <MdOutlineMoreTime size={25} color="white" />
+        <CiCirclePlus size={18} color="blue" />
       </button>
     </div>
   );

@@ -58,40 +58,41 @@ const WebSiteUriEdit = ({ locationId, webUrl }) => {
   };
 
   return (
-    <div className="w-full">
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className="flex items-center overflow-y-auto gap-2"
-      >
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      className="w-full flex items-end gap-2"
+    >
+      <div className="w-full flex flex-col">
+        <label>Website</label>
         <input
           type="text"
           {...register("websiteUri", { required: true })}
-          className="w-full border max-w-64 border p-2 rounded"
+          className="border p-2 rounded-lg"
           placeholder="Enter new website URL"
         />
-        {errors.websiteUri && (
-          <span className="text-red-500">This field is required</span>
-        )}
-        <button
-          type="submit"
-          className="flex justify-center items-center w-8 h-8 bg-teal-500 text-white rounded hover:bg-teal-600 transition"
-        >
-          <FaRegSave size={20} />
-        </button>
-        <ToastContainer
-          position="top-center"
-          autoClose={3000}
-          hideProgressBar={false}
-          newestOnTop={false}
-          closeOnClick
-          rtl={false}
-          pauseOnFocusLoss
-          draggable
-          pauseOnHover
-          theme="light"
-        />
-      </form>
-    </div>
+      </div>
+      {errors.websiteUri && (
+        <span className="text-red-500">This field is required</span>
+      )}
+      <button
+        type="submit"
+        className="px-6 py-2 justify-center items-center bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition"
+      >
+        Save
+      </button>
+      <ToastContainer
+        position="top-center"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
+    </form>
   );
 };
 

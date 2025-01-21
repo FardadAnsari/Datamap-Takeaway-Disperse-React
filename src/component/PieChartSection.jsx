@@ -26,9 +26,23 @@ const renderActiveShape = (props) => {
 
   return (
     <g>
-      <text x={cx} y={cy} dy={8} textAnchor="middle" fill="rgb(75, 75, 75)">
+      <text
+        x={cx}
+        y={cy}
+        dy={-10}
+        textAnchor="middle"
+        fill="rgb(75, 75, 75)"
+        fontWeight="normal"
+      >
         {payload.name}
       </text>
+      <text x={cx} y={cy} dy={15} textAnchor="middle" fill="rgb(75, 75, 75)">
+        {`${value} user`}
+      </text>
+      <text x={cx} y={cy} dy={40} textAnchor="middle" fill="rgb(75, 75, 75)">
+        {`${(percent * 100).toFixed(2)}%`}
+      </text>
+
       <Sector
         cx={cx}
         cy={cy}
@@ -47,19 +61,19 @@ const renderActiveShape = (props) => {
         outerRadius={outerRadius + 10}
         fill="rgb(250 110 22)"
       />
-      <path
+      {/* <path
         d={`M${sx},${sy}L${mx},${my}L${ex},${ey}`}
         stroke="rgb(200, 80, 0)"
         fill="none"
       />
-      <circle cx={ex} cy={ey} r={4} fill="rgb(252, 78, 3)" stroke="none" />
-      <text
+      <circle cx={ex} cy={ey} r={4} fill="rgb(252, 78, 3)" stroke="none" /> */}
+      {/* <text
         x={ex + (cos >= 0 ? 1 : -1) * 12}
         y={ey}
         textAnchor={textAnchor}
         fill="rgb(60, 60, 60)"
       >
-        {`${value} user`}
+       {`${value} user`}
       </text>
       <text
         x={ex + (cos >= 0 ? 1 : -1) * 12}
@@ -68,8 +82,8 @@ const renderActiveShape = (props) => {
         textAnchor={textAnchor}
         fill="rgb(60, 60, 60)"
       >
-        {`(${(percent * 100).toFixed(2)}%)`}
-      </text>
+      {`(${(percent * 100).toFixed(2)}%)`}
+      </text> */}
     </g>
   );
 };
@@ -84,8 +98,8 @@ const PieChartSection = ({ activeIndex, data, onPieEnter }) => {
           data={data}
           cx="50%"
           cy="50%"
-          innerRadius={60}
-          outerRadius={100}
+          innerRadius={100}
+          outerRadius={130}
           fill="rgb(252, 140, 0)"
           dataKey="value"
           onMouseEnter={onPieEnter}

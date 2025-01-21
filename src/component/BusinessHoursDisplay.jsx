@@ -66,19 +66,16 @@ const BusinessHoursDisplay = ({ locationId }) => {
 
   return (
     locationId && (
-      <div className="flex flex-col gap-2 py-2 text-teal-700 max-h-72 overflow-auto">
+      <div className="flex flex-col gap-2 py-2 h-max">
         {businessHours.map((day, dayIndex) => (
-          <div
-            key={dayIndex}
-            className="flex justify-between bg-gray-200 py-2 px-4 rounded-lg"
-          >
-            <span className="font-semibold">{dayNames[dayIndex]}</span>
+          <div key={dayIndex} className="flex justify-between py-1">
+            <span className="text-base">{dayNames[dayIndex]}</span>
             <div className="flex flex-col gap-2">
               {day.isClosed ? (
                 <span className="text-red-500">Closed</span>
               ) : (
                 day.periods.map((period, idx) => (
-                  <span key={idx}>
+                  <span key={idx} className="text-base font-medium">
                     {period.openTime.hours}:{period.openTime.minutes} -{" "}
                     {period.closeTime.hours}:{period.closeTime.minutes}
                   </span>

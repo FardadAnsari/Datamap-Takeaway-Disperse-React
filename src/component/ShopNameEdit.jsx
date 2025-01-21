@@ -60,26 +60,29 @@ const ShopNameEdit = ({ locationId, shopName }) => {
   };
 
   return (
-    <div className="w-full">
+    <>
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="flex items-center gap-2"
+        className="w-full flex items-end gap-2"
       >
-        <input
-          type="text"
-          {...register("title", { required: "Shop name is required" })}
-          className={`w-full border max-w-96 ${
-            errors.title ? "border-red-500" : "border-gray-300"
-          } p-2 rounded`}
-          placeholder="Enter new shop name"
-          disabled={isSubmitting}
-        />
+        <div className="w-full flex flex-col">
+          <label>Shop Name</label>
+          <input
+            type="text"
+            {...register("title", { required: "Shop name is required" })}
+            className={`border ${
+              errors.title ? "border-red-500" : "border-gray-300"
+            } p-2 rounded-lg`}
+            placeholder="Enter new shop name"
+            disabled={isSubmitting}
+          />
+        </div>
         <button
           type="submit"
-          className="flex justify-center items-center w-8 h-8 bg-teal-500 text-white rounded hover:bg-teal-600 transition"
+          className="px-6 py-2 justify-center items-center bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition"
           disabled={isSubmitting}
         >
-          <FaRegSave size={20} />
+          Save
         </button>
         <ToastContainer
           position="top-center"
@@ -97,7 +100,7 @@ const ShopNameEdit = ({ locationId, shopName }) => {
       {errors.title && (
         <p className="text-red-500 text-sm mt-1">{errors.title.message}</p>
       )}
-    </div>
+    </>
   );
 };
 

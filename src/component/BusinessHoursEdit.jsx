@@ -154,71 +154,59 @@ const BusinessHoursEdit = ({ locationId }) => {
   return (
     locationId && (
       <FormProvider {...methods}>
-        <form
-          onSubmit={handleSubmit(onSubmit)}
-          className="flex flex-col h-96 items-center overflow-y-auto gap-2 "
-        >
-          {fields.map((day, dayIndex) => (
-            <div
-              key={day.id || dayIndex}
-              className=" w-full border p-2 rounded-lg bg-gray-50"
-            >
-              <div className="flex justify-between items-center mb-2">
-                <label className="text-lg font-medium px-2">
-                  {dayNames[dayIndex].charAt(0) +
-                    dayNames[dayIndex].slice(1).toLowerCase()}
-                </label>
-                <Controller
-                  name={`hours.${dayIndex}.isClosed`}
-                  control={control}
-                  render={({ field }) => (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        field.onChange(!field.value);
-                        if (!field.value) {
-                          setValue(`hours.${dayIndex}.periods`, []);
-                        } else {
-                          setValue(`hours.${dayIndex}.periods`, [
-                            {
-                              openTime: { hours: 0, minutes: 0 },
-                              closeTime: { hours: 0, minutes: 0 },
-                            },
-                          ]);
-                        }
-                      }}
-                      className={`w-20 pr-1 pl-2 rounded-full border border-2 ${
-                        field.value
-                          ? "border-red-500 text-sm text-red-600"
-                          : "border-green-500 text-sm text-green-600"
-                      }`}
-                    >
-                      {field.value ? (
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs">closed</span>
-                          <FaToggleOff color="red" size={26} />
-                        </div>
-                      ) : (
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs">Open</span>
-                          <FaToggleOn color="green" size={26} />
-                        </div>
-                      )}
-                    </button>
-                  )}
-                />
-              </div>
+        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col h-96">
+          <div className="flex flex-col w-full gap-4 overflow-y-auto mb-4">
+            {fields.map((day, dayIndex) => (
+              <div
+                key={day.id || dayIndex}
+                className="w-full border p-2 rounded-lg "
+              >
+                <div className="flex justify-between items-center mb-2">
+                  <label className="text-lg font-medium px-2">
+                    {dayNames[dayIndex].charAt(0) +
+                      dayNames[dayIndex].slice(1).toLowerCase()}
+                  </label>
+                  <Controller
+                    name={`hours.${dayIndex}.isClosed`}
+                    control={control}
+                    render={({ field }) => (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          field.onChange(!field.value);
+                          if (!field.value) {
+                            setValue(`hours.${dayIndex}.periods`, []);
+                          } else {
+                            setValue(`hours.${dayIndex}.periods`, [
+                              {
+                                openTime: { hours: 0, minutes: 0 },
+                                closeTime: { hours: 0, minutes: 0 },
+                              },
+                            ]);
+                          }
+                        }}
+                      >
+                        {field.value ? (
+                          <div className="bg-close-status w-16 h-8 shadow-md"></div>
+                        ) : (
+                          <div className=" bg-open-status w-16 h-8 shadow-md"></div>
+                        )}
+                      </button>
+                    )}
+                  />
+                </div>
 
-              {!watch(`hours.${dayIndex}.isClosed`) && (
-                <DayPeriods dayIndex={dayIndex} />
-              )}
-            </div>
-          ))}
+                {!watch(`hours.${dayIndex}.isClosed`) && (
+                  <DayPeriods dayIndex={dayIndex} />
+                )}
+              </div>
+            ))}
+          </div>
           <button
             type="submit"
-            className="w-56 py-2 bg-teal-600 text-white rounded"
+            className="self-end px-12 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg"
           >
-            Save Hours
+            Save
           </button>
           <ToastContainer
             position="top-center"

@@ -93,15 +93,12 @@ const KeywordsAnalytics = ({ locationId }) => {
 
   return (
     <>
-      <div className="flex justify-center py-2">
-        <span className="text-xl font-medium pb-2">Keywords Analytics</span>
-      </div>
       {locationId && (
-        <div className="max-h-72 overflow-auto">
+        <div className="m-8 max-h-96 overflow-auto">
           <table className="w-full bg-white">
             <thead>
-              <tr className="sticky top-0 bg-gray-200">
-                <th className="py-2 px-4 text-start border-b-2">No</th>
+              <tr className="sticky top-0 bg-gray-100 rounded">
+                <th className="py-2 px-4 text-start border-b">No</th>
                 <th
                   onClick={() => handleSort("searchKeyword")}
                   className="py-2 px-4 text-start cursor-pointer border-b-2"
@@ -113,7 +110,7 @@ const KeywordsAnalytics = ({ locationId }) => {
                 </th>
                 <th
                   onClick={() => handleSort("insightsValue.value")}
-                  className="py-2 px-4 text-center cursor-pointer border-b-2"
+                  className="py-2 px-4 text-center cursor-pointer border-b"
                 >
                   Search Volume
                   <span className="ml-1">
@@ -124,7 +121,7 @@ const KeywordsAnalytics = ({ locationId }) => {
             </thead>
             <tbody>
               {searchInsights.map((item, index) => (
-                <tr key={index} className="border-b-2">
+                <tr key={index} className="border-b">
                   <td className="py-2 px-4 text-start">{index + 1}</td>
                   <td className="py-2 px-4 text-start">{item.searchKeyword}</td>
                   <td className="py-2 px-4 text-center">
