@@ -538,16 +538,18 @@ const DataMap = () => {
           <button
             className="py-4 focus:bg-orange-100 hover:text-orange-600 focus:text-orange-600 focus:outline-none text-center flex flex-col items-center"
             onClick={() => {
-              setIsFilterOpen(true) && setIsProfileOpen(null);
+              setIsFilterOpen(true);
+              setIsProfileOpen(false);
             }}
           >
             <HiAdjustments size={30} style={{ transform: "rotate(90deg)" }} />
             Filters
           </button>
           <button
-            className="py-6 px-1 bg-white hover:text-orange-600 focus:outline-none text-center flex flex-col items-center"
+            className="py-6 px-1 bg-white hover:text-orange-600 focus:text-orange-600 focus:outline-none text-center flex flex-col items-center"
             onClick={() => {
-              setIsProfileOpen(true) && setIsFilterOpen(null);
+              setIsProfileOpen(true);
+              setIsFilterOpen(false);
             }}
           >
             <RiAccountCircleFill size={40} />
