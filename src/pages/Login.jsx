@@ -105,18 +105,16 @@ const Login = () => {
           </div>
 
           <div>
-            <div className="h-10">
+            <div className="h-max">
               {errors.username ? (
-                // If username has an error (regardless of password):
-                <div className="flex bg-red-100 items-center p-2 gap-2 rounded">
+                <div className="flex bg-red-100 items-center p-2 gap-2 rounded mt-2">
                   <MdError color="red" size={22} />
                   <p className="text-red-500 text-sm text-center">
                     {errors.username.message}
                   </p>
                 </div>
               ) : errors.password ? (
-                // Else, if password has an error:
-                <div className="flex bg-red-100 items-center p-2 gap-2 rounded">
+                <div className="flex bg-red-100 items-center p-2 gap-2 rounded mt-2">
                   <MdError color="red" size={22} />
                   <p className="text-red-500 text-sm text-center">
                     {errors.password.message}
@@ -124,7 +122,7 @@ const Login = () => {
                 </div>
               ) : null}
               {(!errors.username || errors.password) && error ? (
-                <div className="flex bg-red-100 items-center p-2 gap-2 rounded">
+                <div className="flex bg-red-100 items-center p-2 gap-2 rounded mt-2">
                   <MdError color="red" size={22} />
                   <p className="text-red-500 text-sm text-center">{error}</p>
                 </div>
