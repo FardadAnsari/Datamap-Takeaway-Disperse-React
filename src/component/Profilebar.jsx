@@ -1,9 +1,9 @@
 import { IoIosArrowBack } from "react-icons/io";
 import { MdAccountCircle } from "react-icons/md";
 import { GoOrganization } from "react-icons/go";
-import Logout from "../component/Logout";
+import { RiLogoutCircleRLine } from "react-icons/ri";
 
-const Profilebar = ({ isOpen, setIsProfileOpen, user }) => (
+const Profilebar = ({ isOpen, setIsProfileOpen, user, onLogoutClick }) => (
   <div
     className={`w-80 absolute top-0 left-20 flex flex-col h-full bg-white z-10 transition-transform duration-300 ease-in-out ${
       isOpen ? "translate-x-0" : "-translate-x-full"
@@ -32,7 +32,13 @@ const Profilebar = ({ isOpen, setIsProfileOpen, user }) => (
         </div>
       </div>
       <div className="w-full justify-self-end">
-        <Logout />
+        <button
+          className="w-full flex items-center gap-2 px-2 py-2 rounded border border-gray-200 hover:border-red-600 focus:outline-none focus:ring-2 focus:ring-red-300 focus:ring-offset-2 transition"
+          onClick={onLogoutClick}
+        >
+          <RiLogoutCircleRLine color="red" size={25} />
+          <span className="hidden lg:block md:block sm:hidden">Logout</span>
+        </button>
       </div>
     </div>
   </div>

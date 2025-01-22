@@ -13,14 +13,11 @@ import Supercluster from "supercluster";
 import L from "leaflet";
 import { HiAdjustments } from "react-icons/hi";
 import { IoIosArrowDown, IoIosArrowUp } from "react-icons/io";
-
 import { RiAccountCircleFill } from "react-icons/ri";
 import instance from "../component/api";
 import ClusterMarker from "../component/ClusterMarker";
 import { useForm } from "react-hook-form";
-
 import pointInPolygon from "point-in-polygon";
-
 import { ColorRing } from "react-loader-spinner";
 import {
   getCachedCompanyData,
@@ -38,6 +35,7 @@ import Filterbar from "../component/Filterbar";
 import Profilebar from "../component/Profilebar";
 import { companies } from "../component/companies";
 import { transformData } from "../component/parsers";
+import LogoutModal from "../component/LogoutModal";
 
 const createCustomIcon = (PinComponent, options = {}) => {
   const { width = 40, height = 40 } = options;
@@ -140,6 +138,15 @@ const DataMap = () => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+
+  const handleLogoutClick = () => {
+    setIsLogoutModalOpen(true);
+  };
+
+  const handleCloseLogoutModal = () => {
+    setIsLogoutModalOpen(false);
+  };
 
   const toggleResult = () => {
     setIsResultOpen((prev) => !prev);
@@ -565,7 +572,14 @@ const DataMap = () => {
         isOpen={isProfileOpen}
         setIsProfileOpen={setIsProfileOpen}
         user={user}
+        onLogoutClick={handleLogoutClick}
       />
+      {isLogoutModalOpen && (
+        <LogoutModal
+          isOpen={isLogoutModalOpen}
+          onClose={handleCloseLogoutModal}
+        />
+      )}
 
       <button
         className="bg-white w-96 h-16 absolute top-5 right-5 z-30 flex justify-between items-center px-4 border rounded-lg py-4 hover:text-orange-600 focus:outline-none transition-colors duration-200"
@@ -600,6 +614,7 @@ const DataMap = () => {
             ref={mapRef}
             center={mapCenter}
             zoom={zoom}
+            minZoom={5}
             maxZoom={22}
             style={{ height: "100%", width: "100%" }}
           >
@@ -613,7 +628,7 @@ const DataMap = () => {
             {regionBoundaryData && (
               <GeoJSON
                 data={regionBoundaryData}
-                style={{ color: "red", weight: 2 }}
+                style={{ color: "red", weight: 1 }}
               />
             )}
 
@@ -655,8 +670,8 @@ const DataMap = () => {
                     },
                   }}
                 >
-                  <Popup className="p-0 m-0">
-                    <div className="flex flex-col w-96 py-2 pr-3 gap-2">
+                  <Popup className="p-0 m-0 custom-popup" offset={[-1, -30]}>
+                    <div className="flex flex-col w-96 py-2 gap-2 pr-4">
                       <div className="flex gap-2 justify-between">
                         <span className="font-bold text-xl">
                           {marker.properties.shopName}
@@ -677,11 +692,10 @@ const DataMap = () => {
                         </div>
                       ) : (
                         <div className="flex justify-between">
-                          <span>Phone No.</span>
-                          <span>None</span>
+                          <span className="text-gray-400">Phone No.</span>
+                          <span className="text-gray-400">None</span>
                         </div>
                       )}
-
                       {marker.properties.postcode ? (
                         <div className="flex justify-between">
                           <span>Postcode</span>
@@ -689,52 +703,61 @@ const DataMap = () => {
                         </div>
                       ) : (
                         <div className="flex justify-between">
-                          <span>Postcode</span>
-                          <span>None</span>
+                          <span className="text-gray-400">Postcode</span>
+                          <span className="text-gray-400">None</span>
                         </div>
                       )}
-                      {marker.properties.cuisines ? (
+
+                      {!marker.properties.cuisines ||
+                      marker.properties.cuisines === "None" ? (
                         <div className="flex justify-between">
+                          <span className="text-gray-400">Cuisines</span>
+                          <span className="text-gray-400">None</span>
+                        </div>
+                      ) : (
+                        <div className="flex justify-between space-x-8">
                           <span>Cuisines</span>
                           <span>{marker.properties.cuisines}</span>
                         </div>
-                      ) : (
-                        <div className="flex justify-between">
-                          <span>Cuisines</span>
-                          <span>None</span>
-                        </div>
                       )}
-                      {marker.properties.rating ? (
+
+                      {!marker.properties.rating ||
+                      marker.properties.rating === "None" ? (
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Rating</span>
+                          <span className="text-gray-400">None</span>
+                        </div>
+                      ) : (
                         <div className="flex justify-between">
                           <span>Rating</span>
                           <span>{marker.properties.rating}</span>
                         </div>
-                      ) : (
-                        <div className="flex justify-between">
-                          <span>Rating</span>
-                          <span>None</span>
-                        </div>
                       )}
-                      {marker.properties.totalReviews ? (
+
+                      {!marker.properties.totalReviews ||
+                      marker.properties.totalReviews === "None" ? (
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Reviews</span>
+                          <span className="text-gray-400">None</span>
+                        </div>
+                      ) : (
                         <div className="flex justify-between">
                           <span>Reviews</span>
                           <span>{marker.properties.totalReviews}</span>
                         </div>
-                      ) : (
-                        <div className="flex justify-between">
-                          <span>Reviews</span>
-                          <span>None</span>
-                        </div>
                       )}
+
                       {marker.properties.address ? (
-                        <div className="flex justify-between">
+                        <div className="flex justify-between space-x-8">
                           <span>Address</span>
-                          <span>{marker.properties.address}</span>
+                          <span className="text-left">
+                            {marker.properties.address}
+                          </span>
                         </div>
                       ) : (
-                        <div className="flex justify-between">
-                          <span>Address</span>
-                          <span>None</span>
+                        <div className="flex justify-between ">
+                          <span className="text-gray-400">Address</span>
+                          <span className="text-gray-400">None</span>
                         </div>
                       )}
                       <div className="flex w-full items-center py-2">
@@ -754,8 +777,8 @@ const DataMap = () => {
                         </div>
                       ) : (
                         <div className="flex justify-between">
-                          <span>Website</span>
-                          <span>None</span>
+                          <span className="text-gray-400">Website</span>
+                          <span className="text-gray-400">None</span>
                         </div>
                       )}
                       {marker.properties.googlemap ? (
@@ -771,8 +794,8 @@ const DataMap = () => {
                         </div>
                       ) : (
                         <div className="flex justify-between">
-                          <span>Google Maps</span>
-                          <span>None</span>
+                          <span className="text-gray-400">Google Maps</span>
+                          <span className="text-gray-400">None</span>
                         </div>
                       )}
                       {marker.properties.company.toLowerCase() ===

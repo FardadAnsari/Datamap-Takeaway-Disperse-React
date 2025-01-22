@@ -57,3 +57,10 @@ input[type="number"]::-webkit-outer-spin-button {
   justify-content: center;
   font-size: 14px;
 }
+
+.leaflet-popup-content-wrapper {
+  background-color: rgb(255, 248, 248) !important;
+  opacity: 90%;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(1px) !important;
+}
