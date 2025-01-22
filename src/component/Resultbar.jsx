@@ -159,11 +159,10 @@ const ResultBar = ({
               <div className="flex-1 overflow-y-auto">
                 <p>Total result {commonShops.length}</p>
                 <Virtuoso
-                  style={{ height: "90%", width: "100%" }}
+                  style={{ height: "95%", width: "100%" }}
                   totalCount={Math.min(visibleCommonShops, commonShops.length)}
                   itemContent={(index) => {
                     const shop = commonShops[index];
-
                     if (!shop || !shop.properties) {
                       console.warn(
                         `Common shop at index ${index} is invalid:`,
@@ -180,7 +179,6 @@ const ResultBar = ({
                     }
                     const { shopName, postcode, shop_id, commonIn } =
                       shop.properties;
-
                     return (
                       <div key={shop_id} className="p-3 border-b-2">
                         <div className="flex justify-between items-start">
@@ -204,15 +202,18 @@ const ResultBar = ({
                       </div>
                     );
                   }}
+                  components={{
+                    Footer: () =>
+                      commonShops.length > visibleCommonShops ? (
+                        <button
+                          className="w-full text-sm text-orange-500 mt-4 hover:underline"
+                          onClick={handleLoadMoreCommonShops}
+                        >
+                          Load more...
+                        </button>
+                      ) : null,
+                  }}
                 />
-                {commonShops.length > visibleCommonShops && (
-                  <button
-                    className="w-full text-sm text-blue-500 mt-2 hover:underline"
-                    onClick={handleLoadMoreCommonShops}
-                  >
-                    Load more...
-                  </button>
-                )}
               </div>
             ))}
 
@@ -335,7 +336,7 @@ const ResultBar = ({
                             })}
                             {shops.length > visibleCount && (
                               <button
-                                className="w-full text-sm text-blue-500 mt-2 hover:underline"
+                                className="w-full text-sm text-orange-500 mt-2 hover:underline"
                                 onClick={() => handleLoadMore(company)}
                               >
                                 Load more...
