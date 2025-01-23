@@ -789,7 +789,7 @@ const DataMap = () => {
                       {marker.properties.address ? (
                         <div className="flex justify-between space-x-8">
                           <div className="flex gap-1">
-                            <GrLocation size={18} />
+                            <GrLocation size={17} />
                             <span>Address</span>
                           </div>
                           <span className="text-left">
@@ -799,7 +799,7 @@ const DataMap = () => {
                       ) : (
                         <div className="flex justify-between ">
                           <div className="flex gap-1">
-                            <GrLocation size={18} color="gray" />
+                            <GrLocation size={17} color="gray" />
                             <span className="text-gray-400">Address</span>
                           </div>
                           <span className="text-gray-400">None</span>
@@ -835,7 +835,7 @@ const DataMap = () => {
                       {marker.properties.googlemap ? (
                         <div className="flex justify-between">
                           <div className="flex gap-1">
-                            <GrMapLocation size={17} />
+                            <GrMapLocation size={16} />
                             <span>Google Maps</span>
                           </div>
                           <a
@@ -849,7 +849,7 @@ const DataMap = () => {
                       ) : (
                         <div className="flex justify-between">
                           <div className="flex gap-1">
-                            <GrMapLocation size={17} color="gray" />
+                            <GrMapLocation size={16} color="gray" />
                             <span className="text-gray-400">Google Maps</span>
                           </div>
                           <span className="text-gray-400">None</span>
