@@ -11,9 +11,6 @@ import {
 import "leaflet/dist/leaflet.css";
 import Supercluster from "supercluster";
 import L from "leaflet";
-import { HiAdjustments } from "react-icons/hi";
-import { IoIosArrowDown, IoIosArrowUp } from "react-icons/io";
-import { RiAccountCircleFill } from "react-icons/ri";
 import instance from "../component/api";
 import ClusterMarker from "../component/ClusterMarker";
 import { useForm } from "react-hook-form";
@@ -36,6 +33,16 @@ import Profilebar from "../component/Profilebar";
 import { companies } from "../component/companies";
 import { transformData } from "../component/parsers";
 import LogoutModal from "../component/LogoutModal";
+import { HiAdjustments } from "react-icons/hi";
+import { IoIosArrowDown, IoIosArrowUp } from "react-icons/io";
+import { RiAccountCircleFill } from "react-icons/ri";
+import { ImSpoonKnife } from "react-icons/im";
+import { SlSocialGoogle } from "react-icons/sl";
+import { PiPhone } from "react-icons/pi";
+import { HiMiniLink, HiOutlineEnvelope } from "react-icons/hi2";
+import { CiStar } from "react-icons/ci";
+import { GrLocation, GrMapLocation } from "react-icons/gr";
+import { GoCommentDiscussion } from "react-icons/go";
 
 const createCustomIcon = (PinComponent, options = {}) => {
   const { width = 40, height = 40 } = options;
@@ -689,23 +696,35 @@ const DataMap = () => {
                       </div>
                       {marker.properties.phone ? (
                         <div className="flex justify-between">
-                          <span>Phone No.</span>
+                          <div className="flex gap-1">
+                            <PiPhone size={18} />
+                            <span>Phone No.</span>
+                          </div>
                           <span>{marker.properties.phone}</span>
                         </div>
                       ) : (
                         <div className="flex justify-between">
-                          <span className="text-gray-400">Phone No.</span>
+                          <div className="flex gap-1">
+                            <PiPhone size={18} color="gray" />
+                            <span className="text-gray-400">Phone No.</span>
+                          </div>
                           <span className="text-gray-400">None</span>
                         </div>
                       )}
                       {marker.properties.postcode ? (
                         <div className="flex justify-between">
-                          <span>Postcode</span>
+                          <div className="flex gap-1">
+                            <HiOutlineEnvelope size={17} />
+                            <span>Postcode</span>
+                          </div>
                           <span>{marker.properties.postcode}</span>
                         </div>
                       ) : (
                         <div className="flex justify-between">
-                          <span className="text-gray-400">Postcode</span>
+                          <div className="flex gap-1">
+                            <HiOutlineEnvelope size={17} color="gray" />
+                            <span className="text-gray-400">Postcode</span>
+                          </div>
                           <span className="text-gray-400">None</span>
                         </div>
                       )}
@@ -713,12 +732,18 @@ const DataMap = () => {
                       {!marker.properties.cuisines ||
                       marker.properties.cuisines === "None" ? (
                         <div className="flex justify-between">
-                          <span className="text-gray-400">Cuisines</span>
+                          <div className="flex gap-1">
+                            <ImSpoonKnife size={15} color="gray" />
+                            <span className="text-gray-400">Cuisines</span>
+                          </div>
                           <span className="text-gray-400">None</span>
                         </div>
                       ) : (
                         <div className="flex justify-between space-x-8">
-                          <span>Cuisines</span>
+                          <div className="flex gap-1">
+                            <ImSpoonKnife size={15} />
+                            <span>Cuisines</span>
+                          </div>
                           <span>{marker.properties.cuisines}</span>
                         </div>
                       )}
@@ -726,12 +751,18 @@ const DataMap = () => {
                       {!marker.properties.rating ||
                       marker.properties.rating === "None" ? (
                         <div className="flex justify-between">
-                          <span className="text-gray-400">Rating</span>
+                          <div className="flex gap-1">
+                            <CiStar size={19} color="gray" />
+                            <span className="text-gray-400">Rating</span>
+                          </div>
                           <span className="text-gray-400">None</span>
                         </div>
                       ) : (
                         <div className="flex justify-between">
-                          <span>Rating</span>
+                          <div className="flex gap-1">
+                            <CiStar size={19} />
+                            <span>Rating</span>
+                          </div>
                           <span>{marker.properties.rating}</span>
                         </div>
                       )}
@@ -739,26 +770,38 @@ const DataMap = () => {
                       {!marker.properties.totalReviews ||
                       marker.properties.totalReviews === "None" ? (
                         <div className="flex justify-between">
-                          <span className="text-gray-400">Reviews</span>
+                          <div className="flex gap-1">
+                            <GoCommentDiscussion size={17} color="gray" />
+                            <span className="text-gray-400">Reviews</span>
+                          </div>
                           <span className="text-gray-400">None</span>
                         </div>
                       ) : (
                         <div className="flex justify-between">
-                          <span>Reviews</span>
+                          <div className="flex gap-1">
+                            <GoCommentDiscussion size={17} />
+                            <span>Reviews</span>
+                          </div>
                           <span>{marker.properties.totalReviews}</span>
                         </div>
                       )}
 
                       {marker.properties.address ? (
                         <div className="flex justify-between space-x-8">
-                          <span>Address</span>
+                          <div className="flex gap-1">
+                            <GrLocation size={18} />
+                            <span>Address</span>
+                          </div>
                           <span className="text-left">
                             {marker.properties.address}
                           </span>
                         </div>
                       ) : (
                         <div className="flex justify-between ">
-                          <span className="text-gray-400">Address</span>
+                          <div className="flex gap-1">
+                            <GrLocation size={18} color="gray" />
+                            <span className="text-gray-400">Address</span>
+                          </div>
                           <span className="text-gray-400">None</span>
                         </div>
                       )}
@@ -768,7 +811,10 @@ const DataMap = () => {
                       </div>
                       {marker.properties.website ? (
                         <div className="flex justify-between">
-                          <span>Website</span>
+                          <div className="flex gap-1">
+                            <HiMiniLink size={18} />
+                            <span>Website</span>
+                          </div>
                           <a
                             href={marker.properties.website}
                             target="_blank"
@@ -779,13 +825,19 @@ const DataMap = () => {
                         </div>
                       ) : (
                         <div className="flex justify-between">
-                          <span className="text-gray-400">Website</span>
+                          <div className="flex gap-1">
+                            <HiMiniLink size={18} color="gray" />
+                            <span className="text-gray-400">Website</span>
+                          </div>
                           <span className="text-gray-400">None</span>
                         </div>
                       )}
                       {marker.properties.googlemap ? (
                         <div className="flex justify-between">
-                          <span>Google Maps</span>
+                          <div className="flex gap-1">
+                            <GrMapLocation size={17} />
+                            <span>Google Maps</span>
+                          </div>
                           <a
                             href={marker.properties.googlemap}
                             target="_blank"
@@ -796,7 +848,10 @@ const DataMap = () => {
                         </div>
                       ) : (
                         <div className="flex justify-between">
-                          <span className="text-gray-400">Google Maps</span>
+                          <div className="flex gap-1">
+                            <GrMapLocation size={17} color="gray" />
+                            <span className="text-gray-400">Google Maps</span>
+                          </div>
                           <span className="text-gray-400">None</span>
                         </div>
                       )}
@@ -805,7 +860,10 @@ const DataMap = () => {
                       user.access.is_allowed_change &&
                       user.access.is_marketing ? (
                         <div className="flex justify-between">
-                          <span>Google Business</span>
+                          <div className="flex gap-1">
+                            <SlSocialGoogle size={16} />
+                            <span>Google Business</span>
+                          </div>
                           <Link
                             to={`/panel/${marker.properties.locationId}`}
                             target="_blank"
