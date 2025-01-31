@@ -12,6 +12,7 @@ const Filterbar = ({
   handleSubmit,
   control,
   watch,
+  handleReset,
   region,
   cuisine,
   companies,
@@ -203,10 +204,17 @@ const Filterbar = ({
         </div>
       </div>
 
-      <div className="border-t-2">
+      <div className="flex py-2 gap-2 border-t-2">
+        <button
+          type="button"
+          onClick={handleReset}
+          className="w-2/5 py-2 bg-white border-2 border-orange-500 text-orange-600 rounded hover:bg-gray-50 focus:outline-none disabled:bg-orange-300"
+        >
+          Clear
+        </button>
         <button
           type="submit"
-          className="my-4 w-full py-2 bg-orange-600 text-white rounded hover:bg-orange-700 focus:outline-none disabled:bg-orange-300"
+          className="w-3/5 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 focus:outline-none disabled:bg-orange-300"
           disabled={loading}
         >
           {loading ? "Is Loading ..." : "Filter"}

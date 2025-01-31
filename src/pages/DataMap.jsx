@@ -123,7 +123,7 @@ const MapBounds = ({ bounds }) => {
 };
 
 const DataMap = () => {
-  const { register, handleSubmit, control, watch } = useForm({
+  const { register, handleSubmit, control, watch, reset } = useForm({
     defaultValues: {
       selectedCompanies: [],
       region: [],
@@ -133,6 +133,18 @@ const DataMap = () => {
       searchTerm: "",
     },
   });
+  const handleReset = () => {
+    reset({
+      selectedCompanies: [],
+      region: [],
+      cuisine: [],
+      ratingRange: [0, 5],
+      reviewRange: { min: "", max: "" },
+      searchTerm: "",
+    });
+
+    setApiData([]);
+  };
 
   const [region, setRegion] = useState([]);
   const [cuisine, setCuisine] = useState([]);
@@ -576,6 +588,7 @@ const DataMap = () => {
         onSubmit={onSubmit}
         loading={loading}
         error={error}
+        handleReset={handleReset}
       />
       <Profilebar
         isOpen={isProfileOpen}
