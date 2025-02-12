@@ -38,11 +38,12 @@ import { IoIosArrowDown, IoIosArrowUp } from "react-icons/io";
 import { RiAccountCircleFill } from "react-icons/ri";
 import { ImSpoonKnife } from "react-icons/im";
 import { SlSocialGoogle } from "react-icons/sl";
-import { PiPhone } from "react-icons/pi";
+import { PiDevices, PiPhone } from "react-icons/pi";
 import { HiMiniLink, HiOutlineEnvelope } from "react-icons/hi2";
 import { CiStar } from "react-icons/ci";
 import { GrLocation, GrMapLocation } from "react-icons/gr";
 import { GoCommentDiscussion } from "react-icons/go";
+import DeviceStatus from "../component/DeviceStatus";
 
 const createCustomIcon = (PinComponent, options = {}) => {
   const { width = 40, height = 40 } = options;
@@ -153,6 +154,7 @@ const DataMap = () => {
   const [mapBounds, setMapBounds] = useState(null);
   const [zoom, setZoom] = useState(13);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [isDeviceOpen, setIsDeviceOpen] = useState(false);
   const [isResultOpen, setIsResultOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [error, setError] = useState(null);
@@ -551,24 +553,39 @@ const DataMap = () => {
 
   return (
     <div className="relative h-screen w-screen overflow-hidden">
-      <div className="bg-white w-20 h-screen absolute left-0 z-20 flex flex-col items-center border-r">
+      <div className="bg-white w-20 h-screen absolute left-0 z-50 flex flex-col items-center border-r">
         <div className="my-2 bg-cover bg-mealzo-sidebar-icon w-12 h-12"></div>
-        <div className="w-full h-full flex flex-col justify-between ">
+        <div className="w-full h-full flex flex-col items-center justify-between">
+          <div className="w-full flex flex-col">
+            <button
+              className={`py-4 hover:text-orange-600 ${isFilterOpen && "bg-orange-100 text-orange-600"} text-center flex flex-col items-center`}
+              onClick={() => {
+                setIsFilterOpen(true);
+                setIsDeviceOpen(false);
+                setIsProfileOpen(false);
+              }}
+            >
+              <HiAdjustments size={30} style={{ transform: "rotate(90deg)" }} />
+              Filters
+            </button>
+            <button
+              className={`py-4 hover:text-orange-600 ${isDeviceOpen && "bg-orange-100 text-orange-600"} text-center flex flex-col items-center`}
+              onClick={() => {
+                setIsDeviceOpen(true);
+                setIsFilterOpen(false);
+                setIsProfileOpen(false);
+              }}
+            >
+              <PiDevices size={30} />
+              Devices
+            </button>
+          </div>
           <button
-            className="py-4 focus:bg-orange-100 hover:text-orange-600 focus:text-orange-600 focus:outline-none text-center flex flex-col items-center"
-            onClick={() => {
-              setIsFilterOpen(true);
-              setIsProfileOpen(false);
-            }}
-          >
-            <HiAdjustments size={30} style={{ transform: "rotate(90deg)" }} />
-            Filters
-          </button>
-          <button
-            className="py-6 px-1 bg-white hover:text-orange-600 focus:text-orange-600 focus:outline-none text-center flex flex-col items-center"
+            className={`py-6 px-1 bg-white hover:text-orange-600 ${isProfileOpen && "text-orange-600"} text-center flex flex-col items-center`}
             onClick={() => {
               setIsProfileOpen(true);
               setIsFilterOpen(false);
+              setIsDeviceOpen(false);
             }}
           >
             <RiAccountCircleFill size={40} />
@@ -590,6 +607,7 @@ const DataMap = () => {
         error={error}
         handleReset={handleReset}
       />
+      <DeviceStatus isOpen={isDeviceOpen} setIsDeviceOpen={setIsDeviceOpen} />
       <Profilebar
         isOpen={isProfileOpen}
         setIsProfileOpen={setIsProfileOpen}
