@@ -22,20 +22,24 @@ const DeviceStatus = ({ isOpen, setIsDeviceOpen }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [searchType, setSearchType] = useState("name");
   const [currentPage, setCurrentPage] = useState(1);
+  const [pageInput, setPageInput] = useState("1");
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [isSearchActive, setIsSearchActive] = useState(false);
 
   useEffect(() => {
-    fetchData(currentPage);
-  }, [currentPage]);
+    if (!isSearchActive) {
+      fetchData(currentPage);
+    }
+  }, [currentPage, isSearchActive]);
 
   const fetchData = async (page) => {
+    setLoading(true);
     try {
       const response = await instance.get(`/status?page=${page}`);
       console.log(response.data.results);
 
       setData(response.data.results);
-
       setTotalPages(response.data.totalPages);
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -43,10 +47,25 @@ const DeviceStatus = ({ isOpen, setIsDeviceOpen }) => {
       setLoading(false);
     }
   };
-  console.log(data);
+
   const handlePageChange = (newPage) => {
     if (newPage >= 1 && newPage <= totalPages) {
       setCurrentPage(newPage);
+      setPageInput(newPage.toString());
+    } else {
+      setPageInput(currentPage.toString());
+    }
+  };
+  const handleInputChange = (e) => {
+    setPageInput(e.target.value);
+  };
+
+  const handlePageSubmit = () => {
+    const page = parseInt(pageInput, 10);
+    if (!isNaN(page) && page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    } else {
+      setPageInput(currentPage.toString());
     }
   };
 
@@ -62,7 +81,8 @@ const DeviceStatus = ({ isOpen, setIsDeviceOpen }) => {
 
       const response = await instance.get(url);
       console.log(response.data);
-      setSearchData(response.data); // Set search results
+      setSearchData(response.data.results);
+      setIsSearchActive(true);
     } catch (error) {
       console.error("Error fetching data:", error);
     } finally {
@@ -70,27 +90,32 @@ const DeviceStatus = ({ isOpen, setIsDeviceOpen }) => {
     }
   };
 
-  // Handle search input change
   const handleSearchTermChange = (e) => {
     setSearchTerm(e.target.value);
   };
 
-  // Handle search type change (radio button)
   const handleSearchTypeChange = (e) => {
     setSearchType(e.target.value);
   };
 
-  // Handle search button click
   const handleSearchClick = () => {
     if (searchTerm) {
-      fetchSearchData(searchTerm, searchType); // Trigger search with term and type
+      fetchSearchData(searchTerm, searchType);
     } else {
-      setSearchData([]); // Clear search results if the term is empty
+      setSearchData([]);
+      setIsSearchActive(false);
     }
   };
 
-  // Data to display in the table
-  const tableData = searchTerm ? searchData : data;
+  const handleClearSearch = () => {
+    setSearchTerm("");
+    setSearchData([]);
+    setIsSearchActive(false);
+    fetchData(currentPage);
+  };
+
+  const tableData = isSearchActive ? searchData : data;
+
   return (
     <div
       className={`max-w-screen w-[calc(100%-80px)] p-6 absolute top-0 left-20 flex flex-col h-full overflow-y-auto bg-white z-40 transition-transform duration-700 ease-in-out ${
@@ -279,31 +304,14 @@ const DeviceStatus = ({ isOpen, setIsDeviceOpen }) => {
           </div>
         </div>
         <div className="col-span-2 row-span-2 row-start-7">
-          <div className="mb-4 flex space-x-4">
-            <input
-              type="text"
-              placeholder={`Search by ${searchType === "name" ? "Shop Name" : "Shop ID"}...`}
-              value={searchTerm}
-              onChange={handleSearchTermChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <button
-              onClick={handleSearchClick}
-              className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              Search
-            </button>
-          </div>
-
-          {/* Radio Buttons for Search Type */}
-          <div className="mb-4 flex space-x-4">
+          <div className="mb-2 flex space-x-4">
             <label className="flex items-center">
               <input
                 type="radio"
                 value="name"
                 checked={searchType === "name"}
                 onChange={handleSearchTypeChange}
-                className="mr-2"
+                className="mr-2 w-4 h-4 accent-orange-400"
               />
               By Shop Name
             </label>
@@ -313,11 +321,39 @@ const DeviceStatus = ({ isOpen, setIsDeviceOpen }) => {
                 value="id"
                 checked={searchType === "id"}
                 onChange={handleSearchTypeChange}
-                className="mr-2"
+                className="mr-2 w-4 h-4 accent-orange-400"
               />
               By Shop ID
             </label>
           </div>
+          <div className="mb-4 flex space-x-4">
+            <input
+              type="text"
+              placeholder={`Search by ${searchType === "name" ? "Shop Name" : "Shop ID"}...`}
+              value={searchTerm}
+              onChange={handleSearchTermChange}
+              className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+            />
+            <button
+              onClick={handleSearchClick}
+              className="px-6 bg-orange-500 text-white rounded-lg hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500"
+            >
+              Search
+            </button>
+          </div>
+          {isSearchActive && (
+            <div className="flex space-x-4">
+              <p>
+                {searchData.length} Results found for "{searchTerm}"
+              </p>
+              <button
+                onClick={handleClearSearch}
+                className="text-orange-500 hover:text-orange-800"
+              >
+                remove
+              </button>
+            </div>
+          )}
         </div>
         <div className="col-span-6 row-span-5 row-start-10 flex flex-col items-center gap-4">
           <table className="min-w-full bg-white rounded-lg shadow-md">
@@ -341,7 +377,7 @@ const DeviceStatus = ({ isOpen, setIsDeviceOpen }) => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {data.map((item, index) => (
+              {tableData.map((item, index) => (
                 <tr key={index}>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center">
                     {item.mealzoId}
@@ -350,41 +386,62 @@ const DeviceStatus = ({ isOpen, setIsDeviceOpen }) => {
                     {item.mealzoName}
                   </td>
                   <td className="w-20 text-sm text-gray-900">
-                    {item.companies.justeat?.isOpen === true ? (
-                      <div className="flex bg-green-100 text-green-700 p-1 rounded-full items-center justify-center">
-                        <GoDotFill />
-                        <span>On</span>
-                      </div>
+                    {item.companies.justeat ? (
+                      item.companies.justeat.isOpen === true ? (
+                        <div className="flex bg-green-100 text-green-700 p-1 rounded-full items-center justify-center">
+                          <GoDotFill />
+                          <span>On</span>
+                        </div>
+                      ) : (
+                        <div className="flex bg-red-100 text-red-700 p-1 rounded-full items-center justify-center">
+                          <GoDotFill />
+                          <span>Off</span>
+                        </div>
+                      )
                     ) : (
-                      <div className="flex bg-red-100 text-red-700 p-1 rounded-full items-center justify-center">
+                      <div className="flex bg-gray-100 text-gray-700 p-1 rounded-full items-center justify-center">
                         <GoDotFill />
-                        <span>Off</span>
+                        <span>No device</span>
                       </div>
                     )}
                   </td>
                   <td className="w-20 text-sm text-gray-900">
-                    {item.companies.ubereats?.isOpen === true ? (
-                      <div className="flex bg-green-100 text-green-700 p-1 rounded-full items-center justify-center">
-                        <GoDotFill />
-                        <span>On</span>
-                      </div>
+                    {item.companies.ubereats ? (
+                      item.companies.ubereats.isOpen === true ? (
+                        <div className="flex bg-green-100 text-green-700 p-1 rounded-full items-center justify-center">
+                          <GoDotFill />
+                          <span>On</span>
+                        </div>
+                      ) : (
+                        <div className="flex bg-red-100 text-red-700 p-1 rounded-full items-center justify-center">
+                          <GoDotFill />
+                          <span>Off</span>
+                        </div>
+                      )
                     ) : (
-                      <div className="flex bg-red-100 text-red-700 p-1 rounded-full items-center justify-center">
+                      <div className="flex bg-gray-100 text-gray-700 p-1 rounded-full items-center justify-center">
                         <GoDotFill />
-                        <span>Off</span>
+                        <span>No device</span>
                       </div>
                     )}
                   </td>
                   <td className="w-20 text-sm text-gray-900">
-                    {item.companies?.foodhub?.isOpen === true ? (
-                      <div className="flex bg-green-100 text-green-700 p-1 rounded-full items-center justify-center">
-                        <GoDotFill />
-                        <span>On</span>
-                      </div>
+                    {item.companies.foodhub ? (
+                      item.companies.foodhub.isOpen === true ? (
+                        <div className="flex bg-green-100 text-green-700 p-1 rounded-full items-center justify-center">
+                          <GoDotFill />
+                          <span>On</span>
+                        </div>
+                      ) : (
+                        <div className="flex bg-red-100 text-red-700 p-1 rounded-full items-center justify-center">
+                          <GoDotFill />
+                          <span>Off</span>
+                        </div>
+                      )
                     ) : (
-                      <div className="flex bg-red-100 text-red-700 p-1 rounded-full items-center justify-center">
+                      <div className="flex bg-gray-100 text-gray-700 p-1 rounded-full items-center justify-center">
                         <GoDotFill />
-                        <span>Off</span>
+                        <span>No device</span>
                       </div>
                     )}
                   </td>
@@ -392,25 +449,60 @@ const DeviceStatus = ({ isOpen, setIsDeviceOpen }) => {
               ))}
             </tbody>
           </table>
-          <div className="flex items-center gap-2">
-            <button
-              className="p-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 focus:outline-none"
-              onClick={() => handlePageChange(currentPage - 1)}
-              disabled={currentPage === 1}
-            >
-              Prev
-            </button>
-            <span>
-              Page {currentPage} of {totalPages}
-            </span>
-            <button
-              className=" p-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 focus:outline-none"
-              onClick={() => handlePageChange(currentPage + 1)}
-              disabled={currentPage === totalPages}
-            >
-              Next
-            </button>
-          </div>
+
+          {/* New Pagination */}
+          {!isSearchActive && (
+            <div className="flex items-center gap-2">
+              {currentPage > 2 && (
+                <button
+                  className="p-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 focus:outline-none"
+                  onClick={() => handlePageChange(1)}
+                  disabled={currentPage === 1}
+                >
+                  Go to Page 1
+                </button>
+              )}
+
+              {currentPage > 1 && (
+                <button
+                  className="p-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 focus:outline-none flex items-center gap-1"
+                  onClick={() => handlePageChange(currentPage - 1)}
+                >
+                  <IoIosArrowBack />
+                  <span>Previous Page</span>
+                </button>
+              )}
+
+              {currentPage !== totalPages && (
+                <button
+                  className="p-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 focus:outline-none"
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                >
+                  Next Page →
+                </button>
+              )}
+
+              <div className="flex items-center gap-2">
+                <span className="text-gray-700">Page</span>
+                <input
+                  type="number"
+                  min="1"
+                  max={totalPages}
+                  value={pageInput}
+                  onChange={handleInputChange}
+                  onBlur={handlePageSubmit}
+                  onKeyPress={(e) => {
+                    if (e.key === "Enter") {
+                      handlePageSubmit();
+                    }
+                  }}
+                  className="w-16 px-2 py-1 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
+                />
+                <span className="text-gray-700">of {totalPages}</span>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
