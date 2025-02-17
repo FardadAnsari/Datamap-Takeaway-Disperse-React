@@ -1,8 +1,14 @@
 import React, { useEffect, useState } from "react";
-import { IoIosArrowBack } from "react-icons/io";
+import {
+  IoIosArrowBack,
+  IoIosArrowRoundBack,
+  IoIosArrowRoundForward,
+} from "react-icons/io";
 import { GoDotFill } from "react-icons/go";
 import instance from "./statusApi";
 import CountUp from "react-countup";
+import { ThreeDots } from "react-loader-spinner";
+import { MdKeyboardDoubleArrowLeft } from "react-icons/md";
 
 const DeviceStatus = ({ isOpen, setIsDeviceOpen }) => {
   const [totalStatus, setTotalStatus] = useState([]);
@@ -326,17 +332,22 @@ const DeviceStatus = ({ isOpen, setIsDeviceOpen }) => {
               By Shop ID
             </label>
           </div>
-          <div className="mb-4 flex space-x-4">
+          <div className="mb-4 flex">
             <input
               type="text"
               placeholder={`Search by ${searchType === "name" ? "Shop Name" : "Shop ID"}...`}
               value={searchTerm}
               onChange={handleSearchTermChange}
-              className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+              className="w-full p-2 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  handleSearchClick();
+                }
+              }}
             />
             <button
               onClick={handleSearchClick}
-              className="px-6 bg-orange-500 text-white rounded-lg hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500"
+              className="px-6 bg-orange-600 text-white rounded-r-lg hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500"
             >
               Search
             </button>
@@ -355,7 +366,7 @@ const DeviceStatus = ({ isOpen, setIsDeviceOpen }) => {
             </div>
           )}
         </div>
-        <div className="col-span-6 row-span-5 row-start-10 flex flex-col items-center gap-4">
+        <div className="col-span-6 row-span-5 row-start-9 flex flex-col items-center gap-4">
           <table className="min-w-full bg-white rounded-lg shadow-md">
             <thead className="bg-gray-100">
               <tr>
@@ -376,112 +387,147 @@ const DeviceStatus = ({ isOpen, setIsDeviceOpen }) => {
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
-              {tableData.map((item, index) => (
-                <tr key={index}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center">
-                    {item.mealzoId}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {item.mealzoName}
-                  </td>
-                  <td className="w-20 text-sm text-gray-900">
-                    {item.companies.justeat ? (
-                      item.companies.justeat.isOpen === true ? (
-                        <div className="flex bg-green-100 text-green-700 p-1 rounded-full items-center justify-center">
-                          <GoDotFill />
-                          <span>On</span>
-                        </div>
-                      ) : (
-                        <div className="flex bg-red-100 text-red-700 p-1 rounded-full items-center justify-center">
-                          <GoDotFill />
-                          <span>Off</span>
-                        </div>
-                      )
-                    ) : (
-                      <div className="flex bg-gray-100 text-gray-700 p-1 rounded-full items-center justify-center">
-                        <GoDotFill />
-                        <span>No device</span>
-                      </div>
-                    )}
-                  </td>
-                  <td className="w-20 text-sm text-gray-900">
-                    {item.companies.ubereats ? (
-                      item.companies.ubereats.isOpen === true ? (
-                        <div className="flex bg-green-100 text-green-700 p-1 rounded-full items-center justify-center">
-                          <GoDotFill />
-                          <span>On</span>
-                        </div>
-                      ) : (
-                        <div className="flex bg-red-100 text-red-700 p-1 rounded-full items-center justify-center">
-                          <GoDotFill />
-                          <span>Off</span>
-                        </div>
-                      )
-                    ) : (
-                      <div className="flex bg-gray-100 text-gray-700 p-1 rounded-full items-center justify-center">
-                        <GoDotFill />
-                        <span>No device</span>
-                      </div>
-                    )}
-                  </td>
-                  <td className="w-20 text-sm text-gray-900">
-                    {item.companies.foodhub ? (
-                      item.companies.foodhub.isOpen === true ? (
-                        <div className="flex bg-green-100 text-green-700 p-1 rounded-full items-center justify-center">
-                          <GoDotFill />
-                          <span>On</span>
-                        </div>
-                      ) : (
-                        <div className="flex bg-red-100 text-red-700 p-1 rounded-full items-center justify-center">
-                          <GoDotFill />
-                          <span>Off</span>
-                        </div>
-                      )
-                    ) : (
-                      <div className="flex bg-gray-100 text-gray-700 p-1 rounded-full items-center justify-center">
-                        <GoDotFill />
-                        <span>No device</span>
-                      </div>
-                    )}
+            <tbody className="relative divide-y divide-gray-200 min-h-[200px]">
+              {loading === true ? (
+                <tr>
+                  <td colSpan="5" className="h-80">
+                    <div className="flex items-center justify-center h-full">
+                      <ThreeDots
+                        visible={true}
+                        height="50"
+                        width="50"
+                        color="#ffa500"
+                        radius="9"
+                        ariaLabel="three-dots-loading"
+                        wrapperStyle={{}}
+                        wrapperClass=""
+                      />
+                    </div>
                   </td>
                 </tr>
-              ))}
+              ) : tableData.length === 0 ? (
+                <tr>
+                  <td colSpan="5" className="h-80">
+                    <div className="flex flex-col items-center justify-center h-full text-gray-500 gap-4">
+                      <div className="w-44 h-44 bg-cover bg-no-result"></div>
+                      <p>No Results Matching</p>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                tableData.map((item, index) => (
+                  <tr key={index}>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center">
+                      {item.mealzoId}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {item.mealzoName}
+                    </td>
+                    <td className="w-20 text-sm text-gray-900">
+                      {item.companies.justeat ? (
+                        item.companies.justeat.isOpen === true ? (
+                          <div className="flex bg-green-100 text-green-700 p-1 rounded-full items-center justify-center">
+                            <GoDotFill />
+                            <span>On</span>
+                          </div>
+                        ) : (
+                          <div className="flex bg-red-100 text-red-700 p-1 rounded-full items-center justify-center">
+                            <GoDotFill />
+                            <span>Off</span>
+                          </div>
+                        )
+                      ) : (
+                        <div className="flex bg-gray-100 text-gray-700 p-1 rounded-full items-center justify-center">
+                          <GoDotFill />
+                          <span>No device</span>
+                        </div>
+                      )}
+                    </td>
+                    <td className="w-20 text-sm text-gray-900">
+                      {item.companies.ubereats ? (
+                        item.companies.ubereats.isOpen === true ? (
+                          <div className="flex bg-green-100 text-green-700 p-1 rounded-full items-center justify-center">
+                            <GoDotFill />
+                            <span>On</span>
+                          </div>
+                        ) : (
+                          <div className="flex bg-red-100 text-red-700 p-1 rounded-full items-center justify-center">
+                            <GoDotFill />
+                            <span>Off</span>
+                          </div>
+                        )
+                      ) : (
+                        <div className="flex bg-gray-100 text-gray-700 p-1 rounded-full items-center justify-center">
+                          <GoDotFill />
+                          <span>No device</span>
+                        </div>
+                      )}
+                    </td>
+                    <td className="w-20 text-sm text-gray-900">
+                      {item.companies.foodhub ? (
+                        item.companies.foodhub.isOpen === true ? (
+                          <div className="flex bg-green-100 text-green-700 p-1 rounded-full items-center justify-center">
+                            <GoDotFill />
+                            <span>On</span>
+                          </div>
+                        ) : (
+                          <div className="flex bg-red-100 text-red-700 p-1 rounded-full items-center justify-center">
+                            <GoDotFill />
+                            <span>Off</span>
+                          </div>
+                        )
+                      ) : (
+                        <div className="flex bg-gray-100 text-gray-700 p-1 rounded-full items-center justify-center">
+                          <GoDotFill />
+                          <span>No device</span>
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
 
-          {/* New Pagination */}
           {!isSearchActive && (
-            <div className="flex items-center gap-2">
-              {currentPage > 2 && (
+            <div className="w-full flex items-center justify-between">
+              {currentPage > 2 ? (
                 <button
-                  className="p-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 focus:outline-none"
+                  className="flex items-center p-2 text-orange-600 rounded-lg hover:text-orange-700 focus:outline-none"
                   onClick={() => handlePageChange(1)}
                   disabled={currentPage === 1}
                 >
-                  Go to Page 1
+                  <MdKeyboardDoubleArrowLeft size={20} />
+                  <span>Go to Page 1</span>
                 </button>
+              ) : (
+                <div className="flex items-center p-2 text-gray-400 rounded-lg focus:outline-none">
+                  <MdKeyboardDoubleArrowLeft size={20} />
+                  <span>Go to Page 1</span>
+                </div>
               )}
 
-              {currentPage > 1 && (
-                <button
-                  className="p-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 focus:outline-none flex items-center gap-1"
-                  onClick={() => handlePageChange(currentPage - 1)}
-                >
-                  <IoIosArrowBack />
-                  <span>Previous Page</span>
-                </button>
-              )}
+              <div className="flex gap-2">
+                {currentPage > 1 && (
+                  <button
+                    className="p-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 focus:outline-none flex items-center gap-1"
+                    onClick={() => handlePageChange(currentPage - 1)}
+                  >
+                    <IoIosArrowRoundBack size={25} />
+                  </button>
+                )}
 
-              {currentPage !== totalPages && (
-                <button
-                  className="p-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 focus:outline-none"
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                >
-                  Next Page →
-                </button>
-              )}
+                {currentPage !== totalPages && (
+                  <button
+                    className="flex p-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 focus:outline-none"
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                  >
+                    <span>Next Page</span>
+                    <IoIosArrowRoundForward size={25} />
+                  </button>
+                )}
+              </div>
 
               <div className="flex items-center gap-2">
                 <span className="text-gray-700">Page</span>
@@ -497,7 +543,7 @@ const DeviceStatus = ({ isOpen, setIsDeviceOpen }) => {
                       handlePageSubmit();
                     }
                   }}
-                  className="w-16 px-2 py-1 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
+                  className="w-12 px-2 py-1 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-center"
                 />
                 <span className="text-gray-700">of {totalPages}</span>
               </div>
