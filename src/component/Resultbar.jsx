@@ -36,6 +36,7 @@ const ResultBar = ({
   expandedCompanies,
   toggleCompany,
   onMarkerFocus,
+  onDistinctFocus,
   activeMarker,
 }) => {
   const [visibleCommonShops, setVisibleCommonShops] = useState(3);
@@ -52,6 +53,21 @@ const ResultBar = ({
     ) {
       const coordinates = shop.geometry.coordinates;
       onMarkerFocus(coordinates, shop.properties.shop_id);
+    } else {
+      console.warn("Shop data is incomplete or invalid:", shop);
+    }
+  };
+
+  const handleCommonShopClick = (shop) => {
+    if (
+      shop &&
+      shop.geometry &&
+      Array.isArray(shop.geometry.coordinates) &&
+      shop.properties &&
+      shop.properties.shop_id
+    ) {
+      const coordinates = shop.geometry.coordinates;
+      onDistinctFocus(coordinates, shop.properties.shop_id);
     } else {
       console.warn("Shop data is incomplete or invalid:", shop);
     }
@@ -180,7 +196,13 @@ const ResultBar = ({
                     const { shopName, postcode, shop_id, commonIn } =
                       shop.properties;
                     return (
-                      <div key={shop_id} className="p-3 border-b-2">
+                      <div
+                        key={shop_id}
+                        className={`flex flex-col gap-2 cursor-pointer border-b px-2 py-4 ${
+                          activeMarker === shop_id ? "bg-orange-50" : ""
+                        }`}
+                        onClick={() => handleCommonShopClick(shop)}
+                      >
                         <div className="flex justify-between items-start">
                           <div>
                             <h3 className="text-sm font-medium text-gray-800">

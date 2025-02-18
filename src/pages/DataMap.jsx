@@ -511,26 +511,32 @@ const DataMap = () => {
   const markerRefs = useRef({});
   const [activeMarker, setActiveMarker] = useState(null);
   const [isMapMoving, setIsMapMoving] = useState(false);
+  const [shouldOpenPopup, setShouldOpenPopup] = useState(true);
 
   useEffect(() => {
-    if (activeMarker && markerRefs.current[activeMarker] && !isMapMoving) {
+    if (
+      activeMarker &&
+      markerRefs.current[activeMarker] &&
+      !isMapMoving &&
+      shouldOpenPopup
+    ) {
       setTimeout(() => {
         if (markerRefs.current[activeMarker]) {
           markerRefs.current[activeMarker].openPopup();
         }
       }, 100);
     }
-  }, [activeMarker, isMapMoving]);
+  }, [activeMarker, isMapMoving, shouldOpenPopup]);
 
   const focusOnMarker = (coordinates, shopId) => {
     if (mapRef.current) {
       const map = mapRef.current;
 
-      // Close previous popup
       if (activeMarker && markerRefs.current[activeMarker]) {
         markerRefs.current[activeMarker].closePopup();
       }
 
+      setShouldOpenPopup(true);
       setIsMapMoving(true);
       setActiveMarker(shopId);
 
@@ -539,6 +545,34 @@ const DataMap = () => {
         easeLinearity: 0.1,
         noMoveStart: true,
       });
+
+      const handleMoveEnd = () => {
+        setIsMapMoving(false);
+        map.off("moveend", handleMoveEnd);
+      };
+
+      map.on("moveend", handleMoveEnd);
+    }
+  };
+
+  const focusOnDistinct = (coordinates, shopId) => {
+    if (mapRef.current) {
+      const map = mapRef.current;
+
+      if (activeMarker && markerRefs.current[activeMarker]) {
+        markerRefs.current[activeMarker].closePopup();
+      }
+
+      setShouldOpenPopup(false);
+      setIsMapMoving(true);
+      setActiveMarker(shopId);
+
+      map.flyTo([coordinates[1], coordinates[0]], 18, {
+        duration: 2,
+        easeLinearity: 0.1,
+        noMoveStart: true,
+      });
+
       const handleMoveEnd = () => {
         setIsMapMoving(false);
         map.off("moveend", handleMoveEnd);
@@ -640,6 +674,7 @@ const DataMap = () => {
           expandedCompanies={expandedCompanies}
           toggleCompany={toggleCompany}
           onMarkerFocus={focusOnMarker}
+          onDistinctFocus={focusOnDistinct}
           activeMarker={activeMarker}
         />
       )}
