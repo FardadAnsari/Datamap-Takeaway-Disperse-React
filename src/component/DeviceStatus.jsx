@@ -26,7 +26,7 @@ const DeviceStatus = ({ isOpen, setIsDeviceOpen }) => {
   const [data, setData] = useState([]);
   const [searchData, setSearchData] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [searchType, setSearchType] = useState("name");
+  const [searchType, setSearchType] = useState("id");
   const [currentPage, setCurrentPage] = useState(1);
   const [pageInput, setPageInput] = useState("1");
   const [totalPages, setTotalPages] = useState(1);
@@ -43,7 +43,7 @@ const DeviceStatus = ({ isOpen, setIsDeviceOpen }) => {
     setLoading(true);
     try {
       const response = await instance.get(`/status?page=${page}`);
-      console.log(response.data.results);
+      console.log("pageData", response.data);
 
       setData(response.data.results);
       setTotalPages(response.data.totalPages);
@@ -62,6 +62,7 @@ const DeviceStatus = ({ isOpen, setIsDeviceOpen }) => {
       setPageInput(currentPage.toString());
     }
   };
+
   const handleInputChange = (e) => {
     setPageInput(e.target.value);
   };
@@ -314,16 +315,6 @@ const DeviceStatus = ({ isOpen, setIsDeviceOpen }) => {
             <label className="flex items-center">
               <input
                 type="radio"
-                value="name"
-                checked={searchType === "name"}
-                onChange={handleSearchTypeChange}
-                className="mr-2 w-4 h-4 accent-orange-400"
-              />
-              By Shop Name
-            </label>
-            <label className="flex items-center">
-              <input
-                type="radio"
                 value="id"
                 checked={searchType === "id"}
                 onChange={handleSearchTypeChange}
@@ -331,12 +322,23 @@ const DeviceStatus = ({ isOpen, setIsDeviceOpen }) => {
               />
               By Shop ID
             </label>
+            <label className="flex items-center">
+              <input
+                type="radio"
+                value="name"
+                checked={searchType === "name"}
+                onChange={handleSearchTypeChange}
+                className="mr-2 w-4 h-4 accent-orange-400"
+              />
+              By Shop Name
+            </label>
           </div>
           <div className="mb-4 flex">
             <input
               type="text"
               placeholder={`Search by ${searchType === "name" ? "Shop Name" : "Shop ID"}...`}
               value={searchTerm}
+              type={searchType === "name" ? "text" : "number"}
               onChange={handleSearchTermChange}
               className="w-full p-2 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
               onKeyDown={(e) => {
@@ -415,8 +417,8 @@ const DeviceStatus = ({ isOpen, setIsDeviceOpen }) => {
                   </td>
                 </tr>
               ) : (
-                tableData.map((item, index) => (
-                  <tr key={index}>
+                tableData.map((item) => (
+                  <tr key={item.mealzoId}>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center">
                       {item.mealzoId}
                     </td>
@@ -424,8 +426,8 @@ const DeviceStatus = ({ isOpen, setIsDeviceOpen }) => {
                       {item.mealzoName}
                     </td>
                     <td className="w-20 text-sm text-gray-900">
-                      {item.companies.justeat ? (
-                        item.companies.justeat.isOpen === true ? (
+                      {item.companies.justeat.deviceAvailability === true ? (
+                        item.companies.justeat.data.isOpen === true ? (
                           <div className="flex bg-green-100 text-green-700 p-1 rounded-full items-center justify-center">
                             <GoDotFill />
                             <span>On</span>
@@ -444,8 +446,8 @@ const DeviceStatus = ({ isOpen, setIsDeviceOpen }) => {
                       )}
                     </td>
                     <td className="w-20 text-sm text-gray-900">
-                      {item.companies.ubereats ? (
-                        item.companies.ubereats.isOpen === true ? (
+                      {item.companies.ubereats.deviceAvailability === true ? (
+                        item.companies.ubereats.data.isOpen === true ? (
                           <div className="flex bg-green-100 text-green-700 p-1 rounded-full items-center justify-center">
                             <GoDotFill />
                             <span>On</span>
@@ -464,8 +466,8 @@ const DeviceStatus = ({ isOpen, setIsDeviceOpen }) => {
                       )}
                     </td>
                     <td className="w-20 text-sm text-gray-900">
-                      {item.companies.foodhub ? (
-                        item.companies.foodhub.isOpen === true ? (
+                      {item.companies.foodhub.deviceAvailability === true ? (
+                        item.companies.foodhub.data.isOpen === true ? (
                           <div className="flex bg-green-100 text-green-700 p-1 rounded-full items-center justify-center">
                             <GoDotFill />
                             <span>On</span>
@@ -510,16 +512,16 @@ const DeviceStatus = ({ isOpen, setIsDeviceOpen }) => {
               <div className="flex gap-2">
                 {currentPage > 1 && (
                   <button
-                    className="p-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 focus:outline-none flex items-center gap-1"
+                    className="p-2 border-2 border-orange-600 text-white rounded-lg hover:border-orange-700 focus:outline-none flex items-center gap-1"
                     onClick={() => handlePageChange(currentPage - 1)}
                   >
-                    <IoIosArrowRoundBack size={25} />
+                    <IoIosArrowRoundBack size={25} color="#EA580C" />
                   </button>
                 )}
 
                 {currentPage !== totalPages && (
                   <button
-                    className="flex p-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 focus:outline-none"
+                    className="flex items-center p-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 focus:outline-none"
                     onClick={() => handlePageChange(currentPage + 1)}
                     disabled={currentPage === totalPages}
                   >
