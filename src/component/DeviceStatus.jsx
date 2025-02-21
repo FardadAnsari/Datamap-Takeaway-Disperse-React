@@ -58,6 +58,11 @@ const DeviceStatus = ({ isOpen, setIsDeviceOpen }) => {
     if (newPage >= 1 && newPage <= totalPages) {
       setCurrentPage(newPage);
       setPageInput(newPage.toString());
+      if (isSearchActive) {
+        fetchSearchData(searchTerm, searchType, newPage);
+      } else {
+        fetchData(newPage);
+      }
     } else {
       setPageInput(currentPage.toString());
     }
@@ -67,28 +72,44 @@ const DeviceStatus = ({ isOpen, setIsDeviceOpen }) => {
     setPageInput(e.target.value);
   };
 
+  // const handlePageSubmit = () => {
+  //   const page = parseInt(pageInput, 10);
+  //   if (!isNaN(page) && page >= 1 && page <= totalPages) {
+  //     setCurrentPage(page);
+  //   } else {
+  //     setPageInput(currentPage.toString());
+  //   }
+  // };
+
   const handlePageSubmit = () => {
     const page = parseInt(pageInput, 10);
     if (!isNaN(page) && page >= 1 && page <= totalPages) {
       setCurrentPage(page);
+      if (isSearchActive) {
+        fetchSearchData(searchTerm, searchType, page);
+      } else {
+        fetchData(page);
+      }
     } else {
       setPageInput(currentPage.toString());
     }
   };
 
-  const fetchSearchData = async (term = "", type = "name") => {
+  const fetchSearchData = async (term = "", type = "name", page = 1) => {
     setLoading(true);
     try {
       let url = "";
       if (type === "name") {
-        url = `/status?mealzoName=${term}`;
+        url = `/status?mealzoName=${term}&page=${page}`;
       } else if (type === "id") {
-        url = `/status?mealzoId=${term}`;
+        url = `/status?mealzoId=${term}&page=${page}`;
       }
 
       const response = await instance.get(url);
       console.log(response.data);
       setSearchData(response.data.results);
+      setTotalPages(response.data.totalPages);
+      setCurrentPage(response.data.currentPage);
       setIsSearchActive(true);
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -107,7 +128,7 @@ const DeviceStatus = ({ isOpen, setIsDeviceOpen }) => {
 
   const handleSearchClick = () => {
     if (searchTerm) {
-      fetchSearchData(searchTerm, searchType);
+      fetchSearchData(searchTerm, searchType, 1);
     } else {
       setSearchData([]);
       setIsSearchActive(false);
@@ -119,6 +140,32 @@ const DeviceStatus = ({ isOpen, setIsDeviceOpen }) => {
     setSearchData([]);
     setIsSearchActive(false);
     fetchData(currentPage);
+  };
+
+  const handleNextPage = () => {
+    const nextPage = currentPage + 1;
+    if (nextPage <= totalPages) {
+      setCurrentPage(nextPage);
+      setPageInput(nextPage.toString());
+      if (isSearchActive) {
+        fetchSearchData(searchTerm, searchType, nextPage);
+      } else {
+        fetchData(nextPage);
+      }
+    }
+  };
+
+  const handlePreviousPage = () => {
+    const prevPage = currentPage - 1;
+    if (prevPage >= 1) {
+      setCurrentPage(prevPage);
+      setPageInput(prevPage.toString());
+      if (isSearchActive) {
+        fetchSearchData(searchTerm, searchType, prevPage);
+      } else {
+        fetchData(prevPage);
+      }
+    }
   };
 
   const tableData = isSearchActive ? searchData : data;
@@ -335,7 +382,6 @@ const DeviceStatus = ({ isOpen, setIsDeviceOpen }) => {
           </div>
           <div className="mb-4 flex">
             <input
-              type="text"
               placeholder={`Search by ${searchType === "name" ? "Shop Name" : "Shop ID"}...`}
               value={searchTerm}
               type={searchType === "name" ? "text" : "number"}
@@ -491,66 +537,65 @@ const DeviceStatus = ({ isOpen, setIsDeviceOpen }) => {
             </tbody>
           </table>
 
-          {!isSearchActive && (
-            <div className="w-full flex items-center justify-between">
-              {currentPage > 2 ? (
+          <div className="w-full flex items-center justify-between">
+            {currentPage > 2 ? (
+              <button
+                className="flex items-center p-2 text-orange-600 rounded-lg hover:text-orange-700 focus:outline-none"
+                onClick={() => handlePageChange(1)}
+                disabled={currentPage === 1}
+              >
+                <MdKeyboardDoubleArrowLeft size={20} />
+                <span>Go to Page 1</span>
+              </button>
+            ) : (
+              <div className="flex items-center p-2 text-gray-400 rounded-lg focus:outline-none">
+                <MdKeyboardDoubleArrowLeft size={20} />
+                <span>Go to Page 1</span>
+              </div>
+            )}
+
+            <div className="flex gap-2">
+              {currentPage > 1 && (
                 <button
-                  className="flex items-center p-2 text-orange-600 rounded-lg hover:text-orange-700 focus:outline-none"
-                  onClick={() => handlePageChange(1)}
-                  disabled={currentPage === 1}
+                  className="p-2 border-2 border-orange-600 text-white rounded-lg hover:border-orange-700 focus:outline-none flex items-center gap-1"
+                  onClick={handlePreviousPage}
                 >
-                  <MdKeyboardDoubleArrowLeft size={20} />
-                  <span>Go to Page 1</span>
+                  <IoIosArrowRoundBack size={25} color="#EA580C" />
                 </button>
-              ) : (
-                <div className="flex items-center p-2 text-gray-400 rounded-lg focus:outline-none">
-                  <MdKeyboardDoubleArrowLeft size={20} />
-                  <span>Go to Page 1</span>
-                </div>
               )}
 
-              <div className="flex gap-2">
-                {currentPage > 1 && (
-                  <button
-                    className="p-2 border-2 border-orange-600 text-white rounded-lg hover:border-orange-700 focus:outline-none flex items-center gap-1"
-                    onClick={() => handlePageChange(currentPage - 1)}
-                  >
-                    <IoIosArrowRoundBack size={25} color="#EA580C" />
-                  </button>
-                )}
-
-                {currentPage !== totalPages && (
-                  <button
-                    className="flex items-center p-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 focus:outline-none"
-                    onClick={() => handlePageChange(currentPage + 1)}
-                    disabled={currentPage === totalPages}
-                  >
-                    <span>Next Page</span>
-                    <IoIosArrowRoundForward size={25} />
-                  </button>
-                )}
-              </div>
-
-              <div className="flex items-center gap-2">
-                <span className="text-gray-700">Page</span>
-                <input
-                  type="number"
-                  min="1"
-                  max={totalPages}
-                  value={pageInput}
-                  onChange={handleInputChange}
-                  onBlur={handlePageSubmit}
-                  onKeyPress={(e) => {
-                    if (e.key === "Enter") {
-                      handlePageSubmit();
-                    }
-                  }}
-                  className="w-12 px-2 py-1 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-center"
-                />
-                <span className="text-gray-700">of {totalPages}</span>
-              </div>
+              {currentPage !== totalPages && (
+                <button
+                  className="flex items-center p-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 focus:outline-none"
+                  onClick={handleNextPage}
+                  disabled={currentPage === totalPages}
+                >
+                  <span>Next Page</span>
+                  <IoIosArrowRoundForward size={25} />
+                </button>
+              )}
             </div>
-          )}
+
+            <div className="flex items-center gap-2">
+              <span className="text-gray-700">Page</span>
+              <input
+                type="number"
+                min="1"
+                max={totalPages}
+                value={pageInput}
+                onChange={handleInputChange}
+                onBlur={handlePageSubmit}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.target.blur();
+                    handlePageSubmit();
+                  }
+                }}
+                className="w-12 px-2 py-1 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-center"
+              />
+              <span className="text-gray-700">of {totalPages}</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
