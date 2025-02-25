@@ -31,6 +31,7 @@ import { useUser } from "../component/userPermission";
 import Filterbar from "../component/Filterbar";
 import Profilebar from "../component/Profilebar";
 import { companies } from "../component/companies";
+import { googlebusiness } from "../component/googlebusiness";
 import { transformData } from "../component/parsers";
 import LogoutModal from "../component/LogoutModal";
 import { HiAdjustments } from "react-icons/hi";
@@ -45,13 +46,16 @@ import { GrLocation, GrMapLocation } from "react-icons/gr";
 import { GoCommentDiscussion } from "react-icons/go";
 import DeviceStatus from "../component/DeviceStatus";
 
+// Function to create a custom icon using a React component
 const createCustomIcon = (PinComponent, options = {}) => {
   const { width = 40, height = 40 } = options;
 
+  // Convert the React component to an HTML string
   const iconHTML = ReactDOMServer.renderToString(
     <PinComponent width={width} height={height} />
   );
 
+  // Return a Leaflet divIcon with the rendered HTML
   return L.divIcon({
     html: iconHTML,
     className: "",
@@ -59,7 +63,9 @@ const createCustomIcon = (PinComponent, options = {}) => {
   });
 };
 
+// Function to create a cluster icon with a count
 const createClusterIcon = (count) => {
+  // Determine the color and size based on the count
   let color = "#555";
   if (count < 10) color = "#1abc9c";
   else if (count < 20) color = "#3498db";
@@ -72,6 +78,7 @@ const createClusterIcon = (count) => {
   else if (count < 50) size = 50;
   else size = 60;
 
+  // Create an SVG icon with the count displayed
   const svgIcon = `
     <svg xmlns="http://www.w3.org/2000/svg" 
          width="${size}" height="${size}" 
@@ -93,8 +100,11 @@ const createClusterIcon = (count) => {
   });
 };
 
+// Component to update map bounds and zoom level
 const UpdateMapBounds = ({ setMapBounds, setZoom }) => {
   const map = useMap();
+
+  // Effect to update bounds and zoom when the map moves
   React.useEffect(() => {
     const update = () => {
       const newBounds = map.getBounds();
@@ -115,6 +125,7 @@ const UpdateMapBounds = ({ setMapBounds, setZoom }) => {
   return null;
 };
 
+// Component to fit the map to the given bounds
 const MapBounds = ({ bounds }) => {
   const map = useMap();
   useEffect(() => {
@@ -123,8 +134,16 @@ const MapBounds = ({ bounds }) => {
   return null;
 };
 
+// Main DataMap component
 const DataMap = () => {
-  const { register, handleSubmit, control, watch, reset } = useForm({
+  // Form handling for companies and Google Business data
+  const {
+    register: registerCompanies,
+    handleSubmit: handleSubmitCompanies,
+    control: controlCompanies,
+    watch: watchCompanies,
+    reset: resetCompanies,
+  } = useForm({
     defaultValues: {
       selectedCompanies: [],
       region: [],
@@ -134,19 +153,38 @@ const DataMap = () => {
       searchTerm: "",
     },
   });
-  const handleReset = () => {
-    reset({
-      selectedCompanies: [],
+
+  const {
+    register: registerGoogleBusiness,
+    handleSubmit: handleSubmitGoogleBusiness,
+    control: controlGoogleBusiness,
+    reset: resetGoogleBusiness,
+  } = useForm({
+    defaultValues: {
+      selectedCompanies: googlebusiness,
       region: [],
       cuisine: [],
-      ratingRange: [0, 5],
-      reviewRange: { min: "", max: "" },
+      postCode: "",
       searchTerm: "",
-    });
+    },
+  });
 
-    setApiData([]);
+  // Separate loading and error states for companies and Google Business data
+  const [loadingCompanies, setLoadingCompanies] = useState(false);
+  const [loadingGoogleBusiness, setLoadingGoogleBusiness] = useState(false);
+  const [errorCompanies, setErrorCompanies] = useState(null);
+  const [errorGoogleBusiness, setErrorGoogleBusiness] = useState(null);
+
+  // Reset handlers for the forms
+  const handleResetCompanies = () => {
+    resetCompanies();
   };
 
+  const handleResetGoogleBusiness = () => {
+    resetGoogleBusiness();
+  };
+
+  // State for region, cuisine, and region boundary data
   const [region, setRegion] = useState([]);
   const [cuisine, setCuisine] = useState([]);
   const [regionBoundaryData, setRegionBoundaryData] = useState(null);
@@ -157,22 +195,24 @@ const DataMap = () => {
   const [isDeviceOpen, setIsDeviceOpen] = useState(false);
   const [isResultOpen, setIsResultOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(false);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
+  // Function to handle logout click
   const handleLogoutClick = () => {
     setIsLogoutModalOpen(true);
   };
 
+  // Function to close the logout modal
   const handleCloseLogoutModal = () => {
     setIsLogoutModalOpen(false);
   };
 
+  // Function to toggle the result bar
   const toggleResult = () => {
     setIsResultOpen((prev) => !prev);
   };
 
+  // Ref for the Supercluster instance
   const clusterRef = useRef(
     new Supercluster({
       radius: 75,
@@ -181,6 +221,7 @@ const DataMap = () => {
     })
   );
 
+  // Fetch region data on component mount
   useEffect(() => {
     const fetchRegion = async () => {
       try {
@@ -194,6 +235,7 @@ const DataMap = () => {
     fetchRegion();
   }, []);
 
+  // Fetch cuisine data on component mount
   useEffect(() => {
     const fetchCuisine = async () => {
       try {
@@ -207,6 +249,7 @@ const DataMap = () => {
     fetchCuisine();
   }, []);
 
+  // Function to fetch region boundary data
   const getRegionData = async (selectedRegion) => {
     const url = `https://ons-dp-prod-cdn.s3.eu-west-2.amazonaws.com/maptiles/ap-geos/v3/${selectedRegion.substring(0, 3)}/${selectedRegion}.json`;
     try {
@@ -241,10 +284,142 @@ const DataMap = () => {
     }
   };
 
-  const onSubmit = async (data) => {
+  // Function to handle Google Business form submission
+  const onSubmitGoogleBusiness = async (data) => {
     console.log("form submitted:", data);
-    setLoading(true);
-    setError(null);
+    setLoadingGoogleBusiness(true);
+    setErrorGoogleBusiness(null);
+
+    try {
+      await clearOldCaches(24 * 60 * 60 * 1000);
+
+      setRegionBoundaryData(null);
+      setApiData([]);
+
+      let combinedRegionData = null;
+
+      if (data.region && data.region.length > 0) {
+        const regionDataPromises = data.region.map((selectedRegion) =>
+          getRegionData(selectedRegion.value)
+        );
+
+        const regionsData = await Promise.all(regionDataPromises);
+        const validRegionsData = regionsData.filter(
+          (region) => region !== null
+        );
+
+        if (validRegionsData.length > 0) {
+          combinedRegionData = {
+            type: "FeatureCollection",
+            features: validRegionsData.flatMap((region) => region.features),
+          };
+          setRegionBoundaryData(combinedRegionData);
+        }
+      }
+
+      // Directly use the Google Business object (no need to filter)
+      const googleBusinessCompany = googlebusiness[0];
+
+      const fetchCompanyData = async (company) => {
+        const cachedData = await getCachedCompanyData(company.id);
+        if (cachedData) {
+          console.log(`using cached data for ${company.name}`);
+          return cachedData;
+        } else {
+          try {
+            const response = await instance.get(company.apiUrl);
+            await setCachedCompanyData(company.id, response.data);
+            console.log(`received and cached data for ${company.name}`);
+            return response.data;
+          } catch (error) {
+            console.error(`error in fetching data ${company.name}:`, error);
+            throw error;
+          }
+        }
+      };
+
+      const response = await fetchCompanyData(googleBusinessCompany);
+      console.log("Response from Google Business:", response);
+
+      let points = transformData(response, googleBusinessCompany).filter(
+        (point) => {
+          const [lon, lat] = point.geometry.coordinates;
+          return (
+            !isNaN(lon) &&
+            !isNaN(lat) &&
+            lon >= -180 &&
+            lon <= 180 &&
+            lat >= -90 &&
+            lat <= 90
+          );
+        }
+      );
+
+      console.log("Points after first filter:", points);
+
+      const { searchTerm, cuisine } = data;
+
+      const lowerCaseSearchTerm = searchTerm?.trim().toLowerCase() || "";
+
+      const selectedCuisines = cuisine.map((c) => c.value.toLowerCase());
+
+      const combinedFilter = (point) => {
+        const shopName = point.properties.shopName?.toLowerCase() || "";
+
+        const [lon, lat] = point.geometry.coordinates;
+        const pt = [lon, lat];
+
+        if (lowerCaseSearchTerm && !shopName.includes(lowerCaseSearchTerm)) {
+          return false;
+        }
+
+        if (combinedRegionData && combinedRegionData.features.length > 0) {
+          const isInAnyRegion = combinedRegionData.features.some((feature) => {
+            const geometry = feature.geometry;
+            if (geometry.type === "Polygon") {
+              const polygonRings = geometry.coordinates[0];
+              return pointInPolygon(pt, polygonRings);
+            } else if (geometry.type === "MultiPolygon") {
+              return geometry.coordinates.some((polygon) =>
+                pointInPolygon(pt, polygon[0])
+              );
+            }
+            return false;
+          });
+          if (!isInAnyRegion) return false;
+        }
+
+        if (selectedCuisines.length > 0) {
+          const shopCuisines = point.properties.cuisines || "";
+          const shopCuisinesLower = shopCuisines.toLowerCase();
+
+          const hasCuisine = selectedCuisines.some((cuisine) =>
+            shopCuisinesLower.includes(cuisine)
+          );
+
+          if (!hasCuisine) return false;
+        }
+
+        return true;
+      };
+
+      points = points.filter(combinedFilter);
+      console.log("Points after combined filter:", points);
+
+      setApiData(points);
+    } catch (error) {
+      console.error(error.message);
+      setErrorGoogleBusiness("error in fetching data");
+    } finally {
+      setLoadingGoogleBusiness(false);
+    }
+  };
+
+  // Function to handle companies form submission
+  const onSubmitCompanies = async (data) => {
+    console.log("form submitted:", data);
+    setLoadingCompanies(true);
+    setErrorCompanies(null);
 
     try {
       await clearOldCaches(24 * 60 * 60 * 1000);
@@ -278,7 +453,7 @@ const DataMap = () => {
       );
 
       if (selectedCompanyList.length === 0) {
-        setLoading(false);
+        setLoadingCompanies(false);
         return;
       }
 
@@ -402,12 +577,13 @@ const DataMap = () => {
       setApiData(points);
     } catch (error) {
       console.error(error.message);
-      setError("error in fetching data");
+      setErrorCompanies("error in fetching data");
     } finally {
-      setLoading(false);
+      setLoadingCompanies(false);
     }
   };
 
+  // Memoized cluster data based on API data and map bounds
   const clusterData = useMemo(() => {
     if (apiData.length === 0 || !mapBounds) return [];
     clusterRef.current.load(apiData);
@@ -425,6 +601,7 @@ const DataMap = () => {
     return clusters;
   }, [apiData, mapBounds, zoom]);
 
+  // Memoized clusters and markers to render
   const { clustersToRender, markersToRender } = useMemo(() => {
     const clustersToRender = [];
     const markersToRender = [];
@@ -463,6 +640,7 @@ const DataMap = () => {
     return { clustersToRender, markersToRender };
   }, [clusterData]);
 
+  // Calculate the center of the map based on API data
   const mapCenter = useMemo(() => {
     if (apiData.length === 0) return [51.505, -0.09];
     const lats = apiData.map((point) => point.geometry.coordinates[1]);
@@ -472,6 +650,7 @@ const DataMap = () => {
     return [avgLat, avgLon];
   }, [apiData]);
 
+  // Calculate the bounds of the map based on API data
   const calculatedMapBounds = useMemo(() => {
     if (apiData.length === 0) return null;
     const latLngs = apiData.map((point) => [
@@ -481,6 +660,7 @@ const DataMap = () => {
     return L.latLngBounds(latLngs);
   }, [apiData]);
 
+  // Group results by company
   const groupedResults = useMemo(() => {
     const groups = {};
     apiData.forEach((shop) => {
@@ -493,8 +673,10 @@ const DataMap = () => {
     return groups;
   }, [apiData]);
 
+  // State to manage expanded companies in the result bar
   const [expandedCompanies, setExpandedCompanies] = useState({});
 
+  // Function to toggle the expansion of a company in the result bar
   const toggleCompany = (company) => {
     setExpandedCompanies((prev) => ({
       ...prev,
@@ -502,17 +684,24 @@ const DataMap = () => {
     }));
   };
 
+  // Memoized list of companies
   const companyList = useMemo(
     () => Object.keys(groupedResults),
     [groupedResults]
   );
 
+  // Ref for the map container
   const mapRef = useRef(null);
+  // Ref for marker references
   const markerRefs = useRef({});
+  // State to track the active marker
   const [activeMarker, setActiveMarker] = useState(null);
+  // State to track if the map is moving
   const [isMapMoving, setIsMapMoving] = useState(false);
+  // State to control whether to open the popup
   const [shouldOpenPopup, setShouldOpenPopup] = useState(true);
 
+  // Effect to open the popup when the active marker changes
   useEffect(() => {
     if (
       activeMarker &&
@@ -528,6 +717,7 @@ const DataMap = () => {
     }
   }, [activeMarker, isMapMoving, shouldOpenPopup]);
 
+  // Function to focus on a marker and open its popup
   const focusOnMarker = (coordinates, shopId) => {
     if (mapRef.current) {
       const map = mapRef.current;
@@ -555,6 +745,7 @@ const DataMap = () => {
     }
   };
 
+  // Function to focus on a marker without opening its popup
   const focusOnDistinct = (coordinates, shopId) => {
     if (mapRef.current) {
       const map = mapRef.current;
@@ -582,11 +773,13 @@ const DataMap = () => {
     }
   };
 
+  // Get the user from the context
   const { user } = useUser();
   console.log(user);
 
   return (
     <div className="relative h-screen w-screen overflow-hidden">
+      {/* Sidebar with navigation buttons */}
       <div className="bg-white w-20 h-screen absolute left-0 z-50 flex flex-col items-center border-r">
         <div className="my-2 bg-cover bg-mealzo-sidebar-icon w-12 h-12"></div>
         <div className="w-full h-full flex flex-col items-center justify-between">
@@ -626,28 +819,43 @@ const DataMap = () => {
           </button>
         </div>
       </div>
+
+      {/* Filterbar component */}
       <Filterbar
         isOpen={isFilterOpen}
         setIsFilterOpen={setIsFilterOpen}
-        register={register}
-        handleSubmit={handleSubmit}
-        control={control}
-        watch={watch}
+        registerCompanies={registerCompanies}
+        handleSubmitCompanies={handleSubmitCompanies}
+        controlCompanies={controlCompanies}
+        watchCompanies={watchCompanies}
+        registerGoogleBusiness={registerGoogleBusiness}
+        handleSubmitGoogleBusiness={handleSubmitGoogleBusiness}
+        controlGoogleBusiness={controlGoogleBusiness}
         region={region}
         cuisine={cuisine}
         companies={companies}
-        onSubmit={onSubmit}
-        loading={loading}
-        error={error}
-        handleReset={handleReset}
+        onSubmitCompanies={onSubmitCompanies}
+        onSubmitGoogleBusiness={onSubmitGoogleBusiness}
+        loadingCompanies={loadingCompanies}
+        loadingGoogleBusiness={loadingGoogleBusiness}
+        errorCompanies={errorCompanies}
+        errorGoogleBusiness={errorGoogleBusiness}
+        handleResetCompanies={handleResetCompanies}
+        handleResetGoogleBusiness={handleResetGoogleBusiness}
       />
+
+      {/* DeviceStatus component */}
       <DeviceStatus isOpen={isDeviceOpen} setIsDeviceOpen={setIsDeviceOpen} />
+
+      {/* Profilebar component */}
       <Profilebar
         isOpen={isProfileOpen}
         setIsProfileOpen={setIsProfileOpen}
         user={user}
         onLogoutClick={handleLogoutClick}
       />
+
+      {/* Logout modal */}
       {isLogoutModalOpen && (
         <LogoutModal
           isOpen={isLogoutModalOpen}
@@ -655,6 +863,7 @@ const DataMap = () => {
         />
       )}
 
+      {/* Button to toggle the result bar */}
       <button
         className="bg-white w-96 h-16 absolute top-5 right-5 z-30 flex justify-between items-center px-4 border rounded-lg py-4 hover:text-orange-600 focus:outline-none transition-colors duration-200"
         onClick={toggleResult}
@@ -667,6 +876,7 @@ const DataMap = () => {
         )}
       </button>
 
+      {/* ResultBar component */}
       {isResultOpen && (
         <ResultBar
           groupedResults={groupedResults}
@@ -679,10 +889,11 @@ const DataMap = () => {
         />
       )}
 
+      {/* Map container */}
       <div className="relative z-0 h-full w-full">
         <div
           className={`relative h-full w-full transition-all duration-300 ${
-            loading ? "blur-sm" : ""
+            loadingGoogleBusiness || loadingCompanies ? "blur-sm" : ""
           }`}
         >
           <MapContainer
@@ -707,6 +918,7 @@ const DataMap = () => {
               />
             )}
 
+            {/* Render clusters */}
             {clustersToRender.map((cluster) => (
               <ClusterMarker
                 key={`cluster-${cluster.id}`}
@@ -716,6 +928,7 @@ const DataMap = () => {
               />
             ))}
 
+            {/* Render individual markers */}
             {markersToRender.map((marker) => {
               const companyKey = marker.properties.company
                 .replace(/\s+/g, "")
@@ -939,10 +1152,6 @@ const DataMap = () => {
                           </Link>
                         </div>
                       ) : null}
-                      {/* <div className="flex w-full items-center">
-                        <span className="w-2/5">Additional Information</span>
-                        <div className="w-3/5 h-px bg-gray-500"></div>
-                      </div> */}
                     </div>
                   </Popup>
                 </Marker>
@@ -951,7 +1160,8 @@ const DataMap = () => {
           </MapContainer>
         </div>
 
-        {loading && (
+        {/* Loading spinner */}
+        {(loadingGoogleBusiness || loadingCompanies) && (
           <div className="absolute inset-0 flex justify-center items-center bg-white bg-opacity-5 z-50">
             <ColorRing
               visible={true}

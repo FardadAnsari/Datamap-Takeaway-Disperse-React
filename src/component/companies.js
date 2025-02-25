@@ -20,13 +20,13 @@ export const companies = [
     requiresAuth: true,
     type: "type1",
   },
-  {
-    id: "gbs",
-    name: "Google Business",
-    apiUrl: "/api/v1/google/business-info/front/103526686887949354169/",
-    requiresAuth: false,
-    type: "type3",
-  },
+  // {
+  //   id: "gbs",
+  //   name: "Google Business",
+  //   apiUrl: "/api/v1/google/business-info/front/103526686887949354169/",
+  //   requiresAuth: false,
+  //   type: "type3",
+  // },
   {
     id: "jet",
     name: "Just Eat",
