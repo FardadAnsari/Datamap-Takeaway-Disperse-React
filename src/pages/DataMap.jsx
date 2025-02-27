@@ -36,7 +36,7 @@ import { transformData } from "../component/parsers";
 import LogoutModal from "../component/LogoutModal";
 import { HiAdjustments } from "react-icons/hi";
 import { IoIosArrowDown, IoIosArrowUp } from "react-icons/io";
-import { RiAccountCircleFill } from "react-icons/ri";
+import { RiAccountCircleFill, RiGoogleLine } from "react-icons/ri";
 import { ImSpoonKnife } from "react-icons/im";
 import { SlSocialGoogle } from "react-icons/sl";
 import { PiDevices, PiPhone } from "react-icons/pi";
@@ -45,6 +45,8 @@ import { CiStar } from "react-icons/ci";
 import { GrLocation, GrMapLocation } from "react-icons/gr";
 import { GoCommentDiscussion } from "react-icons/go";
 import DeviceStatus from "../component/DeviceStatus";
+import GoogleBusinessResultbar from "../component/GoogleBusinessResultbar";
+import GoogleBusinessFilterbar from "../component/GoogleBusinessFilterbar";
 
 // Function to create a custom icon using a React component
 const createCustomIcon = (PinComponent, options = {}) => {
@@ -164,7 +166,7 @@ const DataMap = () => {
       selectedCompanies: googlebusiness,
       region: [],
       cuisine: [],
-      postCode: "",
+      postcode: "",
       searchTerm: "",
     },
   });
@@ -187,11 +189,14 @@ const DataMap = () => {
   // State for region, cuisine, and region boundary data
   const [region, setRegion] = useState([]);
   const [cuisine, setCuisine] = useState([]);
+  const [postcodeData, setPostcodeData] = useState([]);
   const [regionBoundaryData, setRegionBoundaryData] = useState(null);
   const [apiData, setApiData] = useState([]);
   const [mapBounds, setMapBounds] = useState(null);
   const [zoom, setZoom] = useState(13);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [isGoogleBusinessFilterOpen, setIsGoogleBusinessFilterOpen] =
+    useState(false);
   const [isDeviceOpen, setIsDeviceOpen] = useState(false);
   const [isResultOpen, setIsResultOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -211,6 +216,11 @@ const DataMap = () => {
   const toggleResult = () => {
     setIsResultOpen((prev) => !prev);
   };
+
+  const [activeTab, setActiveTab] = useState("companies"); // Track active tab
+
+  // Define isGoogleBusiness based on activeTab
+  const isGoogleBusiness = activeTab === "google";
 
   // Ref for the Supercluster instance
   const clusterRef = useRef(
@@ -240,13 +250,37 @@ const DataMap = () => {
     const fetchCuisine = async () => {
       try {
         const response = await instance.get("/api/v1/companies/cuisine/");
-        console.log("Cuisine:", response);
+        console.log("Cuisine:", response.data);
         setCuisine(response.data);
       } catch (error) {
         console.log(error);
       }
     };
     fetchCuisine();
+  }, []);
+
+  // Fetch postcode data on component mount
+  useEffect(() => {
+    const fetchPostcode = async () => {
+      try {
+        const response = await instance.get(
+          "/api/v1/google/business-info/postcode/103526686887949354169/"
+        );
+        console.log("Postcode Data:", response);
+
+        // Ensure the response is an array
+        if (Array.isArray(response.data)) {
+          setPostcodeData(response.data); // Set postcode correctly
+        } else {
+          console.error("Postcode data is not an array:", response.data);
+          setPostcodeData([]); // Set to an empty array if it's not an array
+        }
+      } catch (error) {
+        console.log(error);
+        setPostcodeData([]); // Fallback to an empty array in case of error
+      }
+    };
+    fetchPostcode();
   }, []);
 
   // Function to fetch region boundary data
@@ -357,11 +391,13 @@ const DataMap = () => {
 
       console.log("Points after first filter:", points);
 
-      const { searchTerm, cuisine } = data;
+      const { searchTerm, cuisine, postcode } = data;
 
       const lowerCaseSearchTerm = searchTerm?.trim().toLowerCase() || "";
 
       const selectedCuisines = cuisine.map((c) => c.value.toLowerCase());
+
+      // const selectedPostcode = postcode.map((c) => c.value.toLowerCase());
 
       const combinedFilter = (point) => {
         const shopName = point.properties.shopName?.toLowerCase() || "";
@@ -399,6 +435,17 @@ const DataMap = () => {
 
           if (!hasCuisine) return false;
         }
+
+        // if (selectedPostcode) {
+        //   const shopPostcode = point.properties.postcode || "";
+        //   const shopPostcodeLower = shopPostcode.toLowerCase();
+
+        //   const hasPostcode = selectedPostcode.some((postcode) =>
+        //     shopPostcodeLower.includes(postcode)
+        //   );
+
+        //   if (!hasPostcode) return false;
+        // }
 
         return true;
       };
@@ -673,6 +720,22 @@ const DataMap = () => {
     return groups;
   }, [apiData]);
 
+  // Separate regular company results
+  const regularCompanyResults = useMemo(() => {
+    const regularData = { ...groupedResults };
+    delete regularData["Google Business"];
+    return regularData;
+  }, [groupedResults]);
+
+  // Separate Google Business results
+  const googleBusinessResults = useMemo(() => {
+    const googleBusinessData = {};
+    if (groupedResults["Google Business"]) {
+      googleBusinessData["Google Business"] = groupedResults["Google Business"];
+    }
+    return googleBusinessData;
+  }, [groupedResults]);
+
   // State to manage expanded companies in the result bar
   const [expandedCompanies, setExpandedCompanies] = useState({});
 
@@ -788,29 +851,44 @@ const DataMap = () => {
               className={`py-4 hover:text-orange-600 ${isFilterOpen && "bg-orange-100 text-orange-600"} text-center flex flex-col items-center`}
               onClick={() => {
                 setIsFilterOpen(true);
+                setIsGoogleBusinessFilterOpen(false);
                 setIsDeviceOpen(false);
                 setIsProfileOpen(false);
               }}
             >
               <HiAdjustments size={30} style={{ transform: "rotate(90deg)" }} />
-              Filters
+              <p className="text-sm">Companies</p>
+            </button>
+            <button
+              className={`py-4 hover:text-orange-600 ${isGoogleBusinessFilterOpen && "bg-orange-100 text-orange-600"} text-center flex flex-col items-center`}
+              onClick={() => {
+                setIsGoogleBusinessFilterOpen(true);
+                setIsFilterOpen(false);
+                setIsDeviceOpen(false);
+                setIsProfileOpen(false);
+              }}
+            >
+              <RiGoogleLine size={25} />
+              <p className="text-sm">Business</p>
             </button>
             <button
               className={`py-4 hover:text-orange-600 ${isDeviceOpen && "bg-orange-100 text-orange-600"} text-center flex flex-col items-center`}
               onClick={() => {
                 setIsDeviceOpen(true);
+                setIsGoogleBusinessFilterOpen(false);
                 setIsFilterOpen(false);
                 setIsProfileOpen(false);
               }}
             >
               <PiDevices size={30} />
-              Devices
+              <p className="text-sm">Devices</p>
             </button>
           </div>
           <button
             className={`py-6 px-1 bg-white hover:text-orange-600 ${isProfileOpen && "text-orange-600"} text-center flex flex-col items-center`}
             onClick={() => {
               setIsProfileOpen(true);
+              setIsGoogleBusinessFilterOpen(false);
               setIsFilterOpen(false);
               setIsDeviceOpen(false);
             }}
@@ -828,19 +906,28 @@ const DataMap = () => {
         handleSubmitCompanies={handleSubmitCompanies}
         controlCompanies={controlCompanies}
         watchCompanies={watchCompanies}
-        registerGoogleBusiness={registerGoogleBusiness}
-        handleSubmitGoogleBusiness={handleSubmitGoogleBusiness}
-        controlGoogleBusiness={controlGoogleBusiness}
         region={region}
         cuisine={cuisine}
         companies={companies}
         onSubmitCompanies={onSubmitCompanies}
         onSubmitGoogleBusiness={onSubmitGoogleBusiness}
         loadingCompanies={loadingCompanies}
-        loadingGoogleBusiness={loadingGoogleBusiness}
         errorCompanies={errorCompanies}
-        errorGoogleBusiness={errorGoogleBusiness}
         handleResetCompanies={handleResetCompanies}
+      />
+
+      <GoogleBusinessFilterbar
+        isOpen={isGoogleBusinessFilterOpen}
+        setIsFilterOpen={setIsGoogleBusinessFilterOpen}
+        registerGoogleBusiness={registerGoogleBusiness}
+        handleSubmitGoogleBusiness={handleSubmitGoogleBusiness}
+        controlGoogleBusiness={controlGoogleBusiness}
+        region={region}
+        postcodeData={postcodeData}
+        cuisine={cuisine}
+        onSubmitGoogleBusiness={onSubmitGoogleBusiness}
+        loadingGoogleBusiness={loadingGoogleBusiness}
+        errorGoogleBusiness={errorGoogleBusiness}
         handleResetGoogleBusiness={handleResetGoogleBusiness}
       />
 
@@ -877,14 +964,25 @@ const DataMap = () => {
       </button>
 
       {/* ResultBar component */}
-      {isResultOpen && (
+      {isFilterOpen && isResultOpen && (
         <ResultBar
-          groupedResults={groupedResults}
+          groupedResults={regularCompanyResults}
           companyList={companyList}
           expandedCompanies={expandedCompanies}
           toggleCompany={toggleCompany}
           onMarkerFocus={focusOnMarker}
           onDistinctFocus={focusOnDistinct}
+          activeMarker={activeMarker}
+        />
+      )}
+      {/* GoogleBusinessResultBar component */}
+      {isGoogleBusinessFilterOpen && isResultOpen && (
+        <GoogleBusinessResultbar
+          groupedResults={googleBusinessResults}
+          companyList={companyList}
+          expandedCompanies={expandedCompanies}
+          toggleCompany={toggleCompany}
+          onMarkerFocus={focusOnMarker}
           activeMarker={activeMarker}
         />
       )}
