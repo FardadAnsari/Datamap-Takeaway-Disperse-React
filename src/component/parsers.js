@@ -84,6 +84,7 @@ export const parseGoogleBusiness = (item, company) => {
       company: company.name,
       address: `${item?.storefrontAddress.addressLines || ""} ${item?.storefrontAddress.locality || ""}`,
       postcode: item.storefrontAddress.postalCode,
+      cuisines: item.categories.primaryCategory.displayName,
       website: item.websiteUri,
       googlemap: item.metadata.mapsUri,
       phone: item.phoneNumbers.primaryPhone,

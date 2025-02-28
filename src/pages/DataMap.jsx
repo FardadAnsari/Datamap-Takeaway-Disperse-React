@@ -217,11 +217,6 @@ const DataMap = () => {
     setIsResultOpen((prev) => !prev);
   };
 
-  const [activeTab, setActiveTab] = useState("companies"); // Track active tab
-
-  // Define isGoogleBusiness based on activeTab
-  const isGoogleBusiness = activeTab === "google";
-
   // Ref for the Supercluster instance
   const clusterRef = useRef(
     new Supercluster({
@@ -397,18 +392,31 @@ const DataMap = () => {
 
       const selectedCuisines = cuisine.map((c) => c.value.toLowerCase());
 
-      // const selectedPostcode = postcode.map((c) => c.value.toLowerCase());
+      // Extract the postcode value from the selected option
+      const selectedPostcode =
+        typeof postcode === "object" && postcode !== null
+          ? postcode.value?.trim().toLowerCase().replace(/\s+/g, "")
+          : "";
 
       const combinedFilter = (point) => {
         const shopName = point.properties.shopName?.toLowerCase() || "";
 
+        // Normalize the postcode from the API data
+        const shopPostcode =
+          point.properties.postcode?.toLowerCase().replace(/\s+/g, "") || "";
+
+        console.log("Form Postcode:", selectedPostcode);
+        console.log("API Postcode:", shopPostcode);
+
         const [lon, lat] = point.geometry.coordinates;
         const pt = [lon, lat];
 
+        // Filter by search term
         if (lowerCaseSearchTerm && !shopName.includes(lowerCaseSearchTerm)) {
           return false;
         }
 
+        // Filter by region
         if (combinedRegionData && combinedRegionData.features.length > 0) {
           const isInAnyRegion = combinedRegionData.features.some((feature) => {
             const geometry = feature.geometry;
@@ -425,6 +433,7 @@ const DataMap = () => {
           if (!isInAnyRegion) return false;
         }
 
+        // Filter by cuisine
         if (selectedCuisines.length > 0) {
           const shopCuisines = point.properties.cuisines || "";
           const shopCuisinesLower = shopCuisines.toLowerCase();
@@ -436,16 +445,10 @@ const DataMap = () => {
           if (!hasCuisine) return false;
         }
 
-        // if (selectedPostcode) {
-        //   const shopPostcode = point.properties.postcode || "";
-        //   const shopPostcodeLower = shopPostcode.toLowerCase();
-
-        //   const hasPostcode = selectedPostcode.some((postcode) =>
-        //     shopPostcodeLower.includes(postcode)
-        //   );
-
-        //   if (!hasPostcode) return false;
-        // }
+        // Filter by postcode
+        if (selectedPostcode && !shopPostcode.includes(selectedPostcode)) {
+          return false;
+        }
 
         return true;
       };
@@ -736,6 +739,18 @@ const DataMap = () => {
     return googleBusinessData;
   }, [groupedResults]);
 
+  // Memoized list of regular companies
+  const regularCompanyList = useMemo(
+    () => Object.keys(regularCompanyResults),
+    [regularCompanyResults]
+  );
+
+  // Memoized list of Google Business companies
+  const googleBusinessList = useMemo(
+    () => Object.keys(googleBusinessResults),
+    [googleBusinessResults]
+  );
+
   // State to manage expanded companies in the result bar
   const [expandedCompanies, setExpandedCompanies] = useState({});
 
@@ -748,10 +763,10 @@ const DataMap = () => {
   };
 
   // Memoized list of companies
-  const companyList = useMemo(
-    () => Object.keys(groupedResults),
-    [groupedResults]
-  );
+  // const companyList = useMemo(
+  //   () => Object.keys(groupedResults),
+  //   [groupedResults]
+  // );
 
   // Ref for the map container
   const mapRef = useRef(null);
@@ -967,7 +982,7 @@ const DataMap = () => {
       {isFilterOpen && isResultOpen && (
         <ResultBar
           groupedResults={regularCompanyResults}
-          companyList={companyList}
+          companyList={regularCompanyList}
           expandedCompanies={expandedCompanies}
           toggleCompany={toggleCompany}
           onMarkerFocus={focusOnMarker}
@@ -979,7 +994,7 @@ const DataMap = () => {
       {isGoogleBusinessFilterOpen && isResultOpen && (
         <GoogleBusinessResultbar
           groupedResults={googleBusinessResults}
-          companyList={companyList}
+          companyList={googleBusinessList}
           expandedCompanies={expandedCompanies}
           toggleCompany={toggleCompany}
           onMarkerFocus={focusOnMarker}

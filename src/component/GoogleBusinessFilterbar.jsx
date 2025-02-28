@@ -40,9 +40,7 @@ const GoogleBusinessFilterbar = ({
           <IoIosArrowBack />
         </button>
       </div>
-
       {/* Google Business filter form */}
-
       <form
         onSubmit={handleSubmitGoogleBusiness(onSubmitGoogleBusiness)} // Handle form submission
         className="p-4 flex flex-col"
@@ -136,7 +134,6 @@ const GoogleBusinessFilterbar = ({
             {errorGoogleBusiness}
           </div>
         )}
-
         {/* Form action buttons (Clear and Filter) */}
         <div className="flex py-2 gap-2 border-t-2">
           <button

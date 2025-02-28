@@ -96,13 +96,8 @@ const GoogleBusinessResultbar = ({
                               </div>
                             );
                           }
-                          const {
-                            shopName,
-                            shop_id,
-                            rating,
-                            totalReviews,
-                            postcode,
-                          } = shop.properties;
+                          const { shopName, shop_id, postcode } =
+                            shop.properties;
 
                           return (
                             <div
@@ -110,7 +105,12 @@ const GoogleBusinessResultbar = ({
                               className={`flex flex-col gap-2 cursor-pointer border-b px-2 py-4 ${
                                 activeMarker === shop_id ? "bg-orange-50" : ""
                               }`}
-                              onClick={() => onMarkerFocus(shop)}
+                              onClick={() =>
+                                onMarkerFocus(
+                                  shop.geometry.coordinates,
+                                  shop.properties.shop_id
+                                )
+                              }
                             >
                               <div>
                                 <p className="text-base font-bold text-gray-700">
@@ -118,17 +118,7 @@ const GoogleBusinessResultbar = ({
                                 </p>
                               </div>
                               <div className="flex justify-between">
-                                <div className="flex items-center space-x-1 text-gray-700 text-xs">
-                                  {rating && rating !== "None" && (
-                                    <div className="flex gap-1">
-                                      <FaStar className="text-yellow-400" />
-                                      <span>{rating}</span>
-                                    </div>
-                                  )}
-                                  {totalReviews && totalReviews !== "None" && (
-                                    <span>({totalReviews})</span>
-                                  )}
-                                </div>
+                                <div className="flex items-center space-x-1 text-gray-700 text-xs"></div>
                                 <p className="text-xs text-gray-500">
                                   {postcode}
                                 </p>
