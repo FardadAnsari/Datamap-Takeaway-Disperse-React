@@ -1,4 +1,3 @@
-import { RiLogoutCircleRLine } from "react-icons/ri";
 import { useNavigate } from "react-router-dom";
 import { clearOldCaches } from "./indexedDB";
 
@@ -8,7 +7,7 @@ const Logout = () => {
 
   const handleLogout = async () => {
     try {
-      await clearOldCaches(0);
+      await clearOldCaches(0); // Clear all caches immediately
       console.log("IndexedDB cache cleared.");
     } catch (error) {
       console.error("Error clearing IndexedDB cache:", error);

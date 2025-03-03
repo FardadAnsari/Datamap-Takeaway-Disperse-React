@@ -20,6 +20,12 @@ import {
   getCachedCompanyData,
   setCachedCompanyData,
   clearOldCaches,
+  getCachedCuisineData,
+  setCachedCuisineData,
+  getCachedPostcodeData,
+  setCachedPostcodeData,
+  getCachedRegionData,
+  setCachedRegionData,
 } from "../component/indexedDB";
 
 import companyIcons from "../assets/checkbox-icon/checkboxIcons";
@@ -230,9 +236,14 @@ const DataMap = () => {
   useEffect(() => {
     const fetchRegion = async () => {
       try {
-        const response = await instance.get("/api/v1/companies/region/");
-        console.log(response);
-        setRegion(response.data);
+        const cachedData = await getCachedRegionData("region");
+        if (cachedData) {
+          setRegion(cachedData);
+        } else {
+          const response = await instance.get("/api/v1/companies/region/");
+          setRegion(response.data);
+          await setCachedRegionData("region", response.data);
+        }
       } catch (error) {
         console.log(error);
       }
@@ -244,9 +255,14 @@ const DataMap = () => {
   useEffect(() => {
     const fetchCuisine = async () => {
       try {
-        const response = await instance.get("/api/v1/companies/cuisine/");
-        console.log("Cuisine:", response.data);
-        setCuisine(response.data);
+        const cachedData = await getCachedCuisineData("cuisine");
+        if (cachedData) {
+          setCuisine(cachedData);
+        } else {
+          const response = await instance.get("/api/v1/companies/cuisine/");
+          setCuisine(response.data);
+          await setCachedCuisineData("cuisine", response.data);
+        }
       } catch (error) {
         console.log(error);
       }
@@ -258,21 +274,24 @@ const DataMap = () => {
   useEffect(() => {
     const fetchPostcode = async () => {
       try {
-        const response = await instance.get(
-          "/api/v1/google/business-info/postcode/103526686887949354169/"
-        );
-        console.log("Postcode Data:", response);
-
-        // Ensure the response is an array
-        if (Array.isArray(response.data)) {
-          setPostcodeData(response.data); // Set postcode correctly
+        const cachedData = await getCachedPostcodeData("postcode");
+        if (cachedData) {
+          setPostcodeData(cachedData);
         } else {
-          console.error("Postcode data is not an array:", response.data);
-          setPostcodeData([]); // Set to an empty array if it's not an array
+          const response = await instance.get(
+            "/api/v1/google/business-info/postcode/103526686887949354169/"
+          );
+          if (Array.isArray(response.data)) {
+            setPostcodeData(response.data);
+            await setCachedPostcodeData("postcode", response.data);
+          } else {
+            console.error("Postcode data is not an array:", response.data);
+            setPostcodeData([]);
+          }
         }
       } catch (error) {
         console.log(error);
-        setPostcodeData([]); // Fallback to an empty array in case of error
+        setPostcodeData([]);
       }
     };
     fetchPostcode();
