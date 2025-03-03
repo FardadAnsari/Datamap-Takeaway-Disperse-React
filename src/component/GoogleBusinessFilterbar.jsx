@@ -30,9 +30,9 @@ const GoogleBusinessFilterbar = ({
       {/* Header section with filter title and close button */}
       <div
         className="mx-4 flex py-2 justify-between items-center border-b-2"
-        style={{ height: "15%" }}
+        style={{ height: "10%" }}
       >
-        <span className="text-2xl font-bold">Filter Google Business</span>
+        <span className="text-xl font-bold">Google Business Filter</span>
         <button
           className="w-8 p-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 focus:outline-none"
           onClick={() => setIsGoogleBusinessFilterOpen(false)}
@@ -44,7 +44,7 @@ const GoogleBusinessFilterbar = ({
       <form
         onSubmit={handleSubmitGoogleBusiness(onSubmitGoogleBusiness)} // Handle form submission
         className="p-4 flex flex-col"
-        style={{ height: "85%" }}
+        style={{ height: "90%" }}
       >
         <div className="px-2 flex-1 overflow-y-auto">
           {/* Search input for shops */}

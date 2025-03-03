@@ -34,7 +34,7 @@ const Filterbar = ({
         className="mx-4 flex py-2 justify-between items-center border-b-2"
         style={{ height: "10%" }}
       >
-        <span className="text-2xl font-bold">Filter</span>
+        <span className="text-xl font-bold">Companies Filter</span>
         <button
           className="w-8 p-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 focus:outline-none"
           onClick={() => setIsFilterOpen(false)}
