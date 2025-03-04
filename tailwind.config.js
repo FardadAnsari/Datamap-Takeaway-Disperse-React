@@ -12,6 +12,15 @@ export default {
         "login-background": "url('/login-bg.png')",
         "mealzo-logo": "url('/mealzo-logo.svg')",
         "mealzo-sidebar-icon": "url('/mealzo-sidebar-icon.svg')",
+        "companies-sidebar-icon": "url('src/assets/sidebar/companies.svg')",
+        "companies-focus-sidebar-icon":
+          "url('src/assets/sidebar/companies-focus.svg')",
+        "gbusiness-sidebar-icon": "url('src/assets/sidebar/g-business.svg')",
+        "gbusiness-focus-sidebar-icon":
+          "url('src/assets/sidebar/g-business-focus.svg')",
+        "devices-sidebar-icon": "url('src/assets/sidebar/devices.svg')",
+        "devices-focus-sidebar-icon":
+          "url('src/assets/sidebar/devices-focus.svg')",
         "justeat-devices": "url('src/assets/devices/justeat-devices.svg')",
         "ubereats-devices": "url('src/assets/devices/ubereats-devices.svg')",
         "foodhub-devices": "url('src/assets/devices/foodhub-devices.svg')",

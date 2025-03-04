@@ -882,7 +882,7 @@ const DataMap = () => {
         <div className="w-full h-full flex flex-col items-center justify-between">
           <div className="w-full flex flex-col">
             <button
-              className={`py-4 hover:text-orange-600 ${isFilterOpen && "bg-orange-100 text-orange-600"} text-center flex flex-col items-center`}
+              className={`py-4 ${isFilterOpen && "bg-orange-100 text-orange-600"} text-center flex flex-col items-center`}
               onClick={() => {
                 setIsFilterOpen(true);
                 setIsGoogleBusinessFilterOpen(false);
@@ -890,11 +890,15 @@ const DataMap = () => {
                 setIsProfileOpen(false);
               }}
             >
-              <HiAdjustments size={30} style={{ transform: "rotate(90deg)" }} />
+              {isFilterOpen ? (
+                <div className="my-1 bg-cover bg-companies-focus-sidebar-icon w-7 h-7"></div>
+              ) : (
+                <div className="my-1 bg-cover bg-companies-sidebar-icon w-7 h-7"></div>
+              )}
               <p className="text-sm">Companies</p>
             </button>
             <button
-              className={`py-4 hover:text-orange-600 ${isGoogleBusinessFilterOpen && "bg-orange-100 text-orange-600"} text-center flex flex-col items-center`}
+              className={`py-4 ${isGoogleBusinessFilterOpen && "bg-orange-100 text-orange-600"} text-center flex flex-col items-center`}
               onClick={() => {
                 setIsGoogleBusinessFilterOpen(true);
                 setIsFilterOpen(false);
@@ -902,11 +906,15 @@ const DataMap = () => {
                 setIsProfileOpen(false);
               }}
             >
-              <RiGoogleLine size={25} />
-              <p className="text-sm">Business</p>
+              {isGoogleBusinessFilterOpen ? (
+                <div className="my-1 bg-cover bg-gbusiness-focus-sidebar-icon w-6 h-6"></div>
+              ) : (
+                <div className="my-1 bg-cover bg-gbusiness-sidebar-icon w-6 h-6"></div>
+              )}
+              <p className="text-sm">G-Business</p>
             </button>
             <button
-              className={`py-4 hover:text-orange-600 ${isDeviceOpen && "bg-orange-100 text-orange-600"} text-center flex flex-col items-center`}
+              className={`py-4 ${isDeviceOpen && "bg-orange-100 text-orange-600"} text-center flex flex-col items-center`}
               onClick={() => {
                 setIsDeviceOpen(true);
                 setIsGoogleBusinessFilterOpen(false);
@@ -914,7 +922,11 @@ const DataMap = () => {
                 setIsProfileOpen(false);
               }}
             >
-              <PiDevices size={30} />
+              {isDeviceOpen ? (
+                <div className="my-1 bg-cover bg-devices-focus-sidebar-icon w-6 h-6"></div>
+              ) : (
+                <div className="my-1 bg-cover bg-devices-sidebar-icon w-6 h-6"></div>
+              )}
               <p className="text-sm">Devices</p>
             </button>
           </div>
