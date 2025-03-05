@@ -1,8 +1,7 @@
 import { Virtuoso } from "react-virtuoso";
 
-import companyIcons from "../assets/checkbox-icon/checkboxIcons";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 const GoogleBusinessResultbar = ({
   groupedResults,
@@ -19,8 +18,6 @@ const GoogleBusinessResultbar = ({
       [company]: (prev[company] || 3) + 3,
     }));
   };
-
-  const navigate = useNavigate();
 
   return (
     <div className="w-96 absolute top-24 right-5 flex flex-col h-5/6 bg-white z-20 shadow-md rounded-lg transition-transform duration-300 ease-in-out">
@@ -52,29 +49,6 @@ const GoogleBusinessResultbar = ({
                 return (
                   <div key={company} className="mb-2">
                     <p>Total result {shops.length}</p>
-                    {/* <button
-                      className={`w-full flex justify-between items-center px-4 py-2 ${
-                        isExpanded ? "rounded-t-lg" : "rounded-lg"
-                      }  border`}
-                      onClick={() => toggleCompany(company)}
-                    >
-                      <div className="flex justify-center items-center gap-2">
-                        {IconComponent && (
-                          <IconComponent width={24} height={24} />
-                        )}
-                        <span className="text-lg font-medium text-gray-800">
-                          {company}
-                        </span>
-                        <span className="text-sm font-base text-gray-600">
-                          ({shops.length})
-                        </span>
-                      </div>
-                      {isExpanded ? (
-                        <IoIosArrowUp size={20} />
-                      ) : (
-                        <IoIosArrowDown size={20} />
-                      )}
-                    </button> */}
 
                     {shops.slice(0, visibleCount).map((shop) => {
                       if (!shop || !shop.properties) {
@@ -92,14 +66,6 @@ const GoogleBusinessResultbar = ({
                         );
                       }
                       const { shopName, shop_id, postcode } = shop.properties;
-
-                      const handleButtonClick = () => {
-                        navigate(`/panel/${shop.properties.locationId}`);
-                        window.open(
-                          `/panel/${shop.properties.locationId}`,
-                          "_blank"
-                        ); // Open in new tab
-                      };
 
                       return (
                         <div
@@ -119,15 +85,16 @@ const GoogleBusinessResultbar = ({
                           </p>
 
                           <div className="flex justify-between items-center">
-                            <button
-                              onClick={handleButtonClick}
+                            <Link
+                              to={`/panel/${shop.properties.locationId}`}
+                              target="_blank"
                               className="group relative px-2 border rounded-lg overflow-hidden transition-all duration-300 ease-in-out hover:pr-56 flex items-center"
                             >
                               <div className="my-1 bg-cover bg-googleb-button-icon w-6 h-6"></div>
                               <span className="absolute left-10 opacity-0 whitespace-nowrap transform -translate-x-4 transition-all duration-400 ease-in-out group-hover:opacity-100 group-hover:translate-x-0">
                                 Google Business Dashboard
                               </span>
-                            </button>
+                            </Link>
                             <p className="text-xs text-gray-500">{postcode}</p>
                           </div>
                         </div>
