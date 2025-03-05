@@ -964,7 +964,7 @@ const DataMap = () => {
 
       <GoogleBusinessFilterbar
         isOpen={isGoogleBusinessFilterOpen}
-        setIsFilterOpen={setIsGoogleBusinessFilterOpen}
+        setIsGoogleBusinessFilterOpen={setIsGoogleBusinessFilterOpen}
         registerGoogleBusiness={registerGoogleBusiness}
         handleSubmitGoogleBusiness={handleSubmitGoogleBusiness}
         controlGoogleBusiness={controlGoogleBusiness}
