@@ -1,6 +1,6 @@
 import { IoIosArrowBack } from "react-icons/io";
 import Select from "react-select";
-import { Controller } from "react-hook-form";
+import { Controller, useWatch } from "react-hook-form";
 import AutoCompletionMultiSelectStyles from "./AutoCompletionMultiSelectStyles";
 
 // Filterbar component to handle filtering for companies and Google Business data
@@ -19,6 +19,34 @@ const GoogleBusinessFilterbar = ({
   handleResetGoogleBusiness, // Function to reset the Google Business form
 }) => {
   const safePostcode = postcodeData || []; // Ensure it's an array
+
+  // Use useWatch to track form values
+  const searchTerm = useWatch({
+    control: controlGoogleBusiness,
+    name: "searchTerm",
+  });
+  const selectedRegions = useWatch({
+    control: controlGoogleBusiness,
+    name: "region",
+  });
+  const selectedPostcodes = useWatch({
+    control: controlGoogleBusiness,
+    name: "postcode",
+  });
+  const selectedCuisines = useWatch({
+    control: controlGoogleBusiness,
+    name: "cuisine",
+  });
+
+  // Function to check if all inputs are empty
+  const areAllInputsEmpty = () => {
+    return (
+      !searchTerm && // No search term
+      (!selectedRegions || selectedRegions.length === 0) && // No regions selected
+      (!selectedPostcodes || selectedPostcodes.length === 0) && // No postcodes selected
+      (!selectedCuisines || selectedCuisines.length === 0) // No cuisines selected
+    );
+  };
 
   return (
     // Main container for the filter bar
@@ -136,20 +164,32 @@ const GoogleBusinessFilterbar = ({
         )}
         {/* Form action buttons (Clear and Filter) */}
         <div className="flex py-2 gap-2 border-t-2">
-          <button
-            type="button"
-            onClick={handleResetGoogleBusiness} // Reset the form
-            className="w-2/5 py-2 bg-white border-2 border-orange-500 text-orange-600 rounded hover:bg-gray-50 focus:outline-none disabled:bg-orange-300"
-          >
-            Clear
-          </button>
-          <button
-            type="submit"
-            className="w-3/5 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 focus:outline-none disabled:bg-orange-300"
-            disabled={loadingGoogleBusiness} // Disable button while loading
-          >
-            {loadingGoogleBusiness ? "Is Loading ..." : "Filter"}
-          </button>
+          {areAllInputsEmpty() ? (
+            <button
+              type="submit"
+              className="w-full py-2 bg-orange-600 text-white rounded hover:bg-orange-700 focus:outline-none disabled:bg-orange-300"
+              disabled={loadingGoogleBusiness} // Disable button while loading
+            >
+              View All
+            </button>
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={handleResetGoogleBusiness} // Reset the form
+                className="w-2/5 py-2 bg-white border-2 border-orange-500 text-orange-600 rounded hover:bg-gray-50 focus:outline-none disabled:bg-orange-300"
+              >
+                Clear
+              </button>
+              <button
+                type="submit"
+                className="w-3/5 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 focus:outline-none disabled:bg-orange-300"
+                disabled={loadingGoogleBusiness} // Disable button while loading
+              >
+                {loadingGoogleBusiness ? "Is Loading ..." : "Filter"}
+              </button>
+            </>
+          )}
         </div>
       </form>
     </div>
