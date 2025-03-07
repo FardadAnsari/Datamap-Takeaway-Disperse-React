@@ -1,9 +1,15 @@
 import { IoIosArrowBack } from "react-icons/io";
 import { MdAccountCircle } from "react-icons/md";
 import { GoOrganization } from "react-icons/go";
-import { RiLogoutCircleRLine } from "react-icons/ri";
+import { RiLockPasswordLine, RiLogoutCircleRLine } from "react-icons/ri";
 
-const Profilebar = ({ isOpen, setIsProfileOpen, user, onLogoutClick }) => (
+const Profilebar = ({
+  isOpen,
+  setIsProfileOpen,
+  user,
+  onLogoutClick,
+  onChangePassClick,
+}) => (
   <div
     className={`w-80 absolute top-0 left-20 flex flex-col h-full bg-white z-10 transition-transform duration-300 ease-in-out ${
       isOpen ? "translate-x-0" : "-translate-x-full"
@@ -30,6 +36,13 @@ const Profilebar = ({ isOpen, setIsProfileOpen, user, onLogoutClick }) => (
             <span className="text-teal-900">{user?.department}</span>
           </div>
         </div>
+        <button
+          className="flex gap-2 my-4 p-2 w-full border rounded"
+          onClick={onChangePassClick}
+        >
+          <RiLockPasswordLine size={25} />
+          <span>Change password</span>
+        </button>
       </div>
       <div className="w-full justify-self-end">
         <button

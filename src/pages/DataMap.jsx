@@ -40,6 +40,7 @@ import { companies } from "../component/companies";
 import { googlebusiness } from "../component/googlebusiness";
 import { transformData } from "../component/parsers";
 import LogoutModal from "../component/LogoutModal";
+import ChangePasswordModal from "../component/ChangePasswordModal";
 import { HiAdjustments } from "react-icons/hi";
 import { IoIosArrowDown, IoIosArrowUp } from "react-icons/io";
 import { RiAccountCircleFill, RiGoogleLine } from "react-icons/ri";
@@ -207,6 +208,7 @@ const DataMap = () => {
   const [isResultOpen, setIsResultOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+  const [isChangePassModalOpen, setIsChangePassModalOpen] = useState(false);
 
   // Function to handle logout click
   const handleLogoutClick = () => {
@@ -216,6 +218,16 @@ const DataMap = () => {
   // Function to close the logout modal
   const handleCloseLogoutModal = () => {
     setIsLogoutModalOpen(false);
+  };
+
+  // Function to handle logout click
+  const handleChangePassClick = () => {
+    setIsChangePassModalOpen(true);
+  };
+
+  // Function to close the logout modal
+  const handleCloseChangePassModal = () => {
+    setIsChangePassModalOpen(false);
   };
 
   // Function to toggle the result bar
@@ -986,7 +998,16 @@ const DataMap = () => {
         setIsProfileOpen={setIsProfileOpen}
         user={user}
         onLogoutClick={handleLogoutClick}
+        onChangePassClick={handleChangePassClick}
       />
+
+      {/* Change password modal */}
+      {isChangePassModalOpen && (
+        <ChangePasswordModal
+          isOpen={isChangePassModalOpen}
+          onClose={handleCloseChangePassModal}
+        />
+      )}
 
       {/* Logout modal */}
       {isLogoutModalOpen && (
