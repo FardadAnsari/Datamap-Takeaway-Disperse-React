@@ -2,6 +2,7 @@ import { Virtuoso } from "react-virtuoso";
 
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { useUser } from "./userPermission";
 
 const GoogleBusinessResultbar = ({
   groupedResults,
@@ -18,6 +19,8 @@ const GoogleBusinessResultbar = ({
       [company]: (prev[company] || 3) + 3,
     }));
   };
+
+  const { user } = useUser();
 
   return (
     <div className="w-96 absolute top-24 right-5 flex flex-col h-5/6 bg-white z-20 shadow-md rounded-lg transition-transform duration-300 ease-in-out">
@@ -85,16 +88,18 @@ const GoogleBusinessResultbar = ({
                           </p>
 
                           <div className="flex justify-between items-center">
-                            <Link
-                              to={`/panel/${shop.properties.locationId}`}
-                              target="_blank"
-                              className="group relative px-2 border rounded-lg overflow-hidden transition-all duration-300 ease-in-out hover:pr-56 flex items-center"
-                            >
-                              <div className="my-1 bg-cover bg-googleb-button-icon w-6 h-6"></div>
-                              <span className="absolute left-10 opacity-0 whitespace-nowrap transform -translate-x-4 transition-all duration-400 ease-in-out group-hover:opacity-100 group-hover:translate-x-0">
-                                Google Business Dashboard
-                              </span>
-                            </Link>
+                            {user.access.gbDashboard ? (
+                              <Link
+                                to={`/panel/${shop.properties.locationId}`}
+                                target="_blank"
+                                className="group relative px-2 border rounded-lg overflow-hidden transition-all duration-300 ease-in-out hover:pr-56 flex items-center"
+                              >
+                                <div className="my-1 bg-cover bg-googleb-button-icon w-6 h-6"></div>
+                                <span className="absolute left-10 opacity-0 whitespace-nowrap transform -translate-x-4 transition-all duration-400 ease-in-out group-hover:opacity-100 group-hover:translate-x-0">
+                                  Google Business Dashboard
+                                </span>
+                              </Link>
+                            ) : null}
                             <p className="text-xs text-gray-500">{postcode}</p>
                           </div>
                         </div>

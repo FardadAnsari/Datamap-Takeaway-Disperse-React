@@ -1,22 +1,29 @@
 import { useEffect, useState } from "react";
 import instance from "./api";
+import { Hourglass, ThreeDots } from "react-loader-spinner";
 
 const KeywordsAnalytics = ({ locationId }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [searchInsights, setSearchInsights] = useState([]);
+  const [notAllowed, setNotAllowed] = useState(false);
 
   const [sortConfig, setSortConfig] = useState({
     key: null,
     direction: "ascending",
   });
-
+  const accessToken = sessionStorage.getItem("accessToken");
   useEffect(() => {
     const fetchPerformanceData = async () => {
       if (locationId) {
         setIsLoading(true);
         try {
           const response = await instance.get(
-            `api/v1/google/performance/${locationId}`
+            `api/v1/google/performance/${locationId}`,
+            {
+              headers: {
+                Authorization: `Bearer ${accessToken}`,
+              },
+            }
           );
           const processedData = response.data.allResults.map((item) => ({
             ...item,
@@ -28,8 +35,10 @@ const KeywordsAnalytics = ({ locationId }) => {
                   : Number(item.insightsValue.threshold),
             },
           }));
-
           setSearchInsights(processedData);
+        } catch (error) {
+          console.log(error);
+          error?.status === 403 && setNotAllowed(true);
         } finally {
           setIsLoading(false);
         }
@@ -95,49 +104,65 @@ const KeywordsAnalytics = ({ locationId }) => {
     <>
       {locationId && (
         <div className="m-8 max-h-96 overflow-auto">
-          <table className="w-full bg-white">
-            <thead>
-              <tr className="sticky top-0 bg-gray-100 rounded">
-                <th className="py-2 px-4 text-start border-b">No</th>
-                <th
-                  onClick={() => handleSort("searchKeyword")}
-                  className="py-2 px-4 text-start cursor-pointer border-b-2"
-                >
-                  Keyword
-                  <span className="ml-1">
-                    {getSortIndicator("searchKeyword")}
-                  </span>
-                </th>
-                <th
-                  onClick={() => handleSort("insightsValue.value")}
-                  className="py-2 px-4 text-center cursor-pointer border-b"
-                >
-                  Search Volume
-                  <span className="ml-1">
-                    {getSortIndicator("insightsValue.value")}
-                  </span>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {searchInsights.map((item, index) => (
-                <tr key={index} className="border-b">
-                  <td className="py-2 px-4 text-start">{index + 1}</td>
-                  <td className="py-2 px-4 text-start">{item.searchKeyword}</td>
-                  <td className="py-2 px-4 text-center">
-                    {item.insightsValue.value !== undefined
-                      ? item.insightsValue.value
-                      : item.insightsValue.threshold}
-                  </td>
+          {!notAllowed ? (
+            <table className="w-full bg-white">
+              <thead>
+                <tr className="sticky top-0 bg-gray-100 rounded">
+                  <th className="py-2 px-4 text-start border-b">No</th>
+                  <th
+                    onClick={() => handleSort("searchKeyword")}
+                    className="py-2 px-4 text-start cursor-pointer border-b-2"
+                  >
+                    Keyword
+                    <span className="ml-1">
+                      {getSortIndicator("searchKeyword")}
+                    </span>
+                  </th>
+                  <th
+                    onClick={() => handleSort("insightsValue.value")}
+                    className="py-2 px-4 text-center cursor-pointer border-b"
+                  >
+                    Search Volume
+                    <span className="ml-1">
+                      {getSortIndicator("insightsValue.value")}
+                    </span>
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-          {isLoading && (
-            <div className="flex justify-center py-4">Loading...</div>
+              </thead>
+              <tbody>
+                {searchInsights.map((item, index) => (
+                  <tr key={index} className="border-b">
+                    <td className="py-2 px-4 text-start">{index + 1}</td>
+                    <td className="py-2 px-4 text-start">
+                      {item.searchKeyword}
+                    </td>
+                    <td className="py-2 px-4 text-center">
+                      {item.insightsValue.value !== undefined
+                        ? item.insightsValue.value
+                        : item.insightsValue.threshold}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <div className="flex flex-col justify-center items-center py-4">
+              <div className="w-44 h-44 bg-cover bg-center bg-no-access"></div>
+              <p>You don’t access for this section</p>
+            </div>
           )}
-          {!isLoading && searchInsights.length === 0 && (
-            <div className="flex justify-center py-4">No data available.</div>
+          {isLoading && (
+            <div className="flex justify-center py-4">
+              <Hourglass
+                visible={true}
+                height="30"
+                width="30"
+                ariaLabel="hourglass-loading"
+                wrapperStyle={{}}
+                wrapperClass=""
+                colors={["#ffa500", "#ffa400"]}
+              />
+            </div>
           )}
         </div>
       )}

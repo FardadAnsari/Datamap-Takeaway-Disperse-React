@@ -41,12 +41,11 @@ import { googlebusiness } from "../component/googlebusiness";
 import { transformData } from "../component/parsers";
 import LogoutModal from "../component/LogoutModal";
 import ChangePasswordModal from "../component/ChangePasswordModal";
-import { HiAdjustments } from "react-icons/hi";
 import { IoIosArrowDown, IoIosArrowUp } from "react-icons/io";
-import { RiAccountCircleFill, RiGoogleLine } from "react-icons/ri";
+import { RiAccountCircleFill } from "react-icons/ri";
 import { ImSpoonKnife } from "react-icons/im";
 import { SlSocialGoogle } from "react-icons/sl";
-import { PiDevices, PiPhone } from "react-icons/pi";
+import { PiPhone } from "react-icons/pi";
 import { HiMiniLink, HiOutlineEnvelope } from "react-icons/hi2";
 import { CiStar } from "react-icons/ci";
 import { GrLocation, GrMapLocation } from "react-icons/gr";
@@ -118,9 +117,9 @@ const UpdateMapBounds = ({ setMapBounds, setZoom }) => {
     const update = () => {
       const newBounds = map.getBounds();
       const newZoom = map.getZoom();
-      console.log(`
-        Map bounds updated: ${newBounds.toBBoxString()}, Zoom: ${newZoom}
-      `);
+      // console.log(`
+      //   Map bounds updated: ${newBounds.toBBoxString()}, Zoom: ${newZoom}
+      // `);
       setMapBounds(newBounds);
       setZoom(newZoom);
     };
@@ -346,7 +345,7 @@ const DataMap = () => {
 
   // Function to handle Google Business form submission
   const onSubmitGoogleBusiness = async (data) => {
-    console.log("form submitted:", data);
+    // console.log("form submitted:", data);
     setLoadingGoogleBusiness(true);
     setErrorGoogleBusiness(null);
 
@@ -381,15 +380,20 @@ const DataMap = () => {
       const googleBusinessCompany = googlebusiness[0];
 
       const fetchCompanyData = async (company) => {
+        const accessToken = sessionStorage.getItem("accessToken");
         const cachedData = await getCachedCompanyData(company.id);
         if (cachedData) {
-          console.log(`using cached data for ${company.name}`);
+          // console.log(`using cached data for ${company.name}`);
           return cachedData;
         } else {
           try {
-            const response = await instance.get(company.apiUrl);
+            const response = await instance.get(company.apiUrl, {
+              headers: {
+                Authorization: `Bearer ${accessToken}`,
+              },
+            });
             await setCachedCompanyData(company.id, response.data);
-            console.log(`received and cached data for ${company.name}`);
+            // console.log(`received and cached data for ${company.name}`);
             return response.data;
           } catch (error) {
             console.error(`error in fetching data ${company.name}:`, error);
@@ -539,13 +543,18 @@ const DataMap = () => {
       }
 
       const fetchCompanyData = async (company) => {
+        const accessToken = sessionStorage.getItem("accessToken");
         const cachedData = await getCachedCompanyData(company.id);
         if (cachedData) {
           console.log(`using cached data for${company.name}`);
           return cachedData;
         } else {
           try {
-            const response = await instance.get(company.apiUrl);
+            const response = await instance.get(company.apiUrl, {
+              headers: {
+                Authorization: `Bearer ${accessToken}`,
+              },
+            });
             await setCachedCompanyData(company.id, response.data);
             console.log(`recieve and cache data for ${company.name}`);
             return response.data;
@@ -894,13 +903,17 @@ const DataMap = () => {
         <div className="w-full h-full flex flex-col items-center justify-between">
           <div className="w-full flex flex-col">
             <button
-              className={`py-4 ${isFilterOpen && "bg-orange-100 text-orange-600"} text-center flex flex-col items-center`}
+              className={`py-4 ${isFilterOpen && "bg-orange-100 text-orange-600"} text-center flex flex-col items-center ${
+                user?.access?.companies === false &&
+                "bg-gray-200 text-gray-600 cursor-not-allowed"
+              }`}
               onClick={() => {
                 setIsFilterOpen(true);
                 setIsGoogleBusinessFilterOpen(false);
                 setIsDeviceOpen(false);
                 setIsProfileOpen(false);
               }}
+              disabled={user?.access?.companies === false}
             >
               {isFilterOpen ? (
                 <div className="my-1 bg-cover bg-companies-focus-sidebar-icon w-7 h-7"></div>
@@ -910,13 +923,17 @@ const DataMap = () => {
               <p className="text-sm">Companies</p>
             </button>
             <button
-              className={`py-4 ${isGoogleBusinessFilterOpen && "bg-orange-100 text-orange-600"} text-center flex flex-col items-center`}
+              className={`py-4 ${isGoogleBusinessFilterOpen && "bg-orange-100 text-orange-600"} text-center flex flex-col items-center ${
+                user?.access?.googleBusiness === false &&
+                "bg-gray-200 text-gray-600 cursor-not-allowed"
+              }`}
               onClick={() => {
                 setIsGoogleBusinessFilterOpen(true);
                 setIsFilterOpen(false);
                 setIsDeviceOpen(false);
                 setIsProfileOpen(false);
               }}
+              disabled={user?.access?.googleBusiness === false}
             >
               {isGoogleBusinessFilterOpen ? (
                 <div className="my-1 bg-cover bg-gbusiness-focus-sidebar-icon w-6 h-6"></div>
@@ -926,13 +943,17 @@ const DataMap = () => {
               <p className="text-sm">G-Business</p>
             </button>
             <button
-              className={`py-4 ${isDeviceOpen && "bg-orange-100 text-orange-600"} text-center flex flex-col items-center`}
+              className={`py-4 ${isDeviceOpen && "bg-orange-100 text-orange-600"} text-center flex flex-col items-center ${
+                user?.access?.device === false &&
+                "bg-gray-200 text-gray-600 cursor-not-allowed"
+              }`}
               onClick={() => {
                 setIsDeviceOpen(true);
                 setIsGoogleBusinessFilterOpen(false);
                 setIsFilterOpen(false);
                 setIsProfileOpen(false);
               }}
+              disabled={user?.access?.device === false}
             >
               {isDeviceOpen ? (
                 <div className="my-1 bg-cover bg-devices-focus-sidebar-icon w-6 h-6"></div>
@@ -1300,9 +1321,7 @@ const DataMap = () => {
                         </div>
                       )}
                       {marker.properties.company.toLowerCase() ===
-                        "google business" &&
-                      user.access.is_allowed_change &&
-                      user.access.is_marketing ? (
+                        "google business" && user.access.gbDashboard ? (
                         <div className="flex justify-between">
                           <div className="flex gap-1">
                             <SlSocialGoogle size={16} />

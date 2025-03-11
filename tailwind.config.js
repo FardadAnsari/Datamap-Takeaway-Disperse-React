@@ -32,6 +32,7 @@ export default {
         "open-status": "url('/src/assets/status/open-status.svg')",
         "close-status": "url('/src/assets/status/close-status.svg')",
         "no-result": "url('/No-Result-Matching.svg')",
+        "no-access": "url('/no-access-permission.svg')",
       },
     },
   },
