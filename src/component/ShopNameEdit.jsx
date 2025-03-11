@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import instance from "./api";
-import { FaRegSave } from "react-icons/fa";
 import { toast, ToastContainer } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 
@@ -36,7 +35,6 @@ const ShopNameEdit = ({ locationId, shopName }) => {
         formattedData,
         {
           headers: {
-            "Content-Type": "application/json",
             Authorization: `Bearer ${accessToken}`,
           },
         }
@@ -49,13 +47,16 @@ const ShopNameEdit = ({ locationId, shopName }) => {
         toast.error("Error applying changes. Please try again later.");
       }
     } catch (error) {
-      error.status === 401 &&
+      if (error.response?.status === 401) {
         toast.error(
           "Your tokens have been exhausted. Please contact the R&D department to resolve this issue."
-        ) &&
+        );
         setTimeout(() => {
           navigate("/login");
         }, 5000);
+      } else {
+        toast.error("Error applying changes. Please try again later.");
+      }
     }
   };
 
@@ -84,18 +85,6 @@ const ShopNameEdit = ({ locationId, shopName }) => {
         >
           Save
         </button>
-        <ToastContainer
-          position="top-center"
-          autoClose={3000}
-          hideProgressBar={false}
-          newestOnTop={false}
-          closeOnClick
-          rtl={false}
-          pauseOnFocusLoss
-          draggable
-          pauseOnHover
-          theme="light"
-        />
       </form>
       {errors.title && (
         <p className="text-red-500 text-sm mt-1">{errors.title.message}</p>

@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import instance from "./api";
-import { FaRegSave } from "react-icons/fa";
 import { toast, ToastContainer } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 
@@ -28,12 +27,10 @@ const WebSiteUriEdit = ({ locationId, webUrl }) => {
     const formattedData = {
       websiteUri: data.websiteUri,
     };
-
     const accessToken = sessionStorage.getItem("accessToken");
     instance
       .post(`/api/v1/google/update-websurl/${locationId}/`, formattedData, {
         headers: {
-          "Content-Type": "application/json",
           Authorization: `Bearer ${accessToken}`,
         },
       })
@@ -80,18 +77,6 @@ const WebSiteUriEdit = ({ locationId, webUrl }) => {
       >
         Save
       </button>
-      <ToastContainer
-        position="top-center"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-      />
     </form>
   );
 };

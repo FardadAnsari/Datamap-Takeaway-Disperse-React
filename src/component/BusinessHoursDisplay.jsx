@@ -20,9 +20,14 @@ const BusinessHoursDisplay = ({ locationId }) => {
   );
 
   useEffect(() => {
+    const accessToken = sessionStorage.getItem("accessToken");
     if (locationId) {
       instance
-        .get(`api/v1/google/get-update-open/${locationId}`)
+        .get(`api/v1/google/get-update-open/${locationId}`, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        })
         .then((response) => {
           const fetchedPeriods =
             response.data.location.regularHours?.periods || [];

@@ -10,6 +10,7 @@ import BusinessHoursDisplay from "../component/BusinessHoursDisplay";
 import { useParams } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import GoogleBusinessModal from "../component/GoogleBusinessModal";
+import { useUser } from "../component/userPermission";
 
 const Panel = () => {
   const { locationId } = useParams();
@@ -34,10 +35,16 @@ const Panel = () => {
   const onPieEnterMap = (_, index) => setActiveIndexMap(index);
 
   const [shopActivityStatus, setShopActivityStatus] = useState("");
+  const { user } = useUser();
 
+  const accessToken = sessionStorage.getItem("accessToken");
   useEffect(() => {
     instance
-      .get(`/api/v1/google/get-title/${locationId}`)
+      .get(`/api/v1/google/get-title/${locationId}`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      })
       .then((response) => {
         console.log(response.data.location.title);
 
@@ -49,7 +56,11 @@ const Panel = () => {
 
   useEffect(() => {
     instance
-      .get(`api/v1/google/get-update-openstatus/${locationId}`)
+      .get(`api/v1/google/get-update-openstatus/${locationId}`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      })
       .then((response) => {
         setShopActivityStatus(response.data.location.openInfo.status);
       })
@@ -86,7 +97,11 @@ const Panel = () => {
     setIsVerified(true);
 
     instance
-      .get(`api/v1/google/get-shop-attribute/${locationId}`)
+      .get(`api/v1/google/get-shop-attribute/${locationId}`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      })
       .then((response) => {
         setShopPhone(response.data.location.phoneNumbers);
         setShopAddress(response.data.location.storefrontAddress);
@@ -95,6 +110,7 @@ const Panel = () => {
   }, [locationId]);
 
   const [isLoadingSearchCount, setIsLoadingSearchCount] = useState(false);
+  const [notAllowedSearchCount, setNotAllowedSearchCount] = useState(false);
   const [searchCount, setSearchCount] = useState({});
 
   useEffect(() => {
@@ -103,12 +119,18 @@ const Panel = () => {
 
       try {
         const response = await instance.get(
-          `api/v1/google/metric/mob-desk-search-count/${locationId}`
+          `api/v1/google/metric/mob-desk-search-count/${locationId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+          }
         );
 
         setSearchCount(response.data);
       } catch (error) {
         console.error(error);
+        error?.status === 403 && setNotAllowedSearchCount(true);
       } finally {
         setIsLoadingSearchCount(true);
       }
@@ -117,6 +139,7 @@ const Panel = () => {
   }, []);
 
   const [isLoadingMapCount, setIsLoadingMapCount] = useState(false);
+  const [notAllowedMapCount, setNotAllowedMapCount] = useState(false);
   const [mapCount, setMapCount] = useState({});
 
   useEffect(() => {
@@ -125,12 +148,18 @@ const Panel = () => {
 
       try {
         const response = await instance.get(
-          `/api/v1/google/metric/mob-desk-map-count/${locationId}`
+          `/api/v1/google/metric/mob-desk-map-count/${locationId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+          }
         );
 
         setMapCount(response.data);
       } catch (error) {
         console.error(error);
+        error?.status === 403 && setNotAllowedMapCount(true);
       } finally {
         setIsLoadingMapCount(true);
       }
@@ -149,6 +178,7 @@ const Panel = () => {
   ];
 
   const [isLoadingWebCallCount, setIsLoadingWebCallCount] = useState(false);
+  const [notAllowedWebCallCount, setNotAllowedWebCallCount] = useState(false);
   const [webCallCount, setWebCallCount] = useState({});
 
   useEffect(() => {
@@ -157,11 +187,17 @@ const Panel = () => {
 
       try {
         const response = await instance.get(
-          `/api/v1/google/metric/web-call-count/${locationId}`
+          `/api/v1/google/metric/web-call-count/${locationId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+          }
         );
         setWebCallCount(response?.data);
       } catch (error) {
         console.error(error);
+        error?.status === 403 && setNotAllowedWebCallCount(true);
       } finally {
         setIsLoadingWebCallCount(true);
       }
@@ -184,19 +220,23 @@ const Panel = () => {
           <div className="flex flex-col px-4 pt-4">
             <div className="h-10 flex gap-2 justify-between items-center pb-4">
               <p className="text-xl font-medium">Google Business Details</p>
-              <button
-                onClick={() => handleEditOpen(4)}
-                className={`flex justify-between items-center py-2 px-2 text-lg text-orange-500 text-left transition ease-in delay-190`}
-              >
-                Edit
-              </button>
+              {user?.access?.gbDashboardEdit && (
+                <button
+                  onClick={() => handleEditOpen(4)}
+                  className={`flex justify-between items-center py-2 px-2 text-lg text-orange-500 text-left transition ease-in delay-190`}
+                >
+                  Edit
+                </button>
+              )}
             </div>
-            <div className="flex items-center gap-2 border-2 border-orange-300 p-2 rounded-lg">
-              <IoInformationCircleSharp color="orange" size={26} />
-              <p className="text-lg">
-                Edits will appear after at least 10 minutes or more.
-              </p>
-            </div>
+            {user?.access?.gbDashboardEdit && (
+              <div className="flex items-center gap-2 border-2 border-orange-300 p-2 rounded-lg">
+                <IoInformationCircleSharp color="orange" size={26} />
+                <p className="text-base">
+                  Edits will appear after at least 10 minutes or more.
+                </p>
+              </div>
+            )}
             {editOpen === 4 && (
               <GoogleBusinessModal
                 isOpen={true}
@@ -279,27 +319,51 @@ const Panel = () => {
           </div>
         </div>
         <div className="p-4 flex flex-col md:col-span-3 md:col-start-1 md:row-span-6 md:row-start-8 lg:row-span-2 lg:col-span-2 lg:row-start-2 rounded-lg bg-white shadow-md">
-          <p className="text-xl font-medium">By searching on Google</p>
-          <PieChartSection
-            activeIndex={activeIndexSearch}
-            data={googleSearchData}
-            onPieEnter={onPieEnterSearch}
-          />
+          {!notAllowedSearchCount ? (
+            <>
+              <p className="text-xl font-medium">By searching on Google</p>
+              <PieChartSection
+                activeIndex={activeIndexSearch}
+                data={googleSearchData}
+                onPieEnter={onPieEnterSearch}
+              />
+            </>
+          ) : (
+            <div className="h-full flex flex-col justify-center items-center">
+              <div className="w-44 h-44 bg-cover bg-center bg-no-access"></div>
+              <p>You don’t access for this section</p>
+            </div>
+          )}
         </div>
         <div className="p-4 flex flex-col md:col-span-3 md:row-span-6 md:row-start-8 md:col-start-4 lg:row-span-2 lg:col-span-2 lg:col-start-3 lg:row-start-2 md:row-start-8 rounded-lg bg-white shadow-md">
-          <p className="text-xl font-medium">By using Google map service</p>
-
-          <PieChartSection
-            activeIndex={activeIndexMap}
-            data={googleMapData}
-            onPieEnter={onPieEnterMap}
-          />
+          {!notAllowedMapCount ? (
+            <>
+              <p className="text-xl font-medium">By using Google map service</p>
+              <PieChartSection
+                activeIndex={activeIndexMap}
+                data={googleMapData}
+                onPieEnter={onPieEnterMap}
+              />
+            </>
+          ) : (
+            <div className="h-full flex flex-col justify-center items-center">
+              <div className="w-44 h-44 bg-cover bg-center bg-no-access"></div>
+              <p>You don’t access for this section</p>
+            </div>
+          )}
         </div>
         <div className="md:row-start-14 md:row-span-6 md:col-span-6 lg:col-span-4 lg:row-span-2 lg:row-start-4 rounded-lg bg-white shadow-md">
           <KeywordsAnalytics locationId={locationId} />
         </div>
         <div className="md:row-start-2 md:col-span-3 md:row-span-6 md:col-start-4 lg:row-start-4 lg:col-span-2 lg:row-span-1 lg:col-start-5 rounded-lg p-2 bg-white shadow-md">
-          <TotalInteractions webCallCount={webCallCount} />
+          {!notAllowedWebCallCount ? (
+            <TotalInteractions webCallCount={webCallCount} />
+          ) : (
+            <div className="flex flex-col justify-center items-center py-4">
+              <div className="w-44 h-44 bg-cover bg-center bg-no-access"></div>
+              <p>You don’t access for this section</p>
+            </div>
+          )}
         </div>
       </div>
       <ToastContainer
