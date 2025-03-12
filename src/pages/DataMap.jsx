@@ -924,7 +924,7 @@ const DataMap = () => {
             </button>
             <button
               className={`py-4 ${isGoogleBusinessFilterOpen && "bg-orange-100 text-orange-600"} text-center flex flex-col items-center ${
-                user?.access?.googleBusiness === false &&
+                user?.access?.googleBusinessMap === false &&
                 "bg-gray-200 text-gray-600 cursor-not-allowed"
               }`}
               onClick={() => {
@@ -933,7 +933,7 @@ const DataMap = () => {
                 setIsDeviceOpen(false);
                 setIsProfileOpen(false);
               }}
-              disabled={user?.access?.googleBusiness === false}
+              disabled={user?.access?.googleBusinessMap === false}
             >
               {isGoogleBusinessFilterOpen ? (
                 <div className="my-1 bg-cover bg-gbusiness-focus-sidebar-icon w-6 h-6"></div>
@@ -944,7 +944,7 @@ const DataMap = () => {
             </button>
             <button
               className={`py-4 ${isDeviceOpen && "bg-orange-100 text-orange-600"} text-center flex flex-col items-center ${
-                user?.access?.device === false &&
+                user?.access?.devices === false &&
                 "bg-gray-200 text-gray-600 cursor-not-allowed"
               }`}
               onClick={() => {
@@ -953,7 +953,7 @@ const DataMap = () => {
                 setIsFilterOpen(false);
                 setIsProfileOpen(false);
               }}
-              disabled={user?.access?.device === false}
+              disabled={user?.access?.devices === false}
             >
               {isDeviceOpen ? (
                 <div className="my-1 bg-cover bg-devices-focus-sidebar-icon w-6 h-6"></div>
@@ -1321,7 +1321,7 @@ const DataMap = () => {
                         </div>
                       )}
                       {marker.properties.company.toLowerCase() ===
-                        "google business" && user.access.gbDashboard ? (
+                        "google business" && user.access.gbDashboardMap ? (
                         <div className="flex justify-between">
                           <div className="flex gap-1">
                             <SlSocialGoogle size={16} />

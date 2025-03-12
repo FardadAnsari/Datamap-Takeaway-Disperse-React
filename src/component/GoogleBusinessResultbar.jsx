@@ -88,7 +88,7 @@ const GoogleBusinessResultbar = ({
                           </p>
 
                           <div className="flex justify-between items-center">
-                            {user.access.gbDashboard ? (
+                            {user.access.gbDashboardMap ? (
                               <Link
                                 to={`/panel/${shop.properties.locationId}`}
                                 target="_blank"
