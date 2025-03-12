@@ -10,7 +10,7 @@ export function useUser() {
         Authorization: `Bearer ${token}`,
       },
     });
-    // console.log(res);
+    console.log(res);
 
     if (!res.ok) {
       const error = new Error("Error in fetching data");
@@ -21,13 +21,13 @@ export function useUser() {
   };
 
   const { data, error, isLoading } = useSWR(
-    "https://takeawaytracker.mealzo.co.uk/account/user/",
-    // "https://marketing.mealzo.co.uk/account/user/",
+    // "https://takeawaytracker.mealzo.co.uk/account/user/",
+    "https://marketing.mealzo.co.uk/account/user/",
 
     fetcher
   );
 
-  // console.log("data from SWR in useUser:", data);
+  console.log("data from SWR in useUser:", data);
 
   return {
     user: data,

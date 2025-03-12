@@ -18,6 +18,10 @@ export default {
         "gbusiness-sidebar-icon": "url('src/assets/sidebar/g-business.svg')",
         "gbusiness-focus-sidebar-icon":
           "url('src/assets/sidebar/g-business-focus.svg')",
+        "gbusiness-map-sidebar-icon":
+          "url('src/assets/sidebar/g-business-map.svg')",
+        "gbusiness-map-focus-sidebar-icon":
+          "url('src/assets/sidebar/g-business-map-focus.svg')",
         "googleb-button-icon":
           "url('src/assets/resultbar/googleb-button-icon.svg')",
         "devices-sidebar-icon": "url('src/assets/sidebar/devices.svg')",
