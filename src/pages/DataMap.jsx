@@ -403,7 +403,7 @@ const DataMap = () => {
       };
 
       const response = await fetchCompanyData(googleBusinessCompany);
-      console.log("Response from Google Business:", response);
+      // console.log("Response from Google Business:", response);
 
       let points = transformData(response, googleBusinessCompany).filter(
         (point) => {
@@ -419,7 +419,7 @@ const DataMap = () => {
         }
       );
 
-      console.log("Points after first filter:", points);
+      // console.log("Points after first filter:", points);
 
       const { searchTerm, cuisine, postcode } = data;
 
@@ -440,8 +440,8 @@ const DataMap = () => {
         const shopPostcode =
           point.properties.postcode?.toLowerCase().replace(/\s+/g, "") || "";
 
-        console.log("Form Postcode:", selectedPostcode);
-        console.log("API Postcode:", shopPostcode);
+        // console.log("Form Postcode:", selectedPostcode);
+        // console.log("API Postcode:", shopPostcode);
 
         const [lon, lat] = point.geometry.coordinates;
         const pt = [lon, lat];
@@ -489,7 +489,7 @@ const DataMap = () => {
       };
 
       points = points.filter(combinedFilter);
-      console.log("Points after combined filter:", points);
+      // console.log("Points after combined filter:", points);
 
       setApiData(points);
     } catch (error) {
@@ -502,7 +502,7 @@ const DataMap = () => {
 
   // Function to handle companies form submission
   const onSubmitCompanies = async (data) => {
-    console.log("form submitted:", data);
+    // console.log("form submitted:", data);
     setLoadingCompanies(true);
     setErrorCompanies(null);
 
@@ -546,7 +546,7 @@ const DataMap = () => {
         const accessToken = sessionStorage.getItem("accessToken");
         const cachedData = await getCachedCompanyData(company.id);
         if (cachedData) {
-          console.log(`using cached data for${company.name}`);
+          // console.log(`using cached data for${company.name}`);
           return cachedData;
         } else {
           try {
@@ -556,7 +556,7 @@ const DataMap = () => {
               },
             });
             await setCachedCompanyData(company.id, response.data);
-            console.log(`recieve and cache data for ${company.name}`);
+            // console.log(`recieve and cache data for ${company.name}`);
             return response.data;
           } catch (error) {
             console.error(`error in fetching data ${company.name}:`, error);
@@ -570,7 +570,7 @@ const DataMap = () => {
       );
 
       const responses = await Promise.all(requests);
-      console.log("response from companies", responses);
+      // console.log("response from companies", responses);
 
       let points = responses
         .flatMap((res, index) => transformData(res, selectedCompanyList[index]))
@@ -586,7 +586,7 @@ const DataMap = () => {
           );
         });
 
-      console.log("Points after first filter:", points);
+      // console.log("Points after first filter:", points);
 
       const { searchTerm, ratingRange, reviewRange, cuisine } = data;
       const [minRating, maxRating] = ratingRange || [0, 5];
@@ -661,8 +661,8 @@ const DataMap = () => {
       };
 
       points = points.filter(combinedFilter);
-      console.log("Points after combined filter:", points);
-      console.log(points);
+      // console.log("Points after combined filter:", points);
+      // console.log(points);
 
       setApiData(points);
     } catch (error) {
@@ -686,7 +686,7 @@ const DataMap = () => {
       ],
       zoom
     );
-    console.log("Cluster data:", clusters);
+    // console.log("Cluster data:", clusters);
 
     return clusters;
   }, [apiData, mapBounds, zoom]);
@@ -724,8 +724,8 @@ const DataMap = () => {
       }
     });
 
-    console.log("Clusters to render:", clustersToRender);
-    console.log("Markers to render:", markersToRender);
+    // console.log("Clusters to render:", clustersToRender);
+    // console.log("Markers to render:", markersToRender);
 
     return { clustersToRender, markersToRender };
   }, [clusterData]);
@@ -893,7 +893,7 @@ const DataMap = () => {
 
   // Get the user from the context
   const { user } = useUser();
-  console.log(user);
+  // console.log(user);
 
   return (
     <div className="relative h-screen w-screen overflow-hidden">
