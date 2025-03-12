@@ -10,7 +10,7 @@ export function useUser() {
         Authorization: `Bearer ${token}`,
       },
     });
-    console.log(res);
+    // console.log(res);
 
     if (!res.ok) {
       const error = new Error("Error in fetching data");

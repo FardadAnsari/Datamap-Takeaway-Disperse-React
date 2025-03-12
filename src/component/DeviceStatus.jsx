@@ -17,7 +17,7 @@ const DeviceStatus = ({ isOpen, setIsDeviceOpen }) => {
       instance
         .get("/count")
         .then((response) => {
-          console.log(response.data);
+          // console.log(response.data);
           setTotalStatus(response.data);
         })
         .catch();
@@ -43,7 +43,7 @@ const DeviceStatus = ({ isOpen, setIsDeviceOpen }) => {
     setLoading(true);
     try {
       const response = await instance.get(`/status?page=${page}`);
-      console.log("pageData", response.data);
+      // console.log("pageData", response.data);
 
       setData(response.data.results);
       setTotalPages(response.data.totalPages);
@@ -106,7 +106,7 @@ const DeviceStatus = ({ isOpen, setIsDeviceOpen }) => {
       }
 
       const response = await instance.get(url);
-      console.log(response.data);
+      // console.log(response.data);
       setSearchData(response.data.results);
       setTotalPages(response.data.totalPages);
       setCurrentPage(response.data.currentPage);

@@ -46,10 +46,10 @@ const Panel = () => {
         },
       })
       .then((response) => {
-        console.log(response.data.location.title);
+        // console.log(response.data.location.title);
 
         setShopTitle(response.data.location.title);
-        console.log(shopTitle);
+        // console.log(shopTitle);
       })
       .catch();
   }, [locationId]);

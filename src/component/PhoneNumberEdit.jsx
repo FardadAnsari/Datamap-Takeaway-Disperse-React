@@ -35,7 +35,7 @@ const PhoneNumberEdit = ({ locationId, phoneNumber }) => {
         },
       })
       .then((response) => {
-        console.log("Data successfully submitted:", response.data);
+        // console.log("Data successfully submitted:", response.data);
         if (response.status === 200) {
           toast.success("Your changes have been applied.");
           reset();

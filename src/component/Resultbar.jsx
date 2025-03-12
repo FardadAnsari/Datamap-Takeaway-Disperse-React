@@ -123,7 +123,7 @@ const ResultBar = ({
       })
       .filter((shop) => shop !== null && shop.properties.commonIn);
 
-    console.log("Common Shops:", commonShops);
+    // console.log("Common Shops:", commonShops);
 
     return commonShops;
   };

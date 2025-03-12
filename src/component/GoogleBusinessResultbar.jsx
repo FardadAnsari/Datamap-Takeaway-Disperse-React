@@ -11,7 +11,7 @@ const GoogleBusinessResultbar = ({
   activeMarker,
 }) => {
   const [visibleShops, setVisibleShops] = useState({});
-  console.log(companyList);
+  // console.log(companyList);
 
   const handleLoadMore = (company) => {
     setVisibleShops((prev) => ({
