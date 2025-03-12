@@ -57,9 +57,9 @@ export const parseGoogleBusiness = (item, company) => {
     typeof item.latlng.longitude === "undefined" ||
     typeof item.latlng.latitude === "undefined"
   ) {
-    console.warn(
-      `Location data missing for shop_id: ${item.shop_id || "Unknown"}`
-    );
+    // console.warn(
+    //   `Location data missing for shop_id: ${item.shop_id || "Unknown"}`
+    // );
     return null;
   }
   const lon = parseFloat(item.latlng.longitude);
@@ -111,12 +111,12 @@ export const transformData = (items, company) => {
         case "type3":
           return parseGoogleBusiness(item, company);
         default:
-          console.warn(`company type unknown: ${company.type}`);
+          // console.warn(`company type unknown: ${company.type}`);
           return null;
       }
     })
     .filter((item) => item !== null);
 
-  console.log(`Transformed data for ${company.name}:`, transformed);
+  // console.log(`Transformed data for ${company.name}:`, transformed);
   return transformed;
 };

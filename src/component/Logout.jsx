@@ -8,7 +8,7 @@ const Logout = () => {
   const handleLogout = async () => {
     try {
       await clearOldCaches(0); // Clear all caches immediately
-      console.log("IndexedDB cache cleared.");
+      // console.log("IndexedDB cache cleared.");
     } catch (error) {
       console.error("Error clearing IndexedDB cache:", error);
     }

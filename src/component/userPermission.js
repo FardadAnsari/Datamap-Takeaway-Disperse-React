@@ -27,7 +27,7 @@ export function useUser() {
     fetcher
   );
 
-  console.log("data from SWR in useUser:", data);
+  // console.log("data from SWR in useUser:", data);
 
   return {
     user: data,

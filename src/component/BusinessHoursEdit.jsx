@@ -59,7 +59,7 @@ const BusinessHoursEdit = ({ locationId }) => {
           const fetchedPeriods =
             response.data.location.regularHours?.periods || [];
 
-          console.log("Fetched Periods:", fetchedPeriods);
+          // console.log("Fetched Periods:", fetchedPeriods);
 
           const updatedHours = Array(7)
             .fill()
@@ -122,7 +122,7 @@ const BusinessHoursEdit = ({ locationId }) => {
         }))
       );
 
-    console.log("Formatted Data to submit:", formattedData);
+    // console.log("Formatted Data to submit:", formattedData);
 
     const accessToken = sessionStorage.getItem("accessToken");
     instance
@@ -137,7 +137,7 @@ const BusinessHoursEdit = ({ locationId }) => {
         }
       )
       .then((response) => {
-        console.log("Data successfully submitted:", response.data);
+        // console.log("Data successfully submitted:", response.data);
         if (response.status === 200) {
           toast.success("Your changes have been applied.");
           reset();
