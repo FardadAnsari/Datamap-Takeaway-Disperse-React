@@ -1,21 +1,41 @@
 import { useEffect, useState } from "react";
+import { useForm, Controller } from "react-hook-form";
+import Select from "react-select";
+import AutoCompletionCustomStyles from "../component/AutoCompletionCustomStyles";
 import instance from "../component/api";
+
+// import DialogDefault from "../component/DialogDefault/DialogDefault";
 import PieChartSection from "../component/PieChartSection";
 import KeywordsAnalytics from "../component/KeywordsAnalytics";
 import TotalInteractions from "../component/TotalInteractions";
-import { HiOutlineEnvelope } from "react-icons/hi2";
-import { IoInformationCircleSharp } from "react-icons/io5";
-import { PiPhone } from "react-icons/pi";
 import BusinessHoursDisplay from "../component/BusinessHoursDisplay";
-import { useParams } from "react-router-dom";
-import { ToastContainer } from "react-toastify";
-import GoogleBusinessModal from "../component/GoogleBusinessModal";
+import { useNavigate } from "react-router-dom";
+import { toast, ToastContainer } from "react-toastify";
 import { useUser } from "../component/userPermission";
+import { IoInformationCircleSharp } from "react-icons/io5";
+import GoogleBusinessModal from "../component/GoogleBusinessModal";
 
 const GBDashboard = ({ isOpen, setIsGoogleBusinessPanelOpen }) => {
-  const { locationId } = useParams();
+  const { user } = useUser();
 
-  const [open, setOpen] = useState(null);
+  const {
+    setValue: setValueFilter,
+    control: controlFilter,
+    watch: watchFilter,
+  } = useForm();
+
+  const navigate = useNavigate();
+
+  // const [accountList, setAccountList] = useState([]);
+  const [businessInfo, setBusinessInfo] = useState([]);
+  // const [isLoadingAccounts, setIsLoadingAccounts] = useState(false);
+  const [isLoadingBusinessInfo, setIsLoadingBusinessInfo] = useState(false);
+  const [locationId, setLocationId] = useState(null);
+
+  const handleAccountFocus = () => {
+    setValueFilter("businessInformation", null);
+  };
+
   const [editOpen, setEditOpen] = useState(null);
   const [shopTitle, setShopTitle] = useState("");
 
@@ -24,7 +44,6 @@ const GBDashboard = ({ isOpen, setIsGoogleBusinessPanelOpen }) => {
       setEditOpen(null);
     } else {
       setEditOpen(id);
-      setOpen(null);
     }
   };
 
@@ -35,137 +54,228 @@ const GBDashboard = ({ isOpen, setIsGoogleBusinessPanelOpen }) => {
   const onPieEnterMap = (_, index) => setActiveIndexMap(index);
 
   const [shopActivityStatus, setShopActivityStatus] = useState("");
-  const { user } = useUser();
 
+  const selectedAcc = watchFilter("account");
+  const selectedBusInfo = watchFilter("businessInformation");
+
+  const [accountList, setAccountList] = useState([]);
   const accessToken = sessionStorage.getItem("accessToken");
+
   useEffect(() => {
     instance
-      .get(`/api/v1/google/get-title/${locationId}`, {
+      .get("/api/v1/google/account/", {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
       })
       .then((response) => {
-        // console.log(response.data.location.title);
-
-        setShopTitle(response.data.location.title);
-        // console.log(shopTitle);
+        console.log(response.data);
+        setAccountList(response.data.accounts);
       })
       .catch();
-  }, [locationId]);
+  }, []);
 
   useEffect(() => {
-    instance
-      .get(`api/v1/google/get-update-openstatus/${locationId}`, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      })
-      .then((response) => {
-        setShopActivityStatus(response.data.location.openInfo.status);
-      })
-      .catch();
-  }, [locationId]);
+    const fetchSelectedBusinessInfo = async () => {
+      if (selectedAcc) {
+        setIsLoadingBusinessInfo(true);
+        const accountId = selectedAcc.value.split("/")[1];
+        if (accountId) {
+          try {
+            const response = await instance.get(
+              `api/v1/google/business-info/front/${accountId}`,
+              {
+                headers: {
+                  Authorization: `Bearer ${accessToken}`,
+                },
+              }
+            );
+            setBusinessInfo(response.data);
+          } catch (error) {
+            error.status === 401 &&
+              toast.error(
+                "Your tokens have been exhausted. Please contact the R&D department to resolve this issue."
+              ) &&
+              setTimeout(() => {
+                navigate("/login");
+              }, 5000);
+          } finally {
+            setIsLoadingBusinessInfo(false);
+          }
+        }
+      }
+    };
+    fetchSelectedBusinessInfo();
+  }, [selectedAcc]);
+
+  useEffect(() => {
+    if (selectedBusInfo) {
+      const id = selectedBusInfo.value.split("/")[1];
+      setLocationId(id);
+    }
+  }, [selectedBusInfo]);
+
+  useEffect(() => {
+    if (selectedBusInfo) {
+      instance
+        .get(`/api/v1/google/get-title/${locationId}`, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        })
+        .then((response) => {
+          console.log(response.data.location.title);
+
+          setShopTitle(response.data.location.title);
+          console.log(shopTitle);
+        })
+        .catch();
+    }
+  }, [locationId, selectedBusInfo]);
+
+  useEffect(() => {
+    if (selectedBusInfo) {
+      instance
+        .get(`api/v1/google/get-update-openstatus/${locationId}`, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        })
+        .then((response) => {
+          setShopActivityStatus(response.data.location.openInfo.status);
+        })
+        .catch();
+    }
+  }, [locationId, selectedBusInfo]);
+
+  const [verifications, setVerifications] = useState([]);
+  const [isVerified, setIsVerified] = useState(true);
 
   useEffect(() => {
     const fetchVerificationData = async () => {
-      try {
-        const response = await instance.get(
-          `api/v1/google/verifications/${locationId}`
-        );
+      if (selectedBusInfo) {
+        try {
+          const response = await instance.get(
+            `api/v1/google/verifications/${locationId}`
+          );
+          console.log(response);
 
-        if (Object.keys(response.data).length === 0) {
-          setIsVerified(false);
-        } else {
-          setIsVerified(true);
+          // Handle empty response.data or missing verifications property
+          if (response.data && response.data.verifications) {
+            setVerifications(response.data.verifications);
+          } else {
+            setVerifications([]); // Set verifications to an empty array if data is invalid
+          }
+
+          // Update isVerified based on response.data
+          if (response.data && Object.keys(response.data).length > 0) {
+            setIsVerified(true);
+          } else {
+            setIsVerified(false);
+          }
+        } catch (error) {
+          console.error(error);
+          setVerifications([]); // Set verifications to an empty array on error
+          setIsVerified(false); // Set isVerified to false on error
         }
-      } catch (error) {
-        console.error(error);
       }
     };
-
     fetchVerificationData();
-  }, [locationId]);
+  }, [locationId, selectedBusInfo]);
 
-  const [isVerified, setIsVerified] = useState(true);
+  console.log(verifications);
+  console.log(isVerified);
+
+  // Move this logic into a useEffect
+  useEffect(() => {
+    if (verifications.length > 0 && verifications[0]?.state === "COMPLETED") {
+      setIsVerified(true);
+    } else {
+      setIsVerified(false);
+    }
+  }, [verifications]); // Only run this effect when `verifications` changes
 
   const [shopPhone, setShopPhone] = useState();
   const [shopAddress, setShopAddress] = useState();
   const [weburl, setWeburl] = useState();
 
   useEffect(() => {
-    setIsVerified(true);
-
-    instance
-      .get(`api/v1/google/get-shop-attribute/${locationId}`, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      })
-      .then((response) => {
-        setShopPhone(response.data.location.phoneNumbers);
-        setShopAddress(response.data.location.storefrontAddress);
-        setWeburl(response.data.location.websiteUri);
-      });
-  }, [locationId]);
+    if (selectedBusInfo) {
+      instance
+        .get(`api/v1/google/get-shop-attribute/${locationId}`, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        })
+        .then((response) => {
+          setShopPhone(response.data.location.phoneNumbers);
+          setShopAddress(response.data.location.storefrontAddress);
+          setWeburl(response.data.location.websiteUri);
+        });
+    }
+  }, [locationId, selectedBusInfo]);
 
   const [isLoadingSearchCount, setIsLoadingSearchCount] = useState(false);
   const [notAllowedSearchCount, setNotAllowedSearchCount] = useState(false);
   const [searchCount, setSearchCount] = useState({});
 
   useEffect(() => {
-    const fetchSearchData = async () => {
-      setIsLoadingSearchCount(false);
+    if (selectedBusInfo) {
+      const fetchSearchData = async () => {
+        setIsLoadingSearchCount(false);
+        const locationId = selectedBusInfo.value.split("/")[1];
+        try {
+          const response = await instance.get(
+            `api/v1/google/metric/mob-desk-search-count/${locationId}`,
+            {
+              headers: {
+                Authorization: `Bearer ${accessToken}`,
+              },
+            }
+          );
 
-      try {
-        const response = await instance.get(
-          `api/v1/google/metric/mob-desk-search-count/${locationId}`,
-          {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-            },
-          }
-        );
-
-        setSearchCount(response.data);
-      } catch (error) {
-        console.error(error);
-        error?.status === 403 && setNotAllowedSearchCount(true);
-      } finally {
-        setIsLoadingSearchCount(true);
-      }
-    };
-    fetchSearchData();
-  }, []);
+          setSearchCount(response.data);
+        } catch (error) {
+          console.error(error);
+          error?.status === 403 && setNotAllowedSearchCount(true);
+        } finally {
+          setIsLoadingSearchCount(true);
+        }
+      };
+      fetchSearchData();
+    }
+  }, [selectedBusInfo]);
 
   const [isLoadingMapCount, setIsLoadingMapCount] = useState(false);
   const [notAllowedMapCount, setNotAllowedMapCount] = useState(false);
   const [mapCount, setMapCount] = useState({});
 
   useEffect(() => {
-    const fetchMapData = async () => {
-      setIsLoadingMapCount(false);
+    if (selectedBusInfo) {
+      const fetchMapData = async () => {
+        setIsLoadingMapCount(false);
+        const locationId = selectedBusInfo.value.split("/")[1];
+        try {
+          const response = await instance.get(
+            `/api/v1/google/metric/mob-desk-map-count/${locationId}`,
+            {
+              headers: {
+                Authorization: `Bearer ${accessToken}`,
+              },
+            }
+          );
 
-      try {
-        const response = await instance.get(
-          `/api/v1/google/metric/mob-desk-map-count/${locationId}`,
-          {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-            },
-          }
-        );
-
-        setMapCount(response.data);
-      } catch (error) {
-        console.error(error);
-        error?.status === 403 && setNotAllowedMapCount(true);
-      } finally {
-        setIsLoadingMapCount(true);
-      }
-    };
-    fetchMapData();
-  }, []);
+          setMapCount(response.data);
+        } catch (error) {
+          console.error(error);
+          error?.status === 403 && setNotAllowedMapCount(true);
+        } finally {
+          setIsLoadingMapCount(true);
+        }
+      };
+      fetchMapData();
+    }
+  }, [selectedBusInfo]);
 
   const googleSearchData = [
     { name: "Desktop", value: searchCount.BUSINESS_IMPRESSIONS_DESKTOP_SEARCH },
@@ -182,32 +292,34 @@ const GBDashboard = ({ isOpen, setIsGoogleBusinessPanelOpen }) => {
   const [webCallCount, setWebCallCount] = useState({});
 
   useEffect(() => {
-    const fetchWebCallData = async () => {
-      setIsLoadingWebCallCount(false);
-
-      try {
-        const response = await instance.get(
-          `/api/v1/google/metric/web-call-count/${locationId}`,
-          {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-            },
-          }
-        );
-        setWebCallCount(response?.data);
-      } catch (error) {
-        console.error(error);
-        error?.status === 403 && setNotAllowedWebCallCount(true);
-      } finally {
-        setIsLoadingWebCallCount(true);
-      }
-    };
-    fetchWebCallData();
-  }, [locationId]);
+    if (selectedBusInfo) {
+      const fetchWebCallData = async () => {
+        setIsLoadingWebCallCount(false);
+        const locationId = selectedBusInfo.value.split("/")[1];
+        try {
+          const response = await instance.get(
+            `/api/v1/google/metric/web-call-count/${locationId}`,
+            {
+              headers: {
+                Authorization: `Bearer ${accessToken}`,
+              },
+            }
+          );
+          setWebCallCount(response?.data);
+        } catch (error) {
+          console.error(error);
+          error?.status === 403 && setNotAllowedWebCallCount(true);
+        } finally {
+          setIsLoadingWebCallCount(true);
+        }
+      };
+      fetchWebCallData();
+    }
+  }, [selectedBusInfo]);
 
   return (
     <div
-      className={`max-w-screen w-[calc(100%-80px)] absolute top-0 left-20 flex flex-col h-full overflow-y-auto bg-white z-40 transition-transform duration-700 ease-in-out ${
+      className={`max-w-screen w-[calc(100%-80px)] absolute top-0 left-20 flex flex-col h-full ${editOpen ? "overflow-y-hidden" : "overflow-y-auto"} bg-white z-40 transition-transform duration-700 ease-in-out ${
         isOpen ? "translate-x-0" : "-translate-x-full"
       } font-sans bg-yellow-50`}
     >
@@ -273,7 +385,6 @@ const GBDashboard = ({ isOpen, setIsGoogleBusinessPanelOpen }) => {
                 <div className="flex">
                   <p className="text-base text-gray-500">Website</p>
                 </div>
-
                 <p>{weburl}</p>
               </div>
               <div className="flex justify-between gap-12 items-start py-2">
@@ -302,24 +413,58 @@ const GBDashboard = ({ isOpen, setIsGoogleBusinessPanelOpen }) => {
             </div>
           </div>
         </div>
-        <div className="p-4 flex flex-col gap-3 md:col-span-3 md:col-start-1 md:row-span-6 md:row-start-8 lg:row-span-1 lg:col-span-4 lg:row-start-1 rounded-lg bg-white shadow-md">
-          <p className="text-xl">{shopTitle}</p>
-          <div className="flex gap-6">
-            <div className="flex gap-2">
-              <div className="flex gap-1 items-center">
-                <PiPhone size={22} color="gray" />
-                <p className="text-base text-gray-500">Phone No.</p>
-              </div>
-              <p>{shopPhone?.primaryPhone}</p>
-            </div>
-            <span className="text-gray-500">|</span>
-            <div className="flex gap-2">
-              <div className="flex gap-1 items-center">
-                <HiOutlineEnvelope size={22} color="gray" />
-                <p className="text-base text-gray-500">Postcode</p>
-              </div>
-              <p>{shopAddress?.postalCode}</p>
-            </div>
+        <div className=" flex gap-6 md:col-span-3 md:col-start-1 md:row-span-6 md:row-start-8 lg:row-span-1 lg:col-span-4 lg:row-start-1 ">
+          <div className="w-full">
+            <Controller
+              name="account"
+              control={controlFilter}
+              defaultValue={null}
+              render={({ field }) => (
+                <Select
+                  placeholder="Select Account"
+                  onFocus={handleAccountFocus}
+                  classNames={{
+                    control: (state) =>
+                      state.isFocused ? "border-red-600" : "border-grey-300",
+                  }}
+                  options={accountList.map((account) => ({
+                    label: account.accountName,
+                    value: account.name,
+                  }))}
+                  value={
+                    field.value
+                      ? { label: field.value.label, value: field.value.value }
+                      : null
+                  }
+                  onChange={field.onChange}
+                  isSearchable
+                  styles={AutoCompletionCustomStyles}
+                />
+              )}
+            />
+          </div>
+          <div className="w-full">
+            <Controller
+              name="businessInformation"
+              control={controlFilter}
+              defaultValue={null}
+              render={({ field }) => (
+                <Select
+                  {...field}
+                  placeholder="Select Business Info"
+                  onFocus={handleAccountFocus}
+                  options={businessInfo.map((info) => ({
+                    value: info.name,
+                    label: info.title,
+                  }))}
+                  onChange={field.onChange}
+                  isSearchable
+                  styles={AutoCompletionCustomStyles}
+                  isDisabled={isLoadingBusinessInfo}
+                  isLoading={isLoadingBusinessInfo}
+                />
+              )}
+            />
           </div>
         </div>
         <div className="p-4 flex flex-col md:col-span-3 md:col-start-1 md:row-span-6 md:row-start-8 lg:row-span-2 lg:col-span-2 lg:row-start-2 rounded-lg bg-white shadow-md">

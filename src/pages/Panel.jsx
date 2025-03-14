@@ -15,7 +15,6 @@ import { useUser } from "../component/userPermission";
 const Panel = () => {
   const { locationId } = useParams();
 
-  const [open, setOpen] = useState(null);
   const [editOpen, setEditOpen] = useState(null);
   const [shopTitle, setShopTitle] = useState("");
 
@@ -24,7 +23,6 @@ const Panel = () => {
       setEditOpen(null);
     } else {
       setEditOpen(id);
-      setOpen(null);
     }
   };
 
@@ -206,7 +204,9 @@ const Panel = () => {
   }, [locationId]);
 
   return (
-    <div className="font-sans bg-yellow-50">
+    <div
+      className={`max-w-screen flex flex-col h-full bg-white font-sans bg-yellow-50`}
+    >
       <div className="flex justify-between px-12 py-6 mb-6 border-solid bg-white shadow">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 bg-cover bg-center bg-google-business"></div>
