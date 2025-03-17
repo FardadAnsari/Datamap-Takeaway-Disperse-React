@@ -3,8 +3,7 @@ import { useForm, Controller } from "react-hook-form";
 import Select from "react-select";
 import AutoCompletionCustomStyles from "../component/AutoCompletionCustomStyles";
 import instance from "../component/api";
-
-// import DialogDefault from "../component/DialogDefault/DialogDefault";
+import { LuPencil, LuPencilLine } from "react-icons/lu";
 import PieChartSection from "../component/PieChartSection";
 import KeywordsAnalytics from "../component/KeywordsAnalytics";
 import TotalInteractions from "../component/TotalInteractions";
@@ -14,6 +13,7 @@ import { toast, ToastContainer } from "react-toastify";
 import { useUser } from "../component/userPermission";
 import { IoInformationCircleSharp } from "react-icons/io5";
 import GoogleBusinessModal from "../component/GoogleBusinessModal";
+import { IoIosArrowBack } from "react-icons/io";
 
 const GBDashboard = ({ isOpen, setIsGoogleBusinessPanelOpen }) => {
   const { user } = useUser();
@@ -183,8 +183,8 @@ const GBDashboard = ({ isOpen, setIsGoogleBusinessPanelOpen }) => {
     fetchVerificationData();
   }, [locationId, selectedBusInfo]);
 
-  console.log(verifications);
-  console.log(isVerified);
+  // console.log(verifications);
+  // console.log(isVerified);
 
   // Move this logic into a useEffect
   useEffect(() => {
@@ -325,6 +325,12 @@ const GBDashboard = ({ isOpen, setIsGoogleBusinessPanelOpen }) => {
     >
       <div className="flex justify-between px-12 py-6 mb-6 border-solid bg-white shadow">
         <div className="flex items-center gap-4">
+          <button
+            className="w-8 "
+            onClick={() => setIsGoogleBusinessPanelOpen(false)}
+          >
+            <IoIosArrowBack size={25} />
+          </button>
           <div className="w-12 h-12 bg-cover bg-center bg-google-business"></div>
           <p className="text-xl md:text-2xl lg:text-3xl font-medium m-0">
             Google Business Dashboard
@@ -336,14 +342,21 @@ const GBDashboard = ({ isOpen, setIsGoogleBusinessPanelOpen }) => {
           <div className="flex flex-col px-4 pt-4">
             <div className="h-10 flex gap-2 justify-between items-center pb-4">
               <p className="text-xl font-medium">Google Business Details</p>
-              {user?.access?.gbDashboardEdit && (
-                <button
-                  onClick={() => handleEditOpen(4)}
-                  className={`flex justify-between items-center py-2 px-2 text-lg text-orange-500 text-left transition ease-in delay-190`}
-                >
-                  Edit
-                </button>
-              )}
+              <div className="flex gap-2">
+                {isVerified && selectedBusInfo ? (
+                  <div className="px-2 py-1 bg-green-100 rounded-lg">
+                    <p className="text-green-800">Verified</p>
+                  </div>
+                ) : null}
+                {user?.access?.gbDashboardEdit && selectedBusInfo && (
+                  <button
+                    onClick={() => handleEditOpen(4)}
+                    className={`flex justify-between items-center py-2 px-2 text-lg text-orange-500 text-left transition ease-in delay-190 bg-orange-100 rounded-lg`}
+                  >
+                    {editOpen === 4 ? <LuPencilLine /> : <LuPencil />}
+                  </button>
+                )}
+              </div>
             </div>
             {user?.access?.gbDashboardEdit && (
               <div className="flex items-center gap-2 border-2 border-orange-300 p-2 rounded-lg">
@@ -409,12 +422,19 @@ const GBDashboard = ({ isOpen, setIsGoogleBusinessPanelOpen }) => {
                   )}
                 </div>
               </div>
-              <BusinessHoursDisplay locationId={locationId} />
+              {selectedBusInfo ? (
+                <BusinessHoursDisplay locationId={locationId} />
+              ) : (
+                <div className="h-full flex py-12 flex-col justify-center items-center">
+                  <div className="w-44 h-44 bg-cover bg-center bg-empty-state-hours"></div>
+                  <p>You don’t select Account name and Business information</p>
+                </div>
+              )}
             </div>
           </div>
         </div>
-        <div className=" flex gap-6 md:col-span-3 md:col-start-1 md:row-span-6 md:row-start-8 lg:row-span-1 lg:col-span-4 lg:row-start-1 ">
-          <div className="w-full">
+        <div className="flex gap-6 md:col-span-3 md:col-start-1 md:row-span-6 md:row-start-8 lg:row-span-1 lg:col-span-4 lg:row-start-1 ">
+          <div className="w-full p-0 m-0">
             <Controller
               name="account"
               control={controlFilter}
@@ -443,7 +463,7 @@ const GBDashboard = ({ isOpen, setIsGoogleBusinessPanelOpen }) => {
               )}
             />
           </div>
-          <div className="w-full">
+          <div className="w-full p-0 m-0">
             <Controller
               name="businessInformation"
               control={controlFilter}
@@ -471,11 +491,18 @@ const GBDashboard = ({ isOpen, setIsGoogleBusinessPanelOpen }) => {
           {!notAllowedSearchCount ? (
             <>
               <p className="text-xl font-medium">By searching on Google</p>
-              <PieChartSection
-                activeIndex={activeIndexSearch}
-                data={googleSearchData}
-                onPieEnter={onPieEnterSearch}
-              />
+              {selectedBusInfo ? (
+                <PieChartSection
+                  activeIndex={activeIndexSearch}
+                  data={googleSearchData}
+                  onPieEnter={onPieEnterSearch}
+                />
+              ) : (
+                <div className="h-full flex py-40 flex-col justify-center items-center">
+                  <div className="w-44 h-44 bg-cover bg-center bg-empty-state-chart"></div>
+                  <p>You don’t select Account name and Business information</p>
+                </div>
+              )}
             </>
           ) : (
             <div className="h-full flex flex-col justify-center items-center">
@@ -488,11 +515,18 @@ const GBDashboard = ({ isOpen, setIsGoogleBusinessPanelOpen }) => {
           {!notAllowedMapCount ? (
             <>
               <p className="text-xl font-medium">By using Google map service</p>
-              <PieChartSection
-                activeIndex={activeIndexMap}
-                data={googleMapData}
-                onPieEnter={onPieEnterMap}
-              />
+              {selectedBusInfo ? (
+                <PieChartSection
+                  activeIndex={activeIndexMap}
+                  data={googleMapData}
+                  onPieEnter={onPieEnterMap}
+                />
+              ) : (
+                <div className="h-full flex py-40 flex-col justify-center items-center">
+                  <div className="w-44 h-44 bg-cover bg-center bg-empty-state-chart"></div>
+                  <p>You don’t select Account name and Business information</p>
+                </div>
+              )}
             </>
           ) : (
             <div className="h-full flex flex-col justify-center items-center">
@@ -502,11 +536,27 @@ const GBDashboard = ({ isOpen, setIsGoogleBusinessPanelOpen }) => {
           )}
         </div>
         <div className="md:row-start-14 md:row-span-6 md:col-span-6 lg:col-span-4 lg:row-span-2 lg:row-start-4 rounded-lg bg-white shadow-md">
-          <KeywordsAnalytics locationId={locationId} />
+          {selectedBusInfo ? (
+            <KeywordsAnalytics locationId={locationId} />
+          ) : (
+            <div className="h-full flex py-12 flex-col justify-center items-center">
+              <div className="w-44 h-44 bg-cover bg-center bg-empty-state-table"></div>
+              <p>You don’t select Account name and Business information</p>
+            </div>
+          )}
         </div>
         <div className="md:row-start-2 md:col-span-3 md:row-span-6 md:col-start-4 lg:row-start-4 lg:col-span-2 lg:row-span-1 lg:col-start-5 rounded-lg p-2 bg-white shadow-md">
           {!notAllowedWebCallCount ? (
-            <TotalInteractions webCallCount={webCallCount} />
+            <>
+              {selectedBusInfo ? (
+                <TotalInteractions webCallCount={webCallCount} />
+              ) : (
+                <div className="h-full flex py-12 flex-col justify-center items-center">
+                  <div className="w-44 h-44 bg-cover bg-center bg-empty-state-interaction"></div>
+                  <p>You don’t select Account name and Business information</p>
+                </div>
+              )}
+            </>
           ) : (
             <div className="flex flex-col justify-center items-center py-4">
               <div className="w-44 h-44 bg-cover bg-center bg-no-access"></div>

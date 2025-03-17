@@ -938,7 +938,7 @@ const DataMap = () => {
                 setIsDeviceOpen(false);
                 setIsProfileOpen(false);
               }}
-              disabled={user?.access?.googleBusiness === false}
+              disabled={user?.access?.googleBusinessMap === false}
             >
               {isGoogleBusinessFilterOpen ? (
                 <div className="my-1 bg-cover bg-gbusiness-map-focus-sidebar-icon w-7 h-7"></div>
@@ -959,7 +959,7 @@ const DataMap = () => {
                 setIsDeviceOpen(false);
                 setIsProfileOpen(false);
               }}
-              disabled={user?.access?.googleBusiness === false}
+              disabled={user?.access?.googleBusinessPanel === false}
             >
               {isGoogleBusinessPanelOpen ? (
                 <div className="my-1 bg-cover bg-gbusiness-focus-sidebar-icon w-6 h-6"></div>

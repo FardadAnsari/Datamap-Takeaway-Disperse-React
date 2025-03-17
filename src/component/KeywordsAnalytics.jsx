@@ -151,19 +151,6 @@ const KeywordsAnalytics = ({ locationId }) => {
               <p>You don’t access for this section</p>
             </div>
           )}
-          {isLoading && (
-            <div className="flex justify-center py-4">
-              <Hourglass
-                visible={true}
-                height="30"
-                width="30"
-                ariaLabel="hourglass-loading"
-                wrapperStyle={{}}
-                wrapperClass=""
-                colors={["#ffa500", "#ffa400"]}
-              />
-            </div>
-          )}
         </div>
       )}
     </>
