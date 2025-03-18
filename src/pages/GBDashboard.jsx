@@ -69,7 +69,7 @@ const GBDashboard = ({ isOpen, setIsGoogleBusinessPanelOpen }) => {
         },
       })
       .then((response) => {
-        console.log(response.data);
+        // console.log(response.data);
         setAccountList(response.data.accounts);
       })
       .catch();
@@ -125,7 +125,7 @@ const GBDashboard = ({ isOpen, setIsGoogleBusinessPanelOpen }) => {
           },
         })
         .then((response) => {
-          console.log(response.data.location.title);
+          // console.log(response.data.location.title);
 
           setShopTitle(response.data.location.title);
         })
@@ -186,7 +186,7 @@ const GBDashboard = ({ isOpen, setIsGoogleBusinessPanelOpen }) => {
   }, [locationId, selectedBusInfo]);
 
   // console.log(verifications);
-  console.log("verification:", isVerified);
+  // console.log("verification:", isVerified);
 
   // Move this logic into a useEffect
   useEffect(() => {
@@ -240,8 +240,9 @@ const GBDashboard = ({ isOpen, setIsGoogleBusinessPanelOpen }) => {
           },
         })
         .then((response) => {
-          console.log("data for mobile desktop search", response.data);
+          // console.log("data for mobile desktop search", response.data);
           setSearchCount(response.data);
+          setNoDataSearchCount(false);
         })
         .catch((error) => {
           console.error(error);
@@ -249,7 +250,7 @@ const GBDashboard = ({ isOpen, setIsGoogleBusinessPanelOpen }) => {
           error?.status === 403 && setNotAllowedSearchCount(true);
         });
     }
-  }, [locationId]);
+  }, [locationId, selectedBusInfo]);
 
   // const [isLoadingMapCount, setIsLoadingMapCount] = useState(false);
   const [noDataMapCount, setNoDataMapCount] = useState(false);
@@ -268,8 +269,9 @@ const GBDashboard = ({ isOpen, setIsGoogleBusinessPanelOpen }) => {
           },
         })
         .then((response) => {
-          console.log("data for mobile desktop map", response.data);
+          // console.log("data for mobile desktop map", response.data);
           setMapCount(response.data);
+          setNoDataMapCount(false);
         })
         .catch((error) => {
           console.error(error);
@@ -277,7 +279,7 @@ const GBDashboard = ({ isOpen, setIsGoogleBusinessPanelOpen }) => {
           error?.status === 403 && setNotAllowedMapCount(true);
         });
     }
-  }, [locationId]);
+  }, [locationId, selectedBusInfo]);
 
   // const [isLoadingWebCallCount, setIsLoadingWebCallCount] = useState(false);
   const [noDataWebCallCount, setNoDataWebCallCount] = useState(false);
@@ -293,8 +295,9 @@ const GBDashboard = ({ isOpen, setIsGoogleBusinessPanelOpen }) => {
           },
         })
         .then((response) => {
-          console.log("data for web call", response.data);
+          // console.log("data for web call", response.data);
           setWebCallCount(response?.data);
+          setNoDataWebCallCount(false);
         })
         .catch((error) => {
           console.error(error);
@@ -302,7 +305,7 @@ const GBDashboard = ({ isOpen, setIsGoogleBusinessPanelOpen }) => {
           error?.status === 403 && setNotAllowedWebCallCount(true);
         });
     }
-  }, [locationId]);
+  }, [locationId, selectedBusInfo]);
 
   return (
     <div
@@ -399,17 +402,19 @@ const GBDashboard = ({ isOpen, setIsGoogleBusinessPanelOpen }) => {
             <div className="border-t-2">
               <div className="flex justify-between items-center py-2">
                 <span className="text-lg">Opening Hours</span>
-                <div className="flex gap-2 items-center">
-                  {shopActivityStatus === "OPEN" ? (
-                    <p className="text-green-500">Open</p>
-                  ) : shopActivityStatus === "CLOSE" ? (
-                    <p className="text-red-500">Close</p>
-                  ) : shopActivityStatus === "CLOSED_PERMANENTLY" ? (
-                    <p className="text-red-500">Closed Permanently</p>
-                  ) : (
-                    <p></p>
-                  )}
-                </div>
+                {selectedBusInfo && (
+                  <div className="flex gap-2 items-center">
+                    {shopActivityStatus === "OPEN" ? (
+                      <p className="text-green-500">Open</p>
+                    ) : shopActivityStatus === "CLOSE" ? (
+                      <p className="text-red-500">Close</p>
+                    ) : shopActivityStatus === "CLOSED_PERMANENTLY" ? (
+                      <p className="text-red-500">Closed Permanently</p>
+                    ) : (
+                      <p></p>
+                    )}
+                  </div>
+                )}
               </div>
               {selectedBusInfo ? (
                 <BusinessHoursDisplay locationId={locationId} />
@@ -484,11 +489,20 @@ const GBDashboard = ({ isOpen, setIsGoogleBusinessPanelOpen }) => {
             <>
               <p className="text-xl font-medium">By searching on Google</p>
               {selectedBusInfo ? (
-                <PieChartSection
-                  activeIndex={activeIndexSearch}
-                  data={googleSearchData}
-                  onPieEnter={onPieEnterSearch}
-                />
+                noDataSearchCount ? (
+                  <div className="h-full flex py-40 flex-col justify-center items-center">
+                    <div className="w-44 h-44 bg-cover bg-empty-state-chart"></div>
+                    <p className="text-sm text-center">
+                      No data has been received from Google.
+                    </p>
+                  </div>
+                ) : (
+                  <PieChartSection
+                    activeIndex={activeIndexSearch}
+                    data={googleSearchData}
+                    onPieEnter={onPieEnterSearch}
+                  />
+                )
               ) : (
                 <div className="h-full flex py-40 flex-col justify-center items-center">
                   <div className="w-44 h-44 bg-cover bg-center bg-empty-state-chart"></div>
@@ -500,7 +514,7 @@ const GBDashboard = ({ isOpen, setIsGoogleBusinessPanelOpen }) => {
               )}
             </>
           ) : (
-            <div className="h-full flex flex-col justify-center items-center">
+            <div className="h-full flex py-40 flex-col justify-center items-center">
               <div className="w-44 h-44 bg-cover bg-center bg-no-access"></div>
               <p className="text-sm text-center">
                 You don’t have access to this section.
@@ -513,11 +527,20 @@ const GBDashboard = ({ isOpen, setIsGoogleBusinessPanelOpen }) => {
             <>
               <p className="text-xl font-medium">By using Google map service</p>
               {selectedBusInfo ? (
-                <PieChartSection
-                  activeIndex={activeIndexMap}
-                  data={googleMapData}
-                  onPieEnter={onPieEnterMap}
-                />
+                noDataMapCount ? (
+                  <div className="h-full flex py-40 flex-col justify-center items-center">
+                    <div className="w-44 h-44 bg-cover bg-empty-state-chart"></div>
+                    <p className="text-sm text-center">
+                      No data has been received from Google.
+                    </p>
+                  </div>
+                ) : (
+                  <PieChartSection
+                    activeIndex={activeIndexMap}
+                    data={googleMapData}
+                    onPieEnter={onPieEnterMap}
+                  />
+                )
               ) : (
                 <div className="h-full flex py-40 flex-col justify-center items-center">
                   <div className="w-44 h-44 bg-cover bg-center bg-empty-state-chart"></div>
@@ -529,7 +552,7 @@ const GBDashboard = ({ isOpen, setIsGoogleBusinessPanelOpen }) => {
               )}
             </>
           ) : (
-            <div className="h-full flex flex-col justify-center items-center">
+            <div className="h-full flex py-40 flex-col justify-center items-center">
               <div className="w-44 h-44 bg-cover bg-center bg-no-access"></div>
               <p className="text-sm text-center">
                 You don’t have access to this section.
@@ -553,7 +576,16 @@ const GBDashboard = ({ isOpen, setIsGoogleBusinessPanelOpen }) => {
           {!notAllowedWebCallCount ? (
             <>
               {selectedBusInfo ? (
-                <TotalInteractions webCallCount={webCallCount} />
+                noDataWebCallCount ? (
+                  <div className="h-full flex py-12 flex-col justify-center items-center">
+                    <div className="w-44 h-44 bg-cover bg-empty-state-interaction"></div>
+                    <p className="text-sm text-center">
+                      No data has been received from Google.
+                    </p>
+                  </div>
+                ) : (
+                  <TotalInteractions webCallCount={webCallCount} />
+                )
               ) : (
                 <div className="h-full flex py-12 flex-col justify-center items-center">
                   <div className="w-44 h-44 bg-cover bg-center bg-empty-state-interaction"></div>
@@ -565,7 +597,7 @@ const GBDashboard = ({ isOpen, setIsGoogleBusinessPanelOpen }) => {
               )}
             </>
           ) : (
-            <div className="flex flex-col justify-center items-center py-4">
+            <div className="h-full flex py-12 flex-col justify-center items-center">
               <div className="w-44 h-44 bg-cover bg-center bg-no-access"></div>
               <p className="text-sm text-center">
                 You don’t have access to this section.

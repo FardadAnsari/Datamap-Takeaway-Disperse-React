@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import instance from "./api";
-import { Hourglass, ThreeDots } from "react-loader-spinner";
+import { ThreeDots } from "react-loader-spinner";
 
 const KeywordsAnalytics = ({ locationId }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [searchInsights, setSearchInsights] = useState([]);
   const [notAllowed, setNotAllowed] = useState(false);
+  const [noData, setNoData] = useState(false);
 
   const [sortConfig, setSortConfig] = useState({
     key: null,
@@ -25,6 +26,7 @@ const KeywordsAnalytics = ({ locationId }) => {
               },
             }
           );
+          setNoData(false);
           const processedData = response.data.allResults.map((item) => ({
             ...item,
             insightsValue: {
@@ -38,9 +40,8 @@ const KeywordsAnalytics = ({ locationId }) => {
           setSearchInsights(processedData);
         } catch (error) {
           console.log(error);
+          error?.status === 500 && setNoData(true);
           error?.status === 403 && setNotAllowed(true);
-        } finally {
-          setIsLoading(false);
         }
       }
     };
@@ -105,50 +106,59 @@ const KeywordsAnalytics = ({ locationId }) => {
       {locationId && (
         <div className="m-8 max-h-96 overflow-auto">
           {!notAllowed ? (
-            <table className="w-full bg-white">
-              <thead>
-                <tr className="sticky top-0 bg-gray-100 rounded">
-                  <th className="py-2 px-4 text-start border-b">No</th>
-                  <th
-                    onClick={() => handleSort("searchKeyword")}
-                    className="py-2 px-4 text-start cursor-pointer border-b-2"
-                  >
-                    Keyword
-                    <span className="ml-1">
-                      {getSortIndicator("searchKeyword")}
-                    </span>
-                  </th>
-                  <th
-                    onClick={() => handleSort("insightsValue.value")}
-                    className="py-2 px-4 text-center cursor-pointer border-b"
-                  >
-                    Search Volume
-                    <span className="ml-1">
-                      {getSortIndicator("insightsValue.value")}
-                    </span>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {searchInsights.map((item, index) => (
-                  <tr key={index} className="border-b">
-                    <td className="py-2 px-4 text-start">{index + 1}</td>
-                    <td className="py-2 px-4 text-start">
-                      {item.searchKeyword}
-                    </td>
-                    <td className="py-2 px-4 text-center">
-                      {item.insightsValue.value !== undefined
-                        ? item.insightsValue.value
-                        : item.insightsValue.threshold}
-                    </td>
+            noData ? (
+              <div className="flex flex-col justify-center items-center py-4">
+                <div className="w-44 h-44 bg-cover bg-empty-state-table"></div>
+                <p className="text-sm text-center">
+                  No data has been received from Google.
+                </p>
+              </div>
+            ) : (
+              <table className="w-full bg-white">
+                <thead>
+                  <tr className="sticky top-0 bg-gray-100 rounded">
+                    <th className="py-2 px-4 text-start border-b">No</th>
+                    <th
+                      onClick={() => handleSort("searchKeyword")}
+                      className="py-2 px-4 text-start cursor-pointer border-b-2"
+                    >
+                      Keyword
+                      <span className="ml-1">
+                        {getSortIndicator("searchKeyword")}
+                      </span>
+                    </th>
+                    <th
+                      onClick={() => handleSort("insightsValue.value")}
+                      className="py-2 px-4 text-center cursor-pointer border-b"
+                    >
+                      Search Volume
+                      <span className="ml-1">
+                        {getSortIndicator("insightsValue.value")}
+                      </span>
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {searchInsights.map((item, index) => (
+                    <tr key={index} className="border-b">
+                      <td className="py-2 px-4 text-start">{index + 1}</td>
+                      <td className="py-2 px-4 text-start">
+                        {item.searchKeyword}
+                      </td>
+                      <td className="py-2 px-4 text-center">
+                        {item.insightsValue.value !== undefined
+                          ? item.insightsValue.value
+                          : item.insightsValue.threshold}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )
           ) : (
             <div className="flex flex-col justify-center items-center py-4">
               <div className="w-44 h-44 bg-cover bg-center bg-no-access"></div>
-              <p>You don’t access for this section</p>
+              <p>You don’t have access to this section</p>
             </div>
           )}
         </div>
