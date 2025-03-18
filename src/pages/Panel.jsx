@@ -11,11 +11,11 @@ import { useParams } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import GoogleBusinessModal from "../component/GoogleBusinessModal";
 import { useUser } from "../component/userPermission";
+import { LuPencil, LuPencilLine } from "react-icons/lu";
 
 const Panel = () => {
   const { locationId } = useParams();
 
-  const [open, setOpen] = useState(null);
   const [editOpen, setEditOpen] = useState(null);
   const [shopTitle, setShopTitle] = useState("");
 
@@ -24,9 +24,50 @@ const Panel = () => {
       setEditOpen(null);
     } else {
       setEditOpen(id);
-      setOpen(null);
     }
   };
+
+  const [verifications, setVerifications] = useState([]);
+  const [isVerified, setIsVerified] = useState(true);
+
+  useEffect(() => {
+    const fetchVerificationData = async () => {
+      try {
+        const response = await instance.get(
+          `api/v1/google/verifications/${locationId}`
+        );
+        console.log(response);
+
+        // Handle empty response.data or missing verifications property
+        if (response.data && response.data.verifications) {
+          setVerifications(response.data.verifications);
+        } else {
+          setVerifications([]); // Set verifications to an empty array if data is invalid
+        }
+
+        // Update isVerified based on response.data
+        if (response.data && Object.keys(response.data).length > 0) {
+          setIsVerified(true);
+        } else {
+          setIsVerified(false);
+        }
+      } catch (error) {
+        console.error(error);
+        setVerifications([]); // Set verifications to an empty array on error
+        setIsVerified(false); // Set isVerified to false on error
+      }
+    };
+    fetchVerificationData();
+  }, [locationId]);
+
+  // Move this logic into a useEffect
+  useEffect(() => {
+    if (verifications.length > 0 && verifications[0]?.state === "COMPLETED") {
+      setIsVerified(true);
+    } else {
+      setIsVerified(false);
+    }
+  }, [verifications]); // Only run this effect when `verifications` changes
 
   const [activeIndexSearch, setActiveIndexSearch] = useState(0);
   const onPieEnterSearch = (_, index) => setActiveIndexSearch(index);
@@ -67,35 +108,11 @@ const Panel = () => {
       .catch();
   }, [locationId]);
 
-  useEffect(() => {
-    const fetchVerificationData = async () => {
-      try {
-        const response = await instance.get(
-          `api/v1/google/verifications/${locationId}`
-        );
-
-        if (Object.keys(response.data).length === 0) {
-          setIsVerified(false);
-        } else {
-          setIsVerified(true);
-        }
-      } catch (error) {
-        console.error(error);
-      }
-    };
-
-    fetchVerificationData();
-  }, [locationId]);
-
-  const [isVerified, setIsVerified] = useState(true);
-
   const [shopPhone, setShopPhone] = useState();
   const [shopAddress, setShopAddress] = useState();
   const [weburl, setWeburl] = useState();
 
   useEffect(() => {
-    setIsVerified(true);
-
     instance
       .get(`api/v1/google/get-shop-attribute/${locationId}`, {
         headers: {
@@ -206,7 +223,9 @@ const Panel = () => {
   }, [locationId]);
 
   return (
-    <div className="font-sans bg-yellow-50">
+    <div
+      className={`max-w-screen flex flex-col h-full bg-white font-sans bg-yellow-50`}
+    >
       <div className="flex justify-between px-12 py-6 mb-6 border-solid bg-white shadow">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 bg-cover bg-center bg-google-business"></div>
@@ -220,14 +239,21 @@ const Panel = () => {
           <div className="flex flex-col px-4 pt-4">
             <div className="h-10 flex gap-2 justify-between items-center pb-4">
               <p className="text-xl font-medium">Google Business Details</p>
-              {user?.access?.gbDashboardEdit && (
-                <button
-                  onClick={() => handleEditOpen(4)}
-                  className={`flex justify-between items-center py-2 px-2 text-lg text-orange-500 text-left transition ease-in delay-190`}
-                >
-                  Edit
-                </button>
-              )}
+              <div className="flex gap-2">
+                {isVerified ? (
+                  <div className="px-2 py-1 bg-green-100 rounded-lg">
+                    <p className="text-green-800">Verified</p>
+                  </div>
+                ) : null}
+                {user?.access?.gbDashboardEdit && (
+                  <button
+                    onClick={() => handleEditOpen(4)}
+                    className={`flex justify-between items-center py-2 px-2 text-lg text-orange-500 text-left transition ease-in delay-190 bg-orange-100 rounded-lg`}
+                  >
+                    {editOpen === 4 ? <LuPencilLine /> : <LuPencil />}
+                  </button>
+                )}
+              </div>
             </div>
             {user?.access?.gbDashboardEdit && (
               <div className="flex items-center gap-2 border-2 border-orange-300 p-2 rounded-lg">

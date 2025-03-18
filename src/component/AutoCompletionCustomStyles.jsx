@@ -3,8 +3,8 @@ const AutoCompletionCustomStyles = {
     ...provided,
     padding: "0px",
     height: "45px",
-    borderRadius: "10px",
-    borderWidth: "3px",
+    borderRadius: "5px",
+    borderWidth: "1px",
     alignItems: "center",
 
     borderColor: state.isFocused ? "#2F4F4F" : "#708090",
@@ -28,12 +28,15 @@ const AutoCompletionCustomStyles = {
   option: (provided, state) => ({
     ...provided,
     backgroundColor: state.isSelected
-      ? "rgb(107 114 128)"
+      ? "#ffeed9"
       : state.isFocused
-        ? "rgb(229 231 235)"
-        : "rgb(249 250 251)",
-    color: state.isSelected ? "#fff" : "#333",
+        ? "#faf6f2"
+        : "#fff",
+    color: state.isSelected ? "#333" : "#333",
     padding: 10,
+    "&:active": {
+      backgroundColor: "#faf6f2",
+    },
   }),
   menu: (provided) => ({
     ...provided,
@@ -56,7 +59,7 @@ const AutoCompletionCustomStyles = {
   }),
   loadingIndicator: (provided) => ({
     ...provided,
-    color: "rgb(13 148 136)", // Loader color
+    color: "rgb(255,165,0)", // Loader color
     marginRight: "8px",
   }),
   input: (provided) => ({

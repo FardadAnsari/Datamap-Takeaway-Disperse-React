@@ -53,6 +53,7 @@ import { GoCommentDiscussion } from "react-icons/go";
 import DeviceStatus from "../component/DeviceStatus";
 import GoogleBusinessResultbar from "../component/GoogleBusinessResultbar";
 import GoogleBusinessFilterbar from "../component/GoogleBusinessFilterbar";
+import GBDashboard from "./GBDashboard";
 
 // Function to create a custom icon using a React component
 const createCustomIcon = (PinComponent, options = {}) => {
@@ -202,6 +203,8 @@ const DataMap = () => {
   const [zoom, setZoom] = useState(13);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isGoogleBusinessFilterOpen, setIsGoogleBusinessFilterOpen] =
+    useState(false);
+  const [isGoogleBusinessPanelOpen, setIsGoogleBusinessPanelOpen] =
     useState(false);
   const [isDeviceOpen, setIsDeviceOpen] = useState(false);
   const [isResultOpen, setIsResultOpen] = useState(false);
@@ -910,6 +913,7 @@ const DataMap = () => {
               onClick={() => {
                 setIsFilterOpen(true);
                 setIsGoogleBusinessFilterOpen(false);
+                setIsGoogleBusinessPanelOpen(false);
                 setIsDeviceOpen(false);
                 setIsProfileOpen(false);
               }}
@@ -929,6 +933,7 @@ const DataMap = () => {
               }`}
               onClick={() => {
                 setIsGoogleBusinessFilterOpen(true);
+                setIsGoogleBusinessPanelOpen(false);
                 setIsFilterOpen(false);
                 setIsDeviceOpen(false);
                 setIsProfileOpen(false);
@@ -936,6 +941,27 @@ const DataMap = () => {
               disabled={user?.access?.googleBusinessMap === false}
             >
               {isGoogleBusinessFilterOpen ? (
+                <div className="my-1 bg-cover bg-gbusiness-map-focus-sidebar-icon w-7 h-7"></div>
+              ) : (
+                <div className="my-1 bg-cover bg-gbusiness-map-sidebar-icon w-7 h-7"></div>
+              )}
+              <p className="text-sm">G-Business</p>
+            </button>
+            <button
+              className={`py-4 ${isGoogleBusinessPanelOpen && "bg-orange-100 text-orange-600"} text-center flex flex-col items-center ${
+                user?.access?.googleBusiness === false &&
+                "bg-gray-200 text-gray-600 cursor-not-allowed"
+              }`}
+              onClick={() => {
+                setIsGoogleBusinessPanelOpen(true);
+                setIsGoogleBusinessFilterOpen(false);
+                setIsFilterOpen(false);
+                setIsDeviceOpen(false);
+                setIsProfileOpen(false);
+              }}
+              disabled={user?.access?.googleBusinessPanel === false}
+            >
+              {isGoogleBusinessPanelOpen ? (
                 <div className="my-1 bg-cover bg-gbusiness-focus-sidebar-icon w-6 h-6"></div>
               ) : (
                 <div className="my-1 bg-cover bg-gbusiness-sidebar-icon w-6 h-6"></div>
@@ -950,6 +976,7 @@ const DataMap = () => {
               onClick={() => {
                 setIsDeviceOpen(true);
                 setIsGoogleBusinessFilterOpen(false);
+                setIsGoogleBusinessPanelOpen(false);
                 setIsFilterOpen(false);
                 setIsProfileOpen(false);
               }}
@@ -968,6 +995,7 @@ const DataMap = () => {
             onClick={() => {
               setIsProfileOpen(true);
               setIsGoogleBusinessFilterOpen(false);
+              setIsGoogleBusinessPanelOpen(false);
               setIsFilterOpen(false);
               setIsDeviceOpen(false);
             }}
@@ -995,6 +1023,7 @@ const DataMap = () => {
         handleResetCompanies={handleResetCompanies}
       />
 
+      {/* GoogleBusinessFilterbar component */}
       <GoogleBusinessFilterbar
         isOpen={isGoogleBusinessFilterOpen}
         setIsGoogleBusinessFilterOpen={setIsGoogleBusinessFilterOpen}
@@ -1008,6 +1037,12 @@ const DataMap = () => {
         loadingGoogleBusiness={loadingGoogleBusiness}
         errorGoogleBusiness={errorGoogleBusiness}
         handleResetGoogleBusiness={handleResetGoogleBusiness}
+      />
+
+      {/* GoogleBusinessPanel component */}
+      <GBDashboard
+        isOpen={isGoogleBusinessPanelOpen}
+        setIsGoogleBusinessPanelOpen={setIsGoogleBusinessPanelOpen}
       />
 
       {/* DeviceStatus component */}

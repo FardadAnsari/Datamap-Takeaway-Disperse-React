@@ -18,6 +18,10 @@ export default {
         "gbusiness-sidebar-icon": "url('src/assets/sidebar/g-business.svg')",
         "gbusiness-focus-sidebar-icon":
           "url('src/assets/sidebar/g-business-focus.svg')",
+        "gbusiness-map-sidebar-icon":
+          "url('src/assets/sidebar/g-business-map.svg')",
+        "gbusiness-map-focus-sidebar-icon":
+          "url('src/assets/sidebar/g-business-map-focus.svg')",
         "googleb-button-icon":
           "url('src/assets/resultbar/googleb-button-icon.svg')",
         "devices-sidebar-icon": "url('src/assets/sidebar/devices.svg')",
@@ -31,8 +35,12 @@ export default {
         "total-shops": "url('src/assets/devices/total-shops-icon.svg')",
         "open-status": "url('/src/assets/status/open-status.svg')",
         "close-status": "url('/src/assets/status/close-status.svg')",
-        "no-result": "url('/No-Result-Matching.svg')",
+        "no-result": "url('/no-result-matching.svg')",
         "no-access": "url('/no-access-permission.svg')",
+        "empty-state-chart": "url('/empty-state-chart.svg')",
+        "empty-state-hours": "url('/empty-state-hours.svg')",
+        "empty-state-interaction": "url('/empty-state-interaction.svg')",
+        "empty-state-table": "url('/empty-state-table.svg')",
       },
     },
   },
