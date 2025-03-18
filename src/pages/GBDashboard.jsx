@@ -249,7 +249,7 @@ const GBDashboard = ({ isOpen, setIsGoogleBusinessPanelOpen }) => {
           error?.status === 403 && setNotAllowedSearchCount(true);
         });
     }
-  }, []);
+  }, [locationId]);
 
   // const [isLoadingMapCount, setIsLoadingMapCount] = useState(false);
   const [noDataMapCount, setNoDataMapCount] = useState(false);
@@ -277,7 +277,7 @@ const GBDashboard = ({ isOpen, setIsGoogleBusinessPanelOpen }) => {
           error?.status === 403 && setNotAllowedMapCount(true);
         });
     }
-  }, []);
+  }, [locationId]);
 
   // const [isLoadingWebCallCount, setIsLoadingWebCallCount] = useState(false);
   const [noDataWebCallCount, setNoDataWebCallCount] = useState(false);
@@ -302,7 +302,7 @@ const GBDashboard = ({ isOpen, setIsGoogleBusinessPanelOpen }) => {
           error?.status === 403 && setNotAllowedWebCallCount(true);
         });
     }
-  }, [selectedBusInfo]);
+  }, [locationId]);
 
   return (
     <div
