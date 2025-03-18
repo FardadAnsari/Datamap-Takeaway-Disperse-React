@@ -484,20 +484,11 @@ const GBDashboard = ({ isOpen, setIsGoogleBusinessPanelOpen }) => {
             <>
               <p className="text-xl font-medium">By searching on Google</p>
               {selectedBusInfo ? (
-                noDataSearchCount ? (
-                  <div className="flex flex-col justify-center items-center py-4">
-                    <div className="w-44 h-44 bg-cover bg-empty-state-chart"></div>
-                    <p className="text-sm text-center">
-                      No data has been received from Google.
-                    </p>
-                  </div>
-                ) : (
-                  <PieChartSection
-                    activeIndex={activeIndexSearch}
-                    data={googleSearchData}
-                    onPieEnter={onPieEnterSearch}
-                  />
-                )
+                <PieChartSection
+                  activeIndex={activeIndexSearch}
+                  data={googleSearchData}
+                  onPieEnter={onPieEnterSearch}
+                />
               ) : (
                 <div className="h-full flex py-40 flex-col justify-center items-center">
                   <div className="w-44 h-44 bg-cover bg-center bg-empty-state-chart"></div>
@@ -522,20 +513,11 @@ const GBDashboard = ({ isOpen, setIsGoogleBusinessPanelOpen }) => {
             <>
               <p className="text-xl font-medium">By using Google map service</p>
               {selectedBusInfo ? (
-                noDataMapCount ? (
-                  <div className="flex flex-col justify-center items-center py-4">
-                    <div className="w-44 h-44 bg-cover bg-empty-state-chart"></div>
-                    <p className="text-sm text-center">
-                      No data has been received from Google.
-                    </p>
-                  </div>
-                ) : (
-                  <PieChartSection
-                    activeIndex={activeIndexMap}
-                    data={googleMapData}
-                    onPieEnter={onPieEnterMap}
-                  />
-                )
+                <PieChartSection
+                  activeIndex={activeIndexMap}
+                  data={googleMapData}
+                  onPieEnter={onPieEnterMap}
+                />
               ) : (
                 <div className="h-full flex py-40 flex-col justify-center items-center">
                   <div className="w-44 h-44 bg-cover bg-center bg-empty-state-chart"></div>
@@ -571,16 +553,7 @@ const GBDashboard = ({ isOpen, setIsGoogleBusinessPanelOpen }) => {
           {!notAllowedWebCallCount ? (
             <>
               {selectedBusInfo ? (
-                noDataWebCallCount ? (
-                  <div className="flex flex-col justify-center items-center py-4">
-                    <div className="w-44 h-44 bg-cover bg-empty-state-interaction"></div>
-                    <p className="text-sm text-center">
-                      No data has been received from Google.
-                    </p>
-                  </div>
-                ) : (
-                  <TotalInteractions webCallCount={webCallCount} />
-                )
+                <TotalInteractions webCallCount={webCallCount} />
               ) : (
                 <div className="h-full flex py-12 flex-col justify-center items-center">
                   <div className="w-44 h-44 bg-cover bg-center bg-empty-state-interaction"></div>
