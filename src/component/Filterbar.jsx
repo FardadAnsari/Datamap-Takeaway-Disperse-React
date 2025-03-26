@@ -5,6 +5,7 @@ import ReactSlider from "react-slider";
 import AutoCompletionMultiSelectStyles from "./AutoCompletionMultiSelectStyles";
 
 import companyIcons from "../assets/checkbox-icon/checkboxIcons";
+import { useUser } from "./userPermission";
 
 // Filterbar component to handle filtering for companies and Google Business data
 const Filterbar = ({
@@ -21,7 +22,10 @@ const Filterbar = ({
   loadingCompanies, // Boolean to indicate if companies data is loading
   errorCompanies, // Error message for companies form
   handleResetCompanies, // Function to reset the companies form
+  reqRemainder, //Remainder of filter requests limit
 }) => {
+  // Get the user from the context
+  const { user } = useUser();
   return (
     // Main container for the filter bar
     <div
@@ -34,13 +38,22 @@ const Filterbar = ({
         className="mx-4 flex py-2 justify-between items-center border-b-2"
         style={{ height: "10%" }}
       >
-        <span className="text-xl font-bold">Companies Filter</span>
-        <button
-          className="w-8 p-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 focus:outline-none"
-          onClick={() => setIsFilterOpen(false)}
-        >
-          <IoIosArrowBack />
-        </button>
+        <span className="text-xl font-normal">Companies Filter</span>
+        <div className="flex items-center gap-3">
+          {user?.isLimited && (
+            <div className="flex text-orange-500 font-bold gap-1">
+              <span>{reqRemainder}</span>
+              <span>/</span>
+              <span>{user?.requestInfo.totalRequest}</span>
+            </div>
+          )}
+          <button
+            className="w-8 p-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 focus:outline-none"
+            onClick={() => setIsFilterOpen(false)}
+          >
+            <IoIosArrowBack />
+          </button>
+        </div>
       </div>
       {/* Companies filter form */}
       <form
@@ -234,14 +247,14 @@ const Filterbar = ({
           <button
             type="button"
             onClick={handleResetCompanies} // Reset the form
-            className="w-2/5 py-2 bg-white border-2 border-orange-500 text-orange-600 rounded hover:bg-gray-50 focus:outline-none disabled:bg-orange-300"
+            className="w-2/5 py-2 bg-white border-2 border-orange-500 text-orange-600 rounded hover:bg-gray-50 focus:outline-none"
           >
             Clear
           </button>
           <button
             type="submit"
             className="w-3/5 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 focus:outline-none disabled:bg-orange-300"
-            disabled={loadingCompanies} // Disable button while loading
+            disabled={loadingCompanies || reqRemainder <= 0} // Disable button while loading
           >
             {loadingCompanies ? "Is Loading ..." : "Filter"}
           </button>

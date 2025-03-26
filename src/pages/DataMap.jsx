@@ -145,6 +145,9 @@ const MapBounds = ({ bounds }) => {
 
 // Main DataMap component
 const DataMap = () => {
+  // Get the user from the context
+  const { user } = useUser();
+
   // Form handling for companies and Google Business data
   const {
     register: registerCompanies,
@@ -503,6 +506,36 @@ const DataMap = () => {
     }
   };
 
+  // Function to limit of request
+  const [reqRemainder, setReqRemainder] = useState(
+    user?.requestInfo?.currentRequest
+  );
+  useEffect(() => {
+    setReqRemainder(user?.requestInfo?.currentRequest);
+  }, [user]);
+
+  const limitOfRequest = async () => {
+    const accessToken = sessionStorage.getItem("accessToken");
+
+    try {
+      const response = await instance.get(
+        "/account/update-request-remaining/",
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+      // console.log(response.data);
+      if (response.data?.currentRequest !== undefined) {
+        setReqRemainder(response.data.currentRequest);
+      }
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  };
+
   // Function to handle companies form submission
   const onSubmitCompanies = async (data) => {
     // console.log("form submitted:", data);
@@ -567,6 +600,10 @@ const DataMap = () => {
           }
         }
       };
+
+      {
+        user.isLimited && (await limitOfRequest());
+      }
 
       const requests = selectedCompanyList.map((company) =>
         fetchCompanyData(company)
@@ -894,10 +931,6 @@ const DataMap = () => {
     }
   };
 
-  // Get the user from the context
-  const { user } = useUser();
-  // console.log(user);
-
   return (
     <div className="relative h-screen w-screen overflow-hidden">
       {/* Sidebar with navigation buttons */}
@@ -949,7 +982,7 @@ const DataMap = () => {
             </button>
             <button
               className={`py-4 ${isGoogleBusinessPanelOpen && "bg-orange-100 text-orange-600"} text-center flex flex-col items-center ${
-                user?.access?.googleBusiness === false &&
+                user?.access?.googleBusinessPanel === false &&
                 "bg-gray-200 text-gray-600 cursor-not-allowed"
               }`}
               onClick={() => {
@@ -1007,6 +1040,7 @@ const DataMap = () => {
 
       {/* Filterbar component */}
       <Filterbar
+        reqRemainder={reqRemainder}
         isOpen={isFilterOpen}
         setIsFilterOpen={setIsFilterOpen}
         registerCompanies={registerCompanies}
