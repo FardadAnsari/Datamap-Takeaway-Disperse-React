@@ -49,6 +49,13 @@ export const companies = [
     type: "type2",
   },
   {
+    id: "oyo",
+    name: "OrderYoYo",
+    apiUrl: "/api/v1/companies/orderyoyo/",
+    requiresAuth: true,
+    type: "type1",
+  },
+  {
     id: "scf",
     name: "Scoffable",
     apiUrl: "/api/v1/companies/scoffable/",
@@ -57,21 +64,21 @@ export const companies = [
   },
   {
     id: "stf",
-    name: "Straight From",
+    name: "StraightFrom",
     apiUrl: "/api/v1/companies/straightfrom/",
     requiresAuth: true,
     type: "type1",
   },
   {
     id: "uet",
-    name: "Uber Eats",
+    name: "UberEats",
     apiUrl: "/api/v1/companies/ubereats/",
     requiresAuth: true,
     type: "type1",
   },
   {
     id: "wtf",
-    name: "What the fork",
+    name: "What The Fork",
     apiUrl: "/api/v1/companies/whatthefork/",
     requiresAuth: true,
     type: "type1",

@@ -54,6 +54,7 @@ import DeviceStatus from "../component/DeviceStatus";
 import GoogleBusinessResultbar from "../component/GoogleBusinessResultbar";
 import GoogleBusinessFilterbar from "../component/GoogleBusinessFilterbar";
 import GBDashboard from "./GBDashboard";
+import { MdOutlineUpdate } from "react-icons/md";
 
 // Function to create a custom icon using a React component
 const createCustomIcon = (PinComponent, options = {}) => {
@@ -610,7 +611,7 @@ const DataMap = () => {
       );
 
       const responses = await Promise.all(requests);
-      // console.log("response from companies", responses);
+      console.log("response from companies", responses);
 
       let points = responses
         .flatMap((res, index) => transformData(res, selectedCompanyList[index]))
@@ -1319,7 +1320,25 @@ const DataMap = () => {
                           <span>{marker.properties.totalReviews}</span>
                         </div>
                       )}
-
+                      {marker.properties.lastUpdate ? (
+                        <div className="flex justify-between space-x-8">
+                          <div className="flex gap-1">
+                            <MdOutlineUpdate size={18} />
+                            <span>Last Updated</span>
+                          </div>
+                          <span className="text-left">
+                            {marker.properties.lastUpdate}
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="flex justify-between ">
+                          <div className="flex gap-1">
+                            <MdOutlineUpdate size={18} color="gray" />
+                            <span className="text-gray-400">Last Updated</span>
+                          </div>
+                          <span className="text-gray-400">None</span>
+                        </div>
+                      )}
                       {marker.properties.address ? (
                         <div className="flex justify-between space-x-8">
                           <div className="flex gap-1">

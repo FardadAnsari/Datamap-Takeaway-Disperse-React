@@ -23,6 +23,7 @@ export const parseType1 = (item, company) => {
       phone: item.phone,
       description: item.description,
       color: company.color,
+      lastUpdate: item.last_update,
     },
   };
 };
@@ -117,6 +118,6 @@ export const transformData = (items, company) => {
     })
     .filter((item) => item !== null);
 
-  // console.log(`Transformed data for ${company.name}:`, transformed);
+  console.log(`Transformed data for ${company.name}:`, transformed);
   return transformed;
 };

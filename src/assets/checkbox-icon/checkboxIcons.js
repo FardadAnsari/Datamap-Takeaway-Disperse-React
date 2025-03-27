@@ -5,6 +5,7 @@ import { ReactComponent as GoogleBusinessIcon } from "./googleb-checkbox-icon.sv
 import { ReactComponent as JustEatIcon } from "./justeat-checkbox-icon.svg";
 import { ReactComponent as KuickIcon } from "./kuick-checkbox-icon.svg";
 import { ReactComponent as MealzoIcon } from "./mealzo-checkbox-icon.svg";
+import { ReactComponent as OrderYoYoIcon } from "./orderyoyo-checkbox-icon.svg";
 import { ReactComponent as ScoffableIcon } from "./scoffable-checkbox-icon.svg";
 import { ReactComponent as StraightFromIcon } from "./straightfrom-checkbox-icon.svg";
 import { ReactComponent as UberEatsIcon } from "./ubereats-checkbox-icon.svg";
@@ -18,6 +19,7 @@ const companyIcons = {
   justeat: JustEatIcon,
   kuick: KuickIcon,
   mealzo: MealzoIcon,
+  orderyoyo: OrderYoYoIcon,
   scoffable: ScoffableIcon,
   straightfrom: StraightFromIcon,
   ubereats: UberEatsIcon,
