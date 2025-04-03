@@ -24,6 +24,7 @@ export const parseType1 = (item, company) => {
       description: item.description,
       color: company.color,
       lastUpdate: item.last_update,
+      companyPage: item.shop_url_company,
     },
   };
 };

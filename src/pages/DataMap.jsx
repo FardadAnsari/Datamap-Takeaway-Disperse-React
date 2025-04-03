@@ -611,7 +611,7 @@ const DataMap = () => {
       );
 
       const responses = await Promise.all(requests);
-      console.log("response from companies", responses);
+      // console.log("response from companies", responses);
 
       let points = responses
         .flatMap((res, index) => transformData(res, selectedCompanyList[index]))
@@ -1362,6 +1362,29 @@ const DataMap = () => {
                         <span className="w-2/6">Quick Access Links</span>
                         <div className="w-4/6 h-px bg-gray-500"></div>
                       </div>
+                      {marker.properties.companyPage ? (
+                        <div className="flex justify-between">
+                          <div className="flex gap-1">
+                            <HiMiniLink size={18} />
+                            <span>Company page</span>
+                          </div>
+                          <a
+                            href={marker.properties.companyPage}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            Link
+                          </a>
+                        </div>
+                      ) : (
+                        <div className="flex justify-between">
+                          <div className="flex gap-1">
+                            <HiMiniLink size={18} color="gray" />
+                            <span className="text-gray-400">Company page</span>
+                          </div>
+                          <span className="text-gray-400">None</span>
+                        </div>
+                      )}
                       {marker.properties.website ? (
                         <div className="flex justify-between">
                           <div className="flex gap-1">
@@ -1373,7 +1396,7 @@ const DataMap = () => {
                             target="_blank"
                             rel="noreferrer"
                           >
-                            {marker.properties.website}
+                            Link
                           </a>
                         </div>
                       ) : (
