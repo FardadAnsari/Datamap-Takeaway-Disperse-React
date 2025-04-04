@@ -4,6 +4,8 @@ import { useState } from "react";
 import { IoIosEye, IoIosEyeOff } from "react-icons/io";
 import instance from "../component/api";
 import { MdError } from "react-icons/md";
+import LogRocket from "logrocket";
+LogRocket.init("ddgsvf/datamap");
 
 const Login = () => {
   const {
@@ -31,6 +33,10 @@ const Login = () => {
         }
       );
       sessionStorage.setItem("accessToken", response.data.access);
+
+      LogRocket.identify(data.username, {
+        name: data.username,
+      });
 
       navigate("/datamap");
     } catch (error) {
