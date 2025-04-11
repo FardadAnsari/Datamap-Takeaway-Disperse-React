@@ -2,10 +2,7 @@ import { useMemo, useState } from "react";
 import { Virtuoso } from "react-virtuoso";
 import { IoIosArrowDown, IoIosArrowUp } from "react-icons/io";
 import { FaStar } from "react-icons/fa6";
-import companyIcons from "../assets/checkbox-icon/checkboxIcons";
-
-import React from "react";
-
+import companyIcons from "../../assets/checkbox-icon/checkboxIcons";
 import { ErrorBoundary as ReactErrorBoundary } from "react-error-boundary";
 
 function MyErrorFallback({ error, resetErrorBoundary }) {
@@ -30,7 +27,7 @@ export function ErrorBoundary({ children }) {
   );
 }
 
-const ResultBar = ({
+const CompaniesResultBar = ({
   groupedResults,
   companyList,
   expandedCompanies,
@@ -379,4 +376,4 @@ const ResultBar = ({
   );
 };
 
-export default ResultBar;
+export default CompaniesResultBar;

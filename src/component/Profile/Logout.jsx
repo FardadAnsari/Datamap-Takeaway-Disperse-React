@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { clearOldCaches } from "./indexedDB";
+import { clearOldCaches } from "../indexedDB";
 
 const Logout = () => {
   const navigate = useNavigate();
@@ -14,7 +14,7 @@ const Logout = () => {
     }
     sessionStorage.removeItem("accessToken");
     channel.postMessage({ type: "LOGOUT" });
-    navigate("/");
+    navigate("/login");
   };
 
   return (

@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import Login from "./pages/Login";
-import Panel from "./pages/Panel";
+import GBDashboardByMap from "./pages/GBDashboardByMap";
 import PrivateRoute from "./PrivateRoutes";
 import "leaflet/dist/leaflet.css";
 
@@ -11,9 +11,9 @@ const App = () => {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Login />} />
+        <Route path="/login" element={<Login />} />
         <Route
-          path="/datamap"
+          path="/"
           element={
             <PrivateRoute>
               <DataMap />
@@ -21,10 +21,10 @@ const App = () => {
           }
         />
         <Route
-          path="/panel/:locationId"
+          path="/google-business/:locationId"
           element={
             <PrivateRoute>
-              <Panel />
+              <GBDashboardByMap />
             </PrivateRoute>
           }
         />

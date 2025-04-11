@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
-import instance from "./api";
-import { toast, ToastContainer } from "react-toastify";
+import instance from "../../api/api";
+import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 
 const WebSiteUriEdit = ({ locationId, webUrl }) => {

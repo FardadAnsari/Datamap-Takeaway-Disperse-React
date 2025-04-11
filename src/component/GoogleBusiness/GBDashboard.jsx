@@ -1,18 +1,19 @@
 import { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import Select from "react-select";
-import AutoCompletionCustomStyles from "../component/AutoCompletionCustomStyles";
-import instance from "../component/api";
+import AutoCompletionCustomStyles from "../AutoCompletionCustomStyles";
+import instance from "../../api/api";
 import { LuPencil, LuPencilLine } from "react-icons/lu";
-import PieChartSection from "../component/PieChartSection";
-import KeywordsAnalytics from "../component/KeywordsAnalytics";
-import TotalInteractions from "../component/TotalInteractions";
-import BusinessHoursDisplay from "../component/BusinessHoursDisplay";
+import PieChartSection from "./PieChartSection";
+import KeywordsAnalytics from "./KeywordsAnalytics";
+import TotalInteractions from "./TotalInteractions";
+import BusinessHoursDisplay from "./BusinessHoursDisplay";
+import GoogleBusinessModal from "./GoogleBusinessModal";
 import { useNavigate } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
-import { useUser } from "../component/userPermission";
+import { useUser } from "../../api/userPermission";
 import { IoInformationCircleSharp } from "react-icons/io5";
-import GoogleBusinessModal from "../component/GoogleBusinessModal";
+
 import { IoIosArrowBack } from "react-icons/io";
 
 const GBDashboard = ({ isOpen, setIsGoogleBusinessPanelOpen }) => {

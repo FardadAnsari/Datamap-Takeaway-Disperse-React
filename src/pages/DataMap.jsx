@@ -11,7 +11,7 @@ import {
 import "leaflet/dist/leaflet.css";
 import Supercluster from "supercluster";
 import L from "leaflet";
-import instance from "../component/api";
+import instance from "../api/api";
 import ClusterMarker from "../component/ClusterMarker";
 import { useForm } from "react-hook-form";
 import pointInPolygon from "point-in-polygon";
@@ -30,17 +30,17 @@ import {
 
 import companyIcons from "../assets/checkbox-icon/checkboxIcons";
 
-import ResultBar from "../component/Resultbar";
+import CompaniesResultBar from "../component/Companies/CompaniesResultbar";
 import { Link } from "react-router-dom";
 import companyPins from "../assets/pins/pins";
-import { useUser } from "../component/userPermission";
-import Filterbar from "../component/Filterbar";
-import Profilebar from "../component/Profilebar";
-import { companies } from "../component/companies";
-import { googlebusiness } from "../component/googlebusiness";
+import { useUser } from "../api/userPermission";
+import CompaniesFilterbar from "../component/Companies/CompaniesFilterbar";
+import Profilebar from "../component/Profile/Profilebar";
+import { companies } from "../component/Companies/companies";
+import { googlebusiness } from "../component/GoogleBusiness/googlebusiness";
 import { transformData } from "../component/parsers";
-import LogoutModal from "../component/LogoutModal";
-import ChangePasswordModal from "../component/ChangePasswordModal";
+import LogoutModal from "../component/Profile/LogoutModal";
+import ChangePasswordModal from "../component/Profile/ChangePasswordModal";
 import { IoIosArrowDown, IoIosArrowUp } from "react-icons/io";
 import { RiAccountCircleFill } from "react-icons/ri";
 import { ImSpoonKnife } from "react-icons/im";
@@ -50,10 +50,10 @@ import { HiMiniLink, HiOutlineEnvelope } from "react-icons/hi2";
 import { CiStar } from "react-icons/ci";
 import { GrLocation, GrMapLocation } from "react-icons/gr";
 import { GoCommentDiscussion } from "react-icons/go";
-import DeviceStatus from "../component/DeviceStatus";
-import GoogleBusinessResultbar from "../component/GoogleBusinessResultbar";
-import GoogleBusinessFilterbar from "../component/GoogleBusinessFilterbar";
-import GBDashboard from "./GBDashboard";
+import DeviceStatus from "../component/Devices/DeviceStatus";
+import GoogleBusinessResultbar from "../component/GoogleBusiness/GoogleBusinessResultbar";
+import GoogleBusinessFilterbar from "../component/GoogleBusiness/GoogleBusinessFilterbar";
+import GBDashboard from "../component/GoogleBusiness/GBDashboard";
 import { MdOutlineUpdate } from "react-icons/md";
 
 // Function to create a custom icon using a React component
@@ -1039,8 +1039,8 @@ const DataMap = () => {
         </div>
       </div>
 
-      {/* Filterbar component */}
-      <Filterbar
+      {/* CompaniesFilterbar component */}
+      <CompaniesFilterbar
         reqRemainder={reqRemainder}
         isOpen={isFilterOpen}
         setIsFilterOpen={setIsFilterOpen}
@@ -1121,9 +1121,9 @@ const DataMap = () => {
         )}
       </button>
 
-      {/* ResultBar component */}
+      {/* CompaniesResultBar component */}
       {isFilterOpen && isResultOpen && (
-        <ResultBar
+        <CompaniesResultBar
           groupedResults={regularCompanyResults}
           companyList={regularCompanyList}
           expandedCompanies={expandedCompanies}
@@ -1362,7 +1362,8 @@ const DataMap = () => {
                         <span className="w-2/6">Quick Access Links</span>
                         <div className="w-4/6 h-px bg-gray-500"></div>
                       </div>
-                      {marker.properties.companyPage ? (
+                      {marker.properties.companyPage &&
+                      marker.properties.companyPage !== "None" ? (
                         <div className="flex justify-between">
                           <div className="flex gap-1">
                             <HiMiniLink size={18} />
@@ -1385,6 +1386,7 @@ const DataMap = () => {
                           <span className="text-gray-400">None</span>
                         </div>
                       )}
+
                       {marker.properties.website ? (
                         <div className="flex justify-between">
                           <div className="flex gap-1">
@@ -1439,9 +1441,9 @@ const DataMap = () => {
                             <span>Google Business</span>
                           </div>
                           <Link
-                            to={`/panel/${marker.properties.locationId}`}
+                            to={`/google-business/${marker.properties.locationId}`}
                             target="_blank"
-                            className=" text-white rounded"
+                            className="text-white rounded"
                           >
                             Google Business Dashboard
                           </Link>

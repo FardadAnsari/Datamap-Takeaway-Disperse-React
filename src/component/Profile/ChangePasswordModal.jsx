@@ -3,9 +3,9 @@ import { useForm } from "react-hook-form";
 import { IoIosEye, IoIosEyeOff, IoMdClose } from "react-icons/io";
 import { MdError } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
-import instance from "./api";
+import instance from "../../api/api";
 import { toast, ToastContainer } from "react-toastify";
-import { clearOldCaches } from "./indexedDB";
+import { clearOldCaches } from "../indexedDB";
 
 // ChangePasswordModal component for handling password change functionality
 const ChangePasswordModal = ({ isOpen, onClose }) => {
@@ -73,7 +73,7 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
         setTimeout(() => {
           clearOldCaches(0); // Clear all caches immediately
           sessionStorage.removeItem("accessToken");
-          navigate("/");
+          navigate("/login");
         }, 3000);
       }
     } catch (error) {

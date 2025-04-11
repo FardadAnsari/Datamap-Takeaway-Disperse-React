@@ -1,19 +1,19 @@
 import { useEffect, useState } from "react";
-import instance from "../component/api";
-import PieChartSection from "../component/PieChartSection";
-import KeywordsAnalytics from "../component/KeywordsAnalytics";
-import TotalInteractions from "../component/TotalInteractions";
+import instance from "../api/api";
+import PieChartSection from "../component/GoogleBusiness/PieChartSection";
+import KeywordsAnalytics from "../component/GoogleBusiness/KeywordsAnalytics";
+import TotalInteractions from "../component/GoogleBusiness/TotalInteractions";
 import { HiOutlineEnvelope } from "react-icons/hi2";
 import { IoInformationCircleSharp } from "react-icons/io5";
 import { PiPhone } from "react-icons/pi";
-import BusinessHoursDisplay from "../component/BusinessHoursDisplay";
+import BusinessHoursDisplay from "../component/GoogleBusiness/BusinessHoursDisplay";
 import { useParams } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
-import GoogleBusinessModal from "../component/GoogleBusinessModal";
-import { useUser } from "../component/userPermission";
+import GoogleBusinessModal from "../component/GoogleBusiness/GoogleBusinessModal";
+import { useUser } from "../api/userPermission";
 import { LuPencil, LuPencilLine } from "react-icons/lu";
 
-const Panel = () => {
+const GBDashboardByMap = () => {
   const { locationId } = useParams();
 
   const [editOpen, setEditOpen] = useState(null);
@@ -408,4 +408,4 @@ const Panel = () => {
   );
 };
 
-export default Panel;
+export default GBDashboardByMap;

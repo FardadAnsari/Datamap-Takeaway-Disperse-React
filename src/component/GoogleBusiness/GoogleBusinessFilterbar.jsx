@@ -1,7 +1,7 @@
 import { IoIosArrowBack } from "react-icons/io";
 import Select from "react-select";
 import { Controller, useWatch } from "react-hook-form";
-import AutoCompletionMultiSelectStyles from "./AutoCompletionMultiSelectStyles";
+import AutoCompletionMultiSelectStyles from "../AutoCompletionMultiSelectStyles";
 
 // Filterbar component to handle filtering for companies and Google Business data
 const GoogleBusinessFilterbar = ({

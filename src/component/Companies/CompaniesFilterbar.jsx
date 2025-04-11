@@ -2,13 +2,13 @@ import { IoIosArrowBack } from "react-icons/io";
 import Select from "react-select";
 import { Controller } from "react-hook-form";
 import ReactSlider from "react-slider";
-import AutoCompletionMultiSelectStyles from "./AutoCompletionMultiSelectStyles";
+import AutoCompletionMultiSelectStyles from "../AutoCompletionMultiSelectStyles";
 
-import companyIcons from "../assets/checkbox-icon/checkboxIcons";
-import { useUser } from "./userPermission";
+import companyIcons from "../../assets/checkbox-icon/checkboxIcons";
+import { useUser } from "../../api/userPermission";
 
-// Filterbar component to handle filtering for companies and Google Business data
-const Filterbar = ({
+// CompaniesFilterbar component to handle filtering for companies and Google Business data
+const CompaniesFilterbar = ({
   isOpen, // Boolean to control the visibility of the filter bar
   setIsFilterOpen, // Function to toggle the filter bar's visibility
   registerCompanies, // React Hook Form's register function for companies form
@@ -264,4 +264,4 @@ const Filterbar = ({
   );
 };
 
-export default Filterbar;
+export default CompaniesFilterbar;

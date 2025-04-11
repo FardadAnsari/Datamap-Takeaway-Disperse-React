@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import instance from "./api";
-import { ThreeDots } from "react-loader-spinner";
+import instance from "../../api/api";
 
 const KeywordsAnalytics = ({ locationId }) => {
   const [isLoading, setIsLoading] = useState(false);
