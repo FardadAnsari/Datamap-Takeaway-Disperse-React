@@ -12,6 +12,7 @@ const PrivateRoute = ({ children }) => {
 
   useEffect(() => {
     const channel = new BroadcastChannel("auth");
+    let tokenTimeout;
 
     const logoutAndClear = async () => {
       try {
@@ -44,35 +45,17 @@ const PrivateRoute = ({ children }) => {
       }
     };
 
-    const handleAuth = () => {
-      const accessToken = sessionStorage.getItem("accessToken");
-      if (!accessToken) {
-        channel.postMessage({ type: "REQUEST_TOKEN" });
-        setTimeout(() => {
-          setLoading(false);
-          setTriggerRedirect(true);
-        }, 1000); // wait briefly before redirecting
-      } else {
-        validateToken(accessToken);
-      }
-    };
-
     const onMessage = async (event) => {
       const { type, token } = event.data;
+
       if (type === "LOGIN" && token) {
+        clearTimeout(tokenTimeout);
         sessionStorage.setItem("accessToken", token);
         setIsAuthenticated(true);
         setLoading(false);
         document.title = "Data Map";
       } else if (type === "LOGOUT") {
-        if (sessionStorage.getItem("accessToken")) {
-          try {
-            await clearOldCaches(0);
-          } catch (err) {
-            console.error("Failed to clear cache after broadcast logout:", err);
-          }
-        }
-        sessionStorage.removeItem("accessToken");
+        await logoutAndClear();
         setIsAuthenticated(false);
         setLoading(false);
         document.title = "Login";
@@ -84,10 +67,26 @@ const PrivateRoute = ({ children }) => {
       }
     };
 
+    const handleAuth = async () => {
+      const accessToken = sessionStorage.getItem("accessToken");
+
+      if (!accessToken) {
+        channel.postMessage({ type: "REQUEST_TOKEN" });
+
+        tokenTimeout = setTimeout(() => {
+          setLoading(false);
+          setTriggerRedirect(true);
+        }, 3000); // wait up to 3 seconds for a response
+      } else {
+        await validateToken(accessToken);
+      }
+    };
+
     channel.addEventListener("message", onMessage);
     handleAuth();
 
     return () => {
+      clearTimeout(tokenTimeout);
       channel.removeEventListener("message", onMessage);
       channel.close();
     };
