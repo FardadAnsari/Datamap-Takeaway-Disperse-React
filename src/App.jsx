@@ -6,11 +6,13 @@ import "leaflet/dist/leaflet.css";
 
 import "./index.css";
 import DataMap from "./pages/DataMap";
+import NotFound from "./pages/NotFound";
 
 const App = () => {
   return (
     <Router>
       <Routes>
+        <Route path="*" element={<NotFound />} />
         <Route path="/login" element={<Login />} />
         <Route
           path="/"
