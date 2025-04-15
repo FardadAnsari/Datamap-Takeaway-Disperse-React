@@ -15,7 +15,7 @@ const GoogleBusinessModal = ({
   phoneNumber,
   shopAddress,
 }) => {
-  const [activeTab, setActiveTab] = useState("shopInfo");
+  const [activeTab, setActiveTab] = useState("openingHours");
 
   if (!isOpen) return null;
 
@@ -36,14 +36,6 @@ const GoogleBusinessModal = ({
         <div className="mx-4 flex mb-4 bg-gray-50 rounded">
           <button
             className={`flex-1 px-4 py-2 text-center focus:outline-none rounded ${
-              activeTab === "shopInfo" ? "bg-black text-white" : "text-gray-700"
-            }`}
-            onClick={() => setActiveTab("shopInfo")}
-          >
-            Shop Information
-          </button>
-          <button
-            className={`flex-1 px-4 py-2 text-center focus:outline-none rounded ${
               activeTab === "openingHours"
                 ? "bg-black text-white"
                 : "text-gray-700"
@@ -51,6 +43,14 @@ const GoogleBusinessModal = ({
             onClick={() => setActiveTab("openingHours")}
           >
             Opening Hours
+          </button>
+          <button
+            className={`flex-1 px-4 py-2 text-center focus:outline-none rounded ${
+              activeTab === "shopInfo" ? "bg-black text-white" : "text-gray-700"
+            }`}
+            onClick={() => setActiveTab("shopInfo")}
+          >
+            Shop Information
           </button>
         </div>
 
