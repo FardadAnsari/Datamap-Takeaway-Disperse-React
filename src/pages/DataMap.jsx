@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unknown-property */
 import React, { useState, useRef, useMemo, useEffect } from "react";
 import ReactDOMServer from "react-dom/server";
 import {
@@ -205,16 +206,19 @@ const DataMap = () => {
   const [apiData, setApiData] = useState([]);
   const [mapBounds, setMapBounds] = useState(null);
   const [zoom, setZoom] = useState(13);
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [isGoogleBusinessFilterOpen, setIsGoogleBusinessFilterOpen] =
-    useState(false);
-  const [isGoogleBusinessPanelOpen, setIsGoogleBusinessPanelOpen] =
-    useState(false);
-  const [isDeviceOpen, setIsDeviceOpen] = useState(false);
-  const [isResultOpen, setIsResultOpen] = useState(false);
+  const [activePanel, setActivePanel] = useState(null);
+  // const [isFilterOpen, setIsFilterOpen] = useState(false);
+  // const [isGoogleBusinessFilterOpen, setIsGoogleBusinessFilterOpen] =
+  //   useState(false);
+  // const [isGoogleBusinessPanelOpen, setIsGoogleBusinessPanelOpen] =
+  //   useState(false);
+  // const [isDeviceOpen, setIsDeviceOpen] = useState(false);
+
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [isChangePassModalOpen, setIsChangePassModalOpen] = useState(false);
+
+  const [isResultOpen, setIsResultOpen] = useState(false);
 
   // Function to handle logout click
   const handleLogoutClick = () => {
@@ -940,20 +944,18 @@ const DataMap = () => {
         <div className="w-full h-full flex flex-col items-center justify-between">
           <div className="w-full flex flex-col">
             <button
-              className={`py-4 ${isFilterOpen && "bg-orange-100 text-orange-600"} text-center flex flex-col items-center ${
+              className={`py-4 ${activePanel === "companiesFilterbar" && "bg-orange-100 text-orange-600"} text-center flex flex-col items-center ${
                 user?.access?.companies === false &&
                 "bg-gray-200 text-gray-600 cursor-not-allowed"
               }`}
-              onClick={() => {
-                setIsFilterOpen(true);
-                setIsGoogleBusinessFilterOpen(false);
-                setIsGoogleBusinessPanelOpen(false);
-                setIsDeviceOpen(false);
-                setIsProfileOpen(false);
-              }}
+              onClick={() =>
+                setActivePanel((prev) =>
+                  prev === "companiesFilterbar" ? null : "companiesFilterbar"
+                )
+              }
               disabled={user?.access?.companies === false}
             >
-              {isFilterOpen ? (
+              {activePanel === "companiesFilterbar" ? (
                 <div className="my-1 bg-cover bg-companies-focus-sidebar-icon w-7 h-7"></div>
               ) : (
                 <div className="my-1 bg-cover bg-companies-sidebar-icon w-7 h-7"></div>
@@ -961,20 +963,18 @@ const DataMap = () => {
               <p className="text-sm">Companies</p>
             </button>
             <button
-              className={`py-4 ${isGoogleBusinessFilterOpen && "bg-orange-100 text-orange-600"} text-center flex flex-col items-center ${
+              className={`py-4 ${activePanel === "gbusinessFilterbar" && "bg-orange-100 text-orange-600"} text-center flex flex-col items-center ${
                 user?.access?.googleBusinessMap === false &&
                 "bg-gray-200 text-gray-600 cursor-not-allowed"
               }`}
-              onClick={() => {
-                setIsGoogleBusinessFilterOpen(true);
-                setIsGoogleBusinessPanelOpen(false);
-                setIsFilterOpen(false);
-                setIsDeviceOpen(false);
-                setIsProfileOpen(false);
-              }}
+              onClick={() =>
+                setActivePanel((prev) =>
+                  prev === "gbusinessFilterbar" ? null : "gbusinessFilterbar"
+                )
+              }
               disabled={user?.access?.googleBusinessMap === false}
             >
-              {isGoogleBusinessFilterOpen ? (
+              {activePanel === "gbusinessFilterbar" ? (
                 <div className="my-1 bg-cover bg-gbusiness-map-focus-sidebar-icon w-7 h-7"></div>
               ) : (
                 <div className="my-1 bg-cover bg-gbusiness-map-sidebar-icon w-7 h-7"></div>
@@ -982,20 +982,18 @@ const DataMap = () => {
               <p className="text-sm">G-Business</p>
             </button>
             <button
-              className={`py-4 ${isGoogleBusinessPanelOpen && "bg-orange-100 text-orange-600"} text-center flex flex-col items-center ${
+              className={`py-4 ${activePanel === "gbusinessDashboard" && "bg-orange-100 text-orange-600"} text-center flex flex-col items-center ${
                 user?.access?.googleBusinessPanel === false &&
                 "bg-gray-200 text-gray-600 cursor-not-allowed"
               }`}
-              onClick={() => {
-                setIsGoogleBusinessPanelOpen(true);
-                setIsGoogleBusinessFilterOpen(false);
-                setIsFilterOpen(false);
-                setIsDeviceOpen(false);
-                setIsProfileOpen(false);
-              }}
+              onClick={() =>
+                setActivePanel((prev) =>
+                  prev === "gbusinessDashboard" ? null : "gbusinessDashboard"
+                )
+              }
               disabled={user?.access?.googleBusinessPanel === false}
             >
-              {isGoogleBusinessPanelOpen ? (
+              {activePanel === "gbusinessDashboard" ? (
                 <div className="my-1 bg-cover bg-gbusiness-focus-sidebar-icon w-6 h-6"></div>
               ) : (
                 <div className="my-1 bg-cover bg-gbusiness-sidebar-icon w-6 h-6"></div>
@@ -1003,20 +1001,18 @@ const DataMap = () => {
               <p className="text-sm">G-Business</p>
             </button>
             <button
-              className={`py-4 ${isDeviceOpen && "bg-orange-100 text-orange-600"} text-center flex flex-col items-center ${
+              className={`py-4 ${activePanel === "devices" && "bg-orange-100 text-orange-600"} text-center flex flex-col items-center ${
                 user?.access?.devices === false &&
                 "bg-gray-200 text-gray-600 cursor-not-allowed"
               }`}
-              onClick={() => {
-                setIsDeviceOpen(true);
-                setIsGoogleBusinessFilterOpen(false);
-                setIsGoogleBusinessPanelOpen(false);
-                setIsFilterOpen(false);
-                setIsProfileOpen(false);
-              }}
+              onClick={() =>
+                setActivePanel((prev) =>
+                  prev === "devices" ? null : "devices"
+                )
+              }
               disabled={user?.access?.devices === false}
             >
-              {isDeviceOpen ? (
+              {activePanel === "devices" ? (
                 <div className="my-1 bg-cover bg-devices-focus-sidebar-icon w-6 h-6"></div>
               ) : (
                 <div className="my-1 bg-cover bg-devices-sidebar-icon w-6 h-6"></div>
@@ -1025,14 +1021,10 @@ const DataMap = () => {
             </button>
           </div>
           <button
-            className={`py-6 px-1 bg-white hover:text-orange-600 ${isProfileOpen && "text-orange-600"} text-center flex flex-col items-center`}
-            onClick={() => {
-              setIsProfileOpen(true);
-              setIsGoogleBusinessFilterOpen(false);
-              setIsGoogleBusinessPanelOpen(false);
-              setIsFilterOpen(false);
-              setIsDeviceOpen(false);
-            }}
+            className={`py-6 px-1 bg-white hover:text-orange-600 ${activePanel === "profile" && "text-orange-600"} text-center flex flex-col items-center`}
+            onClick={() =>
+              setActivePanel((prev) => (prev === "profile" ? null : "profile"))
+            }
           >
             <RiAccountCircleFill size={40} />
           </button>
@@ -1042,8 +1034,10 @@ const DataMap = () => {
       {/* CompaniesFilterbar component */}
       <CompaniesFilterbar
         reqRemainder={reqRemainder}
-        isOpen={isFilterOpen}
-        setIsFilterOpen={setIsFilterOpen}
+        isOpen={activePanel === "companiesFilterbar"}
+        setIsOpen={(state) =>
+          setActivePanel(state ? "companiesFilterbar" : null)
+        }
         registerCompanies={registerCompanies}
         handleSubmitCompanies={handleSubmitCompanies}
         controlCompanies={controlCompanies}
@@ -1060,8 +1054,10 @@ const DataMap = () => {
 
       {/* GoogleBusinessFilterbar component */}
       <GoogleBusinessFilterbar
-        isOpen={isGoogleBusinessFilterOpen}
-        setIsGoogleBusinessFilterOpen={setIsGoogleBusinessFilterOpen}
+        isOpen={activePanel === "gbusinessFilterbar"}
+        setIsOpen={(state) =>
+          setActivePanel(state ? "gbusinessFilterbar" : null)
+        }
         registerGoogleBusiness={registerGoogleBusiness}
         handleSubmitGoogleBusiness={handleSubmitGoogleBusiness}
         controlGoogleBusiness={controlGoogleBusiness}
@@ -1076,17 +1072,22 @@ const DataMap = () => {
 
       {/* GoogleBusinessPanel component */}
       <GBDashboard
-        isOpen={isGoogleBusinessPanelOpen}
-        setIsGoogleBusinessPanelOpen={setIsGoogleBusinessPanelOpen}
+        isOpen={activePanel === "gbusinessDashboard"}
+        setIsOpen={(state) =>
+          setActivePanel(state ? "gbusinessDashboard" : null)
+        }
       />
 
       {/* DeviceStatus component */}
-      <DeviceStatus isOpen={isDeviceOpen} setIsDeviceOpen={setIsDeviceOpen} />
+      <DeviceStatus
+        isOpen={activePanel === "devices"}
+        setIsOpen={(state) => setActivePanel(state ? "devices" : null)}
+      />
 
       {/* Profilebar component */}
       <Profilebar
-        isOpen={isProfileOpen}
-        setIsProfileOpen={setIsProfileOpen}
+        isOpen={activePanel === "profile"}
+        setIsOpen={(state) => setActivePanel(state ? "profile" : null)}
         user={user}
         onLogoutClick={handleLogoutClick}
         onChangePassClick={handleChangePassClick}
@@ -1122,7 +1123,7 @@ const DataMap = () => {
       </button>
 
       {/* CompaniesResultBar component */}
-      {isFilterOpen && isResultOpen && (
+      {activePanel === "companiesFilterbar" && isResultOpen && (
         <CompaniesResultBar
           groupedResults={regularCompanyResults}
           companyList={regularCompanyList}
@@ -1134,7 +1135,7 @@ const DataMap = () => {
         />
       )}
       {/* GoogleBusinessResultBar component */}
-      {isGoogleBusinessFilterOpen && isResultOpen && (
+      {activePanel === "gbusinessFilterbar" && isResultOpen && (
         <GoogleBusinessResultbar
           groupedResults={googleBusinessResults}
           companyList={googleBusinessList}

@@ -9,20 +9,19 @@ import { useUser } from "../../api/userPermission";
 
 // CompaniesFilterbar component to handle filtering for companies and Google Business data
 const CompaniesFilterbar = ({
-  isOpen, // Boolean to control the visibility of the filter bar
-  setIsFilterOpen, // Function to toggle the filter bar's visibility
-  registerCompanies, // React Hook Form's register function for companies form
-  handleSubmitCompanies, // React Hook Form's handleSubmit function for companies form
-  controlCompanies, // React Hook Form's control object for companies form
-  watchCompanies, // React Hook Form's watch function for companies form
-  region, // List of regions for filtering
-  cuisine, // List of cuisines for filtering
-  companies, // List of companies for filtering
-  onSubmitCompanies, // Function to handle companies form submission
-  loadingCompanies, // Boolean to indicate if companies data is loading
-  errorCompanies, // Error message for companies form
-  handleResetCompanies, // Function to reset the companies form
-  reqRemainder, //Remainder of filter requests limit
+  isOpen,
+  registerCompanies,
+  handleSubmitCompanies,
+  controlCompanies,
+  watchCompanies,
+  region,
+  cuisine,
+  companies,
+  onSubmitCompanies,
+  loadingCompanies,
+  errorCompanies,
+  handleResetCompanies,
+  reqRemainder,
 }) => {
   // Get the user from the context
   const { user } = useUser();
@@ -38,22 +37,15 @@ const CompaniesFilterbar = ({
         className="mx-4 flex py-2 justify-between items-center border-b-2"
         style={{ height: "10%" }}
       >
-        <span className="text-xl font-normal">Companies Filter</span>
-        <div className="flex items-center gap-3">
-          {user?.isLimited && (
-            <div className="flex text-orange-500 font-bold gap-1">
-              <span>{reqRemainder}</span>
-              <span>/</span>
-              <span>{user?.requestInfo.totalRequest}</span>
-            </div>
-          )}
-          <button
-            className="w-8 p-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 focus:outline-none"
-            onClick={() => setIsFilterOpen(false)}
-          >
-            <IoIosArrowBack />
-          </button>
-        </div>
+        <span className="text-xl font-bold">Companies Filter</span>
+
+        {user?.isLimited && (
+          <div className="flex text-orange-500 font-bold gap-1">
+            <span>{reqRemainder}</span>
+            <span>/</span>
+            <span>{user?.requestInfo.totalRequest}</span>
+          </div>
+        )}
       </div>
       {/* Companies filter form */}
       <form

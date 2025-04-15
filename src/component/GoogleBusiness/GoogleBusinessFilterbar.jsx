@@ -5,18 +5,17 @@ import AutoCompletionMultiSelectStyles from "../AutoCompletionMultiSelectStyles"
 
 // Filterbar component to handle filtering for companies and Google Business data
 const GoogleBusinessFilterbar = ({
-  isOpen, // Boolean to control the visibility of the filter bar
-  setIsGoogleBusinessFilterOpen, // Function to toggle the filter bar's visibility
-  registerGoogleBusiness, // React Hook Form's register function for Google Business form
-  handleSubmitGoogleBusiness, // React Hook Form's handleSubmit function for Google Business form
-  controlGoogleBusiness, // React Hook Form's control object for Google Business form
-  region, // List of regions for filtering
-  postcodeData, // List of postcodes for filtering
-  cuisine, // List of cuisines for filtering
-  onSubmitGoogleBusiness, // Function to handle Google Business form submission
-  loadingGoogleBusiness, // Boolean to indicate if Google Business data is loading
-  errorGoogleBusiness, // Error message for Google Business form
-  handleResetGoogleBusiness, // Function to reset the Google Business form
+  isOpen,
+  registerGoogleBusiness,
+  handleSubmitGoogleBusiness,
+  controlGoogleBusiness,
+  region,
+  postcodeData,
+  cuisine,
+  onSubmitGoogleBusiness,
+  loadingGoogleBusiness,
+  errorGoogleBusiness,
+  handleResetGoogleBusiness,
 }) => {
   const safePostcode = postcodeData || []; // Ensure it's an array
 
@@ -57,16 +56,10 @@ const GoogleBusinessFilterbar = ({
     >
       {/* Header section with filter title and close button */}
       <div
-        className="mx-4 flex py-2 justify-between items-center border-b-2"
+        className="mx-4 flex items-center py-2 border-b-2"
         style={{ height: "10%" }}
       >
-        <span className="text-xl font-normal">Google Businesses Filter</span>
-        <button
-          className="w-8 p-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 focus:outline-none"
-          onClick={() => setIsGoogleBusinessFilterOpen(false)}
-        >
-          <IoIosArrowBack />
-        </button>
+        <span className="text-xl font-bold">Google Businesses Filter</span>
       </div>
       {/* Google Business filter form */}
       <form

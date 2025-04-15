@@ -229,7 +229,7 @@ const GBDashboardByMap = () => {
       <div className="flex justify-between px-12 py-6 mb-6 border-solid bg-white shadow">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 bg-cover bg-center bg-google-business"></div>
-          <p className="text-xl md:text-2xl lg:text-3xl font-medium m-0">
+          <p className="text-xl md:text-xl lg:text-2xl font-medium m-0">
             Google Business Dashboard
           </p>
         </div>
