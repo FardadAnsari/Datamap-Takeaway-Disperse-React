@@ -18,6 +18,16 @@ const AutoCompletionCustomStyles = {
       padding: "0px",
     },
   }),
+  clearIndicator: (provided) => ({
+    ...provided,
+    padding: "5px",
+    color: "#888",
+    cursor: "pointer",
+    "&:hover": {
+      color: "#e74c3c",
+    },
+  }),
+
   placeholder: (provided) => ({
     ...provided,
     fontSize: "14px",

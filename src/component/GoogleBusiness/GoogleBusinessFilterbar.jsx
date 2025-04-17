@@ -113,6 +113,7 @@ const GoogleBusinessFilterbar = ({
                   {...field}
                   className="mb-4"
                   placeholder="Select PostCode"
+                  isClearable={true}
                   options={safePostcode.map((p) => ({
                     value: p.postCode,
                     label: p.postCode,
