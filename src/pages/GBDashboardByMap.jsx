@@ -1,19 +1,19 @@
 import { useEffect, useState } from "react";
-import instance from "../component/api";
-import PieChartSection from "../component/PieChartSection";
-import KeywordsAnalytics from "../component/KeywordsAnalytics";
-import TotalInteractions from "../component/TotalInteractions";
+import instance from "../api/api";
+import PieChartSection from "../component/GoogleBusiness/PieChartSection";
+import KeywordsAnalytics from "../component/GoogleBusiness/KeywordsAnalytics";
+import TotalInteractions from "../component/GoogleBusiness/TotalInteractions";
 import { HiOutlineEnvelope } from "react-icons/hi2";
 import { IoInformationCircleSharp } from "react-icons/io5";
 import { PiPhone } from "react-icons/pi";
-import BusinessHoursDisplay from "../component/BusinessHoursDisplay";
+import BusinessHoursDisplay from "../component/GoogleBusiness/BusinessHoursDisplay";
 import { useParams } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
-import GoogleBusinessModal from "../component/GoogleBusinessModal";
-import { useUser } from "../component/userPermission";
+import GoogleBusinessModal from "../component/GoogleBusiness/GoogleBusinessModal";
+import { useUser } from "../api/userPermission";
 import { LuPencil, LuPencilLine } from "react-icons/lu";
 
-const Panel = () => {
+const GBDashboardByMap = () => {
   const { locationId } = useParams();
 
   const [editOpen, setEditOpen] = useState(null);
@@ -229,7 +229,7 @@ const Panel = () => {
       <div className="flex justify-between px-12 py-6 mb-6 border-solid bg-white shadow">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 bg-cover bg-center bg-google-business"></div>
-          <p className="text-xl md:text-2xl lg:text-3xl font-medium m-0">
+          <p className="text-xl md:text-xl lg:text-2xl font-medium m-0">
             Google Business Dashboard
           </p>
         </div>
@@ -408,4 +408,4 @@ const Panel = () => {
   );
 };
 
-export default Panel;
+export default GBDashboardByMap;

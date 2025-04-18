@@ -5,12 +5,12 @@ import {
   IoIosArrowRoundForward,
 } from "react-icons/io";
 import { GoDotFill } from "react-icons/go";
-import instance from "./statusApi";
+import instance from "../../api/statusApi";
 import CountUp from "react-countup";
 import { ThreeDots } from "react-loader-spinner";
 import { MdKeyboardDoubleArrowLeft } from "react-icons/md";
 
-const DeviceStatus = ({ isOpen, setIsDeviceOpen }) => {
+const DeviceStatus = ({ isOpen }) => {
   const [totalStatus, setTotalStatus] = useState([]);
   useEffect(() => {
     isOpen &&
@@ -178,12 +178,6 @@ const DeviceStatus = ({ isOpen, setIsDeviceOpen }) => {
     >
       <div className="mx-4 flex p justify-between items-center">
         <span className="text-2xl font-bold">Devices Status</span>
-        <button
-          className="w-8 p-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 focus:outline-none"
-          onClick={() => setIsDeviceOpen(false)}
-        >
-          <IoIosArrowBack />
-        </button>
       </div>
       <div className="grid grid-cols-6 gap-4 py-6">
         <div className="col-span-2 row-span-3 p-4 border rounded-xl shadow-lg">

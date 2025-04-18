@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { useState } from "react";
 import { IoIosEye, IoIosEyeOff } from "react-icons/io";
-import instance from "../component/api";
+import instance from "../api/api";
 import { MdError } from "react-icons/md";
 import LogRocket from "logrocket";
 LogRocket.init("ddgsvf/datamap");
@@ -20,25 +20,18 @@ const Login = () => {
 
   const handleLogin = async (data) => {
     try {
-      const response = await instance.post(
-        "/api/token/",
-        {
-          username: data.username,
-          password: data.password,
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const response = await instance.post("/api/token/", {
+        username: data.username,
+        password: data.password,
+      });
       sessionStorage.setItem("accessToken", response.data.access);
 
       LogRocket.identify(data.username, {
         name: data.username,
       });
 
-      navigate("/datamap");
+      const from = location.state?.from?.pathname || "/";
+      navigate(from, { replace: true });
     } catch (error) {
       if (error.response) {
         if (error.response.status === 401) {

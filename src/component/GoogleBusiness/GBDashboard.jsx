@@ -1,21 +1,22 @@
 import { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import Select from "react-select";
-import AutoCompletionCustomStyles from "../component/AutoCompletionCustomStyles";
-import instance from "../component/api";
+import AutoCompletionCustomStyles from "../AutoCompletionCustomStyles";
+import instance from "../../api/api";
 import { LuPencil, LuPencilLine } from "react-icons/lu";
-import PieChartSection from "../component/PieChartSection";
-import KeywordsAnalytics from "../component/KeywordsAnalytics";
-import TotalInteractions from "../component/TotalInteractions";
-import BusinessHoursDisplay from "../component/BusinessHoursDisplay";
+import PieChartSection from "./PieChartSection";
+import KeywordsAnalytics from "./KeywordsAnalytics";
+import TotalInteractions from "./TotalInteractions";
+import BusinessHoursDisplay from "./BusinessHoursDisplay";
+import GoogleBusinessModal from "./GoogleBusinessModal";
 import { useNavigate } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
-import { useUser } from "../component/userPermission";
+import { useUser } from "../../api/userPermission";
 import { IoInformationCircleSharp } from "react-icons/io5";
-import GoogleBusinessModal from "../component/GoogleBusinessModal";
+
 import { IoIosArrowBack } from "react-icons/io";
 
-const GBDashboard = ({ isOpen, setIsGoogleBusinessPanelOpen }) => {
+const GBDashboard = ({ isOpen }) => {
   const { user } = useUser();
 
   const {
@@ -315,14 +316,8 @@ const GBDashboard = ({ isOpen, setIsGoogleBusinessPanelOpen }) => {
     >
       <div className="flex justify-between px-12 py-6 mb-6 border-solid bg-white shadow">
         <div className="flex items-center gap-4">
-          <button
-            className="w-8 "
-            onClick={() => setIsGoogleBusinessPanelOpen(false)}
-          >
-            <IoIosArrowBack size={25} />
-          </button>
           <div className="w-12 h-12 bg-cover bg-center bg-google-business"></div>
-          <p className="text-xl md:text-2xl lg:text-3xl font-medium m-0">
+          <p className="text-xl md:text-xl lg:text-2xl font-bold m-0">
             Google Business Dashboard
           </p>
         </div>

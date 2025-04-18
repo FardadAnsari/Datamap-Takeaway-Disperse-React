@@ -5,12 +5,10 @@ import {
   useFieldArray,
   FormProvider,
 } from "react-hook-form";
-import instance from "./api";
+import instance from "../../api/api";
 
 import DayPeriods from "./DayPeriods";
 
-import { FaToggleOn } from "react-icons/fa6";
-import { FaToggleOff } from "react-icons/fa";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useNavigate } from "react-router-dom";

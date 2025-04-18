@@ -1,5 +1,4 @@
-import React from "react";
-import Logout from "../component/Logout";
+import Logout from "./Logout";
 import { IoMdClose } from "react-icons/io";
 const LogoutModal = ({ isOpen, onClose }) => {
   if (!isOpen) return null;

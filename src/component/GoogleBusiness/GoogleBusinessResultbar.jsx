@@ -2,7 +2,7 @@ import { Virtuoso } from "react-virtuoso";
 
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { useUser } from "./userPermission";
+import { useUser } from "../../api/userPermission";
 
 const GoogleBusinessResultbar = ({
   groupedResults,
@@ -90,7 +90,7 @@ const GoogleBusinessResultbar = ({
                           <div className="flex justify-between items-center">
                             {user.access.gbDashboardMap ? (
                               <Link
-                                to={`/panel/${shop.properties.locationId}`}
+                                to={`/google-business/${shop.properties.locationId}`}
                                 target="_blank"
                                 className="group relative px-2 border rounded-lg overflow-hidden transition-all duration-300 ease-in-out hover:pr-56 flex items-center"
                               >

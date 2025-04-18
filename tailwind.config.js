@@ -41,6 +41,7 @@ export default {
         "empty-state-hours": "url('/empty-state-hours.svg')",
         "empty-state-interaction": "url('/empty-state-interaction.svg')",
         "empty-state-table": "url('/empty-state-table.svg')",
+        "not-found": "url('/not-found.svg')",
       },
     },
   },

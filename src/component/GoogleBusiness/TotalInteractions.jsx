@@ -1,4 +1,3 @@
-import React from "react";
 import CountUp from "react-countup";
 import { PiPhoneCallLight } from "react-icons/pi";
 import { PiCursorClickLight } from "react-icons/pi";

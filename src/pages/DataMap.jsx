@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unknown-property */
 import React, { useState, useRef, useMemo, useEffect } from "react";
 import ReactDOMServer from "react-dom/server";
 import {
@@ -11,7 +12,7 @@ import {
 import "leaflet/dist/leaflet.css";
 import Supercluster from "supercluster";
 import L from "leaflet";
-import instance from "../component/api";
+import instance from "../api/api";
 import ClusterMarker from "../component/ClusterMarker";
 import { useForm } from "react-hook-form";
 import pointInPolygon from "point-in-polygon";
@@ -28,33 +29,24 @@ import {
   setCachedRegionData,
 } from "../component/indexedDB";
 
-import companyIcons from "../assets/checkbox-icon/checkboxIcons";
-
-import ResultBar from "../component/Resultbar";
-import { Link } from "react-router-dom";
+import CompaniesResultBar from "../component/Companies/CompaniesResultbar";
 import companyPins from "../assets/pins/pins";
-import { useUser } from "../component/userPermission";
-import Filterbar from "../component/Filterbar";
-import Profilebar from "../component/Profilebar";
-import { companies } from "../component/companies";
-import { googlebusiness } from "../component/googlebusiness";
+import { useUser } from "../api/userPermission";
+import CompaniesFilterbar from "../component/Companies/CompaniesFilterbar";
+import Profilebar from "../component/Profile/Profilebar";
+import { companies } from "../component/Companies/companies";
+import { googlebusiness } from "../component/GoogleBusiness/googlebusiness";
 import { transformData } from "../component/parsers";
-import LogoutModal from "../component/LogoutModal";
-import ChangePasswordModal from "../component/ChangePasswordModal";
+import LogoutModal from "../component/Profile/LogoutModal";
+import ChangePasswordModal from "../component/Profile/ChangePasswordModal";
 import { IoIosArrowDown, IoIosArrowUp } from "react-icons/io";
-import { RiAccountCircleFill } from "react-icons/ri";
-import { ImSpoonKnife } from "react-icons/im";
-import { SlSocialGoogle } from "react-icons/sl";
-import { PiPhone } from "react-icons/pi";
-import { HiMiniLink, HiOutlineEnvelope } from "react-icons/hi2";
-import { CiStar } from "react-icons/ci";
-import { GrLocation, GrMapLocation } from "react-icons/gr";
-import { GoCommentDiscussion } from "react-icons/go";
-import DeviceStatus from "../component/DeviceStatus";
-import GoogleBusinessResultbar from "../component/GoogleBusinessResultbar";
-import GoogleBusinessFilterbar from "../component/GoogleBusinessFilterbar";
-import GBDashboard from "./GBDashboard";
-import { MdOutlineUpdate } from "react-icons/md";
+import DeviceStatus from "../component/Devices/DeviceStatus";
+import GoogleBusinessResultbar from "../component/GoogleBusiness/GoogleBusinessResultbar";
+import GoogleBusinessFilterbar from "../component/GoogleBusiness/GoogleBusinessFilterbar";
+import GBDashboard from "../component/GoogleBusiness/GBDashboard";
+
+import ShopPopup from "../component/ShopPopup";
+import Sidebar from "../component/Sidebar";
 
 // Function to create a custom icon using a React component
 const createCustomIcon = (PinComponent, options = {}) => {
@@ -205,16 +197,11 @@ const DataMap = () => {
   const [apiData, setApiData] = useState([]);
   const [mapBounds, setMapBounds] = useState(null);
   const [zoom, setZoom] = useState(13);
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [isGoogleBusinessFilterOpen, setIsGoogleBusinessFilterOpen] =
-    useState(false);
-  const [isGoogleBusinessPanelOpen, setIsGoogleBusinessPanelOpen] =
-    useState(false);
-  const [isDeviceOpen, setIsDeviceOpen] = useState(false);
-  const [isResultOpen, setIsResultOpen] = useState(false);
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [activePanel, setActivePanel] = useState(null);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [isChangePassModalOpen, setIsChangePassModalOpen] = useState(false);
+
+  const [isResultOpen, setIsResultOpen] = useState(false);
 
   // Function to handle logout click
   const handleLogoutClick = () => {
@@ -843,12 +830,6 @@ const DataMap = () => {
     }));
   };
 
-  // Memoized list of companies
-  // const companyList = useMemo(
-  //   () => Object.keys(groupedResults),
-  //   [groupedResults]
-  // );
-
   // Ref for the map container
   const mapRef = useRef(null);
   // Ref for marker references
@@ -935,115 +916,19 @@ const DataMap = () => {
   return (
     <div className="relative h-screen w-screen overflow-hidden">
       {/* Sidebar with navigation buttons */}
-      <div className="bg-white w-20 h-screen absolute left-0 z-50 flex flex-col items-center border-r">
-        <div className="my-2 bg-cover bg-mealzo-sidebar-icon w-12 h-12"></div>
-        <div className="w-full h-full flex flex-col items-center justify-between">
-          <div className="w-full flex flex-col">
-            <button
-              className={`py-4 ${isFilterOpen && "bg-orange-100 text-orange-600"} text-center flex flex-col items-center ${
-                user?.access?.companies === false &&
-                "bg-gray-200 text-gray-600 cursor-not-allowed"
-              }`}
-              onClick={() => {
-                setIsFilterOpen(true);
-                setIsGoogleBusinessFilterOpen(false);
-                setIsGoogleBusinessPanelOpen(false);
-                setIsDeviceOpen(false);
-                setIsProfileOpen(false);
-              }}
-              disabled={user?.access?.companies === false}
-            >
-              {isFilterOpen ? (
-                <div className="my-1 bg-cover bg-companies-focus-sidebar-icon w-7 h-7"></div>
-              ) : (
-                <div className="my-1 bg-cover bg-companies-sidebar-icon w-7 h-7"></div>
-              )}
-              <p className="text-sm">Companies</p>
-            </button>
-            <button
-              className={`py-4 ${isGoogleBusinessFilterOpen && "bg-orange-100 text-orange-600"} text-center flex flex-col items-center ${
-                user?.access?.googleBusinessMap === false &&
-                "bg-gray-200 text-gray-600 cursor-not-allowed"
-              }`}
-              onClick={() => {
-                setIsGoogleBusinessFilterOpen(true);
-                setIsGoogleBusinessPanelOpen(false);
-                setIsFilterOpen(false);
-                setIsDeviceOpen(false);
-                setIsProfileOpen(false);
-              }}
-              disabled={user?.access?.googleBusinessMap === false}
-            >
-              {isGoogleBusinessFilterOpen ? (
-                <div className="my-1 bg-cover bg-gbusiness-map-focus-sidebar-icon w-7 h-7"></div>
-              ) : (
-                <div className="my-1 bg-cover bg-gbusiness-map-sidebar-icon w-7 h-7"></div>
-              )}
-              <p className="text-sm">G-Business</p>
-            </button>
-            <button
-              className={`py-4 ${isGoogleBusinessPanelOpen && "bg-orange-100 text-orange-600"} text-center flex flex-col items-center ${
-                user?.access?.googleBusinessPanel === false &&
-                "bg-gray-200 text-gray-600 cursor-not-allowed"
-              }`}
-              onClick={() => {
-                setIsGoogleBusinessPanelOpen(true);
-                setIsGoogleBusinessFilterOpen(false);
-                setIsFilterOpen(false);
-                setIsDeviceOpen(false);
-                setIsProfileOpen(false);
-              }}
-              disabled={user?.access?.googleBusinessPanel === false}
-            >
-              {isGoogleBusinessPanelOpen ? (
-                <div className="my-1 bg-cover bg-gbusiness-focus-sidebar-icon w-6 h-6"></div>
-              ) : (
-                <div className="my-1 bg-cover bg-gbusiness-sidebar-icon w-6 h-6"></div>
-              )}
-              <p className="text-sm">G-Business</p>
-            </button>
-            <button
-              className={`py-4 ${isDeviceOpen && "bg-orange-100 text-orange-600"} text-center flex flex-col items-center ${
-                user?.access?.devices === false &&
-                "bg-gray-200 text-gray-600 cursor-not-allowed"
-              }`}
-              onClick={() => {
-                setIsDeviceOpen(true);
-                setIsGoogleBusinessFilterOpen(false);
-                setIsGoogleBusinessPanelOpen(false);
-                setIsFilterOpen(false);
-                setIsProfileOpen(false);
-              }}
-              disabled={user?.access?.devices === false}
-            >
-              {isDeviceOpen ? (
-                <div className="my-1 bg-cover bg-devices-focus-sidebar-icon w-6 h-6"></div>
-              ) : (
-                <div className="my-1 bg-cover bg-devices-sidebar-icon w-6 h-6"></div>
-              )}
-              <p className="text-sm">Devices</p>
-            </button>
-          </div>
-          <button
-            className={`py-6 px-1 bg-white hover:text-orange-600 ${isProfileOpen && "text-orange-600"} text-center flex flex-col items-center`}
-            onClick={() => {
-              setIsProfileOpen(true);
-              setIsGoogleBusinessFilterOpen(false);
-              setIsGoogleBusinessPanelOpen(false);
-              setIsFilterOpen(false);
-              setIsDeviceOpen(false);
-            }}
-          >
-            <RiAccountCircleFill size={40} />
-          </button>
-        </div>
-      </div>
+      <Sidebar
+        activePanel={activePanel}
+        setActivePanel={setActivePanel}
+        user={user}
+      />
 
-      {/* Filterbar component */}
-      <Filterbar
+      {/* CompaniesFilterbar component */}
+      <CompaniesFilterbar
         reqRemainder={reqRemainder}
-        isOpen={isFilterOpen}
-        setIsFilterOpen={setIsFilterOpen}
+        isOpen={activePanel === "companiesFilterbar"}
+        setIsOpen={(state) =>
+          setActivePanel(state ? "companiesFilterbar" : null)
+        }
         registerCompanies={registerCompanies}
         handleSubmitCompanies={handleSubmitCompanies}
         controlCompanies={controlCompanies}
@@ -1060,8 +945,10 @@ const DataMap = () => {
 
       {/* GoogleBusinessFilterbar component */}
       <GoogleBusinessFilterbar
-        isOpen={isGoogleBusinessFilterOpen}
-        setIsGoogleBusinessFilterOpen={setIsGoogleBusinessFilterOpen}
+        isOpen={activePanel === "gbusinessFilterbar"}
+        setIsOpen={(state) =>
+          setActivePanel(state ? "gbusinessFilterbar" : null)
+        }
         registerGoogleBusiness={registerGoogleBusiness}
         handleSubmitGoogleBusiness={handleSubmitGoogleBusiness}
         controlGoogleBusiness={controlGoogleBusiness}
@@ -1076,17 +963,22 @@ const DataMap = () => {
 
       {/* GoogleBusinessPanel component */}
       <GBDashboard
-        isOpen={isGoogleBusinessPanelOpen}
-        setIsGoogleBusinessPanelOpen={setIsGoogleBusinessPanelOpen}
+        isOpen={activePanel === "gbusinessDashboard"}
+        setIsOpen={(state) =>
+          setActivePanel(state ? "gbusinessDashboard" : null)
+        }
       />
 
       {/* DeviceStatus component */}
-      <DeviceStatus isOpen={isDeviceOpen} setIsDeviceOpen={setIsDeviceOpen} />
+      <DeviceStatus
+        isOpen={activePanel === "devices"}
+        setIsOpen={(state) => setActivePanel(state ? "devices" : null)}
+      />
 
       {/* Profilebar component */}
       <Profilebar
-        isOpen={isProfileOpen}
-        setIsProfileOpen={setIsProfileOpen}
+        isOpen={activePanel === "profile"}
+        setIsOpen={(state) => setActivePanel(state ? "profile" : null)}
         user={user}
         onLogoutClick={handleLogoutClick}
         onChangePassClick={handleChangePassClick}
@@ -1121,9 +1013,9 @@ const DataMap = () => {
         )}
       </button>
 
-      {/* ResultBar component */}
-      {isFilterOpen && isResultOpen && (
-        <ResultBar
+      {/* CompaniesResultBar component */}
+      {activePanel === "companiesFilterbar" && isResultOpen && (
+        <CompaniesResultBar
           groupedResults={regularCompanyResults}
           companyList={regularCompanyList}
           expandedCompanies={expandedCompanies}
@@ -1134,7 +1026,7 @@ const DataMap = () => {
         />
       )}
       {/* GoogleBusinessResultBar component */}
-      {isGoogleBusinessFilterOpen && isResultOpen && (
+      {activePanel === "gbusinessFilterbar" && isResultOpen && (
         <GoogleBusinessResultbar
           groupedResults={googleBusinessResults}
           companyList={googleBusinessList}
@@ -1189,7 +1081,6 @@ const DataMap = () => {
               const companyKey = marker.properties.company
                 .replace(/\s+/g, "")
                 .toLowerCase();
-              const IconComponent = companyIcons[companyKey];
               const PinComponent = companyPins[companyKey];
               const pin = createCustomIcon(PinComponent, {
                 width: 44,
@@ -1215,239 +1106,7 @@ const DataMap = () => {
                   }}
                 >
                   <Popup className="p-0 m-0 custom-popup" offset={[-1, -30]}>
-                    <div className="flex flex-col w-96 py-2 gap-2 pr-4">
-                      <div className="flex gap-2 justify-between">
-                        <span className="font-bold text-xl">
-                          {marker.properties.shopName}
-                        </span>
-
-                        {IconComponent && (
-                          <IconComponent width={28} height={28} />
-                        )}
-                      </div>
-                      <div className="flex w-full items-center py-2">
-                        <span className="w-2/6">Restaurant Details</span>
-                        <div className="w-4/6 h-px bg-gray-500"></div>
-                      </div>
-                      {marker.properties.phone ? (
-                        <div className="flex justify-between">
-                          <div className="flex gap-1">
-                            <PiPhone size={18} />
-                            <span>Phone No.</span>
-                          </div>
-                          <span>{marker.properties.phone}</span>
-                        </div>
-                      ) : (
-                        <div className="flex justify-between">
-                          <div className="flex gap-1">
-                            <PiPhone size={18} color="gray" />
-                            <span className="text-gray-400">Phone No.</span>
-                          </div>
-                          <span className="text-gray-400">None</span>
-                        </div>
-                      )}
-                      {marker.properties.postcode ? (
-                        <div className="flex justify-between">
-                          <div className="flex gap-1">
-                            <HiOutlineEnvelope size={17} />
-                            <span>Postcode</span>
-                          </div>
-                          <span>{marker.properties.postcode}</span>
-                        </div>
-                      ) : (
-                        <div className="flex justify-between">
-                          <div className="flex gap-1">
-                            <HiOutlineEnvelope size={17} color="gray" />
-                            <span className="text-gray-400">Postcode</span>
-                          </div>
-                          <span className="text-gray-400">None</span>
-                        </div>
-                      )}
-
-                      {!marker.properties.cuisines ||
-                      marker.properties.cuisines === "None" ? (
-                        <div className="flex justify-between">
-                          <div className="flex gap-1">
-                            <ImSpoonKnife size={15} color="gray" />
-                            <span className="text-gray-400">Cuisines</span>
-                          </div>
-                          <span className="text-gray-400">None</span>
-                        </div>
-                      ) : (
-                        <div className="flex justify-between space-x-8">
-                          <div className="flex gap-1">
-                            <ImSpoonKnife size={15} />
-                            <span>Cuisines</span>
-                          </div>
-                          <span>{marker.properties.cuisines}</span>
-                        </div>
-                      )}
-
-                      {!marker.properties.rating ||
-                      marker.properties.rating === "None" ? (
-                        <div className="flex justify-between">
-                          <div className="flex gap-1">
-                            <CiStar size={19} color="gray" />
-                            <span className="text-gray-400">Rating</span>
-                          </div>
-                          <span className="text-gray-400">None</span>
-                        </div>
-                      ) : (
-                        <div className="flex justify-between">
-                          <div className="flex gap-1">
-                            <CiStar size={19} />
-                            <span>Rating</span>
-                          </div>
-                          <span>{marker.properties.rating}</span>
-                        </div>
-                      )}
-
-                      {!marker.properties.totalReviews ||
-                      marker.properties.totalReviews === "None" ? (
-                        <div className="flex justify-between">
-                          <div className="flex gap-1">
-                            <GoCommentDiscussion size={17} color="gray" />
-                            <span className="text-gray-400">Reviews</span>
-                          </div>
-                          <span className="text-gray-400">None</span>
-                        </div>
-                      ) : (
-                        <div className="flex justify-between">
-                          <div className="flex gap-1">
-                            <GoCommentDiscussion size={17} />
-                            <span>Reviews</span>
-                          </div>
-                          <span>{marker.properties.totalReviews}</span>
-                        </div>
-                      )}
-                      {marker.properties.lastUpdate ? (
-                        <div className="flex justify-between space-x-8">
-                          <div className="flex gap-1">
-                            <MdOutlineUpdate size={18} />
-                            <span>Last Updated</span>
-                          </div>
-                          <span className="text-left">
-                            {marker.properties.lastUpdate}
-                          </span>
-                        </div>
-                      ) : (
-                        <div className="flex justify-between ">
-                          <div className="flex gap-1">
-                            <MdOutlineUpdate size={18} color="gray" />
-                            <span className="text-gray-400">Last Updated</span>
-                          </div>
-                          <span className="text-gray-400">None</span>
-                        </div>
-                      )}
-                      {marker.properties.address ? (
-                        <div className="flex justify-between space-x-8">
-                          <div className="flex gap-1">
-                            <GrLocation size={17} />
-                            <span>Address</span>
-                          </div>
-                          <span className="text-left">
-                            {marker.properties.address}
-                          </span>
-                        </div>
-                      ) : (
-                        <div className="flex justify-between ">
-                          <div className="flex gap-1">
-                            <GrLocation size={17} color="gray" />
-                            <span className="text-gray-400">Address</span>
-                          </div>
-                          <span className="text-gray-400">None</span>
-                        </div>
-                      )}
-                      <div className="flex w-full items-center py-2">
-                        <span className="w-2/6">Quick Access Links</span>
-                        <div className="w-4/6 h-px bg-gray-500"></div>
-                      </div>
-                      {marker.properties.companyPage ? (
-                        <div className="flex justify-between">
-                          <div className="flex gap-1">
-                            <HiMiniLink size={18} />
-                            <span>Company page</span>
-                          </div>
-                          <a
-                            href={marker.properties.companyPage}
-                            target="_blank"
-                            rel="noreferrer"
-                          >
-                            Link
-                          </a>
-                        </div>
-                      ) : (
-                        <div className="flex justify-between">
-                          <div className="flex gap-1">
-                            <HiMiniLink size={18} color="gray" />
-                            <span className="text-gray-400">Company page</span>
-                          </div>
-                          <span className="text-gray-400">None</span>
-                        </div>
-                      )}
-                      {marker.properties.website ? (
-                        <div className="flex justify-between">
-                          <div className="flex gap-1">
-                            <HiMiniLink size={18} />
-                            <span>Website</span>
-                          </div>
-                          <a
-                            href={marker.properties.website}
-                            target="_blank"
-                            rel="noreferrer"
-                          >
-                            Link
-                          </a>
-                        </div>
-                      ) : (
-                        <div className="flex justify-between">
-                          <div className="flex gap-1">
-                            <HiMiniLink size={18} color="gray" />
-                            <span className="text-gray-400">Website</span>
-                          </div>
-                          <span className="text-gray-400">None</span>
-                        </div>
-                      )}
-                      {marker.properties.googlemap ? (
-                        <div className="flex justify-between">
-                          <div className="flex gap-1">
-                            <GrMapLocation size={16} />
-                            <span>Google Maps</span>
-                          </div>
-                          <a
-                            href={marker.properties.googlemap}
-                            target="_blank"
-                            rel="noreferrer"
-                          >
-                            Google Map
-                          </a>
-                        </div>
-                      ) : (
-                        <div className="flex justify-between">
-                          <div className="flex gap-1">
-                            <GrMapLocation size={16} color="gray" />
-                            <span className="text-gray-400">Google Maps</span>
-                          </div>
-                          <span className="text-gray-400">None</span>
-                        </div>
-                      )}
-                      {marker.properties.company.toLowerCase() ===
-                        "google business" && user.access.gbDashboardMap ? (
-                        <div className="flex justify-between">
-                          <div className="flex gap-1">
-                            <SlSocialGoogle size={16} />
-                            <span>Google Business</span>
-                          </div>
-                          <Link
-                            to={`/panel/${marker.properties.locationId}`}
-                            target="_blank"
-                            className=" text-white rounded"
-                          >
-                            Google Business Dashboard
-                          </Link>
-                        </div>
-                      ) : null}
-                    </div>
+                    <ShopPopup marker={marker} user={user} />
                   </Popup>
                 </Marker>
               );
