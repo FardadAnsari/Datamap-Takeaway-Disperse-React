@@ -1,4 +1,3 @@
-/* eslint-disable react/no-unknown-property */
 import React, { useState, useRef, useMemo, useEffect } from "react";
 import ReactDOMServer from "react-dom/server";
 import {
@@ -23,6 +22,8 @@ import {
   clearOldCaches,
   getCachedCuisineData,
   setCachedCuisineData,
+  getCachedFacebookCategoryData,
+  setCachedFacebookCategoryData,
   getCachedPostcodeData,
   setCachedPostcodeData,
   getCachedRegionData,
@@ -36,6 +37,7 @@ import CompaniesFilterbar from "../component/Companies/CompaniesFilterbar";
 import Profilebar from "../component/Profile/Profilebar";
 import { companies } from "../component/Companies/companies";
 import { googlebusiness } from "../component/GoogleBusiness/googlebusiness";
+import { facebook } from "../component/Facebook/facebook";
 import { transformData } from "../component/parsers";
 import LogoutModal from "../component/Profile/LogoutModal";
 import ChangePasswordModal from "../component/Profile/ChangePasswordModal";
@@ -47,6 +49,9 @@ import GBDashboard from "../component/GoogleBusiness/GBDashboard";
 
 import ShopPopup from "../component/ShopPopup";
 import Sidebar from "../component/Sidebar";
+import FacebookFilterbar from "../component/Facebook/FacebookFilterbar";
+import FacebookResultbar from "../component/Facebook/FacebookResultbar";
+import instanceF from "../api/facebook";
 
 // Function to create a custom icon using a React component
 const createCustomIcon = (PinComponent, options = {}) => {
@@ -174,11 +179,28 @@ const DataMap = () => {
     },
   });
 
+  const {
+    register: registerFacebook,
+    handleSubmit: handleSubmitFacebook,
+    control: controlFacebook,
+    reset: resetFacebook,
+  } = useForm({
+    defaultValues: {
+      selectedCompanies: facebook,
+      region: [],
+      categories: [],
+      postcode: "",
+      searchTerm: "",
+    },
+  });
+
   // Separate loading and error states for companies and Google Business data
   const [loadingCompanies, setLoadingCompanies] = useState(false);
   const [loadingGoogleBusiness, setLoadingGoogleBusiness] = useState(false);
+  const [loadingFacebook, setLoadingFacebook] = useState(false);
   const [errorCompanies, setErrorCompanies] = useState(null);
   const [errorGoogleBusiness, setErrorGoogleBusiness] = useState(null);
+  const [errorFacebook, setErrorFacebook] = useState(null);
 
   // Reset handlers for the forms
   const handleResetCompanies = () => {
@@ -187,6 +209,10 @@ const DataMap = () => {
 
   const handleResetGoogleBusiness = () => {
     resetGoogleBusiness();
+  };
+
+  const handleResetFacebook = () => {
+    resetFacebook();
   };
 
   // State for region, cuisine, and region boundary data
@@ -273,6 +299,35 @@ const DataMap = () => {
       }
     };
     fetchCuisine();
+  }, []);
+
+  // Fetch categories data on component mount
+
+  const [categories, setCategories] = useState([]);
+  useEffect(() => {
+    const accessToken = sessionStorage.getItem("accessToken");
+    const fetchFacebookCategory = async () => {
+      try {
+        const cachedData = await getCachedFacebookCategoryData("categories");
+        if (cachedData) {
+          setCategories(cachedData);
+        } else {
+          const response = await instanceF.get(
+            "/facebook/fb-geo-data-category/",
+            {
+              headers: {
+                Authorization: `Bearer ${accessToken}`,
+              },
+            }
+          );
+          setCategories(response.data);
+          await setCachedFacebookCategoryData("categories", response.data);
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    fetchFacebookCategory();
   }, []);
 
   // Fetch postcode data on component mount
@@ -491,6 +546,143 @@ const DataMap = () => {
       setErrorGoogleBusiness("error in fetching data");
     } finally {
       setLoadingGoogleBusiness(false);
+    }
+  };
+
+  // Function to handle Facebook form submission
+  const onSubmitFacebook = async (data) => {
+    // console.log("form submitted:", data);
+    setLoadingFacebook(true);
+    setErrorFacebook(null);
+
+    try {
+      await clearOldCaches(24 * 60 * 60 * 1000);
+
+      setRegionBoundaryData(null);
+      setApiData([]);
+
+      let combinedRegionData = null;
+
+      if (data.region && data.region.length > 0) {
+        const regionDataPromises = data.region.map((selectedRegion) =>
+          getRegionData(selectedRegion.value)
+        );
+
+        const regionsData = await Promise.all(regionDataPromises);
+        const validRegionsData = regionsData.filter(
+          (region) => region !== null
+        );
+
+        if (validRegionsData.length > 0) {
+          combinedRegionData = {
+            type: "FeatureCollection",
+            features: validRegionsData.flatMap((region) => region.features),
+          };
+          setRegionBoundaryData(combinedRegionData);
+        }
+      }
+
+      // Directly use the Facebook object (no need to filter)
+      const facebookCompany = facebook[0];
+
+      const fetchCompanyData = async (company) => {
+        const accessToken = sessionStorage.getItem("accessToken");
+        const cachedData = await getCachedCompanyData(company.id);
+        if (cachedData) {
+          console.log(`using cached data for ${company.name}`);
+          return cachedData;
+        } else {
+          try {
+            const response = await instanceF.get(company.apiUrl, {
+              headers: {
+                Authorization: `Bearer ${accessToken}`,
+              },
+            });
+            await setCachedCompanyData(company.id, response.data);
+            console.log(`received and cached data for ${company.name}`);
+            return response.data;
+          } catch (error) {
+            console.error(`error in fetching data ${company.name}:`, error);
+            throw error;
+          }
+        }
+      };
+
+      const response = await fetchCompanyData(facebookCompany);
+      console.log("Response from Face book:", response);
+
+      let points = transformData(response, facebookCompany).filter((point) => {
+        const [lon, lat] = point.geometry.coordinates;
+        return (
+          !isNaN(lon) &&
+          !isNaN(lat) &&
+          lon >= -180 &&
+          lon <= 180 &&
+          lat >= -90 &&
+          lat <= 90
+        );
+      });
+
+      console.log("Points after first filter:", points);
+
+      const { searchTerm, categories } = data;
+
+      const lowerCaseSearchTerm = searchTerm?.trim().toLowerCase() || "";
+
+      const selectedCategory = categories.map((c) => c.value.toLowerCase());
+
+      const combinedFilter = (point) => {
+        const shopName = point.properties.shopName?.toLowerCase() || "";
+
+        const [lon, lat] = point.geometry.coordinates;
+        const pt = [lon, lat];
+
+        // Filter by search term
+        if (lowerCaseSearchTerm && !shopName.includes(lowerCaseSearchTerm)) {
+          return false;
+        }
+
+        // Filter by region
+        if (combinedRegionData && combinedRegionData.features.length > 0) {
+          const isInAnyRegion = combinedRegionData.features.some((feature) => {
+            const geometry = feature.geometry;
+            if (geometry.type === "Polygon") {
+              const polygonRings = geometry.coordinates[0];
+              return pointInPolygon(pt, polygonRings);
+            } else if (geometry.type === "MultiPolygon") {
+              return geometry.coordinates.some((polygon) =>
+                pointInPolygon(pt, polygon[0])
+              );
+            }
+            return false;
+          });
+          if (!isInAnyRegion) return false;
+        }
+
+        // Filter by category
+        if (selectedCategory.length > 0) {
+          const shopCategory = point.properties.categories || "";
+          const shopCategoryLower = shopCategory.toLowerCase();
+
+          const hasCategory = selectedCategory.some((category) =>
+            shopCategoryLower.includes(category)
+          );
+
+          if (!hasCategory) return false;
+        }
+
+        return true;
+      };
+
+      points = points.filter(combinedFilter);
+      // console.log("Points after combined filter:", points);
+
+      setApiData(points);
+    } catch (error) {
+      console.error(error.message);
+      setErrorFacebook("error in fetching data");
+    } finally {
+      setLoadingFacebook(false);
     }
   };
 
@@ -795,6 +987,7 @@ const DataMap = () => {
   const regularCompanyResults = useMemo(() => {
     const regularData = { ...groupedResults };
     delete regularData["Google Business"];
+    delete regularData["Facebook"];
     return regularData;
   }, [groupedResults]);
 
@@ -807,6 +1000,15 @@ const DataMap = () => {
     return googleBusinessData;
   }, [groupedResults]);
 
+  // Separate Google Business results
+  const facebookResults = useMemo(() => {
+    const facebookData = {};
+    if (groupedResults["Facebook"]) {
+      facebookData["Facebook"] = groupedResults["Facebook"];
+    }
+    return facebookData;
+  }, [groupedResults]);
+
   // Memoized list of regular companies
   const regularCompanyList = useMemo(
     () => Object.keys(regularCompanyResults),
@@ -817,6 +1019,12 @@ const DataMap = () => {
   const googleBusinessList = useMemo(
     () => Object.keys(googleBusinessResults),
     [googleBusinessResults]
+  );
+
+  // Memoized list of Google Business companies
+  const facebookList = useMemo(
+    () => Object.keys(facebookResults),
+    [facebookResults]
   );
 
   // State to manage expanded companies in the result bar
@@ -969,6 +1177,24 @@ const DataMap = () => {
         }
       />
 
+      {/* FacebookFilterbar component */}
+      <FacebookFilterbar
+        isOpen={activePanel === "facebookFilterbar"}
+        setIsOpen={(state) =>
+          setActivePanel(state ? "facebookFilterbar" : null)
+        }
+        registerFacebook={registerFacebook}
+        handleSubmitFacebook={handleSubmitFacebook}
+        controlFacebook={controlFacebook}
+        region={region}
+        postcodeData={postcodeData}
+        categories={categories}
+        onSubmitFacebook={onSubmitFacebook}
+        loadingFacebook={loadingFacebook}
+        errorFacebook={errorFacebook}
+        handleResetFacebook={handleResetFacebook}
+      />
+
       {/* DeviceStatus component */}
       <DeviceStatus
         isOpen={activePanel === "devices"}
@@ -1025,13 +1251,22 @@ const DataMap = () => {
           activeMarker={activeMarker}
         />
       )}
+
       {/* GoogleBusinessResultBar component */}
       {activePanel === "gbusinessFilterbar" && isResultOpen && (
         <GoogleBusinessResultbar
           groupedResults={googleBusinessResults}
           companyList={googleBusinessList}
-          expandedCompanies={expandedCompanies}
-          toggleCompany={toggleCompany}
+          onMarkerFocus={focusOnMarker}
+          activeMarker={activeMarker}
+        />
+      )}
+
+      {/* FacebookResultBar component */}
+      {activePanel === "facebookFilterbar" && isResultOpen && (
+        <FacebookResultbar
+          groupedResults={facebookResults}
+          companyList={facebookList}
           onMarkerFocus={focusOnMarker}
           activeMarker={activeMarker}
         />

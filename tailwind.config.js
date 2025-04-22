@@ -22,8 +22,12 @@ export default {
           "url('src/assets/sidebar/g-business-map.svg')",
         "gbusiness-map-focus-sidebar-icon":
           "url('src/assets/sidebar/g-business-map-focus.svg')",
-        "googleb-button-icon":
-          "url('src/assets/resultbar/googleb-button-icon.svg')",
+        "googleb-button-icon": "url('src/assets/resultbar/googleb-button.svg')",
+        "facebook-sidebar-icon": "url('src/assets/sidebar/facebook.svg')",
+        "facebook-focus-sidebar-icon":
+          "url('src/assets/sidebar/facebook-focus.svg')",
+        "facebook-resultbar-icon":
+          "url('src/assets/resultbar/facebook-button.svg')",
         "devices-sidebar-icon": "url('src/assets/sidebar/devices.svg')",
         "devices-focus-sidebar-icon":
           "url('src/assets/sidebar/devices-focus.svg')",

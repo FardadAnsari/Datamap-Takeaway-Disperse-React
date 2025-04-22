@@ -27,6 +27,13 @@ const Sidebar = ({ activePanel, setActivePanel, user }) => {
       access: user?.access?.googleBusinessPanel,
     },
     {
+      key: "facebookFilterbar",
+      label: "Facebook",
+      icon: "bg-facebook-sidebar-icon",
+      iconActive: "bg-facebook-focus-sidebar-icon",
+      access: user?.access?.facebook,
+    },
+    {
       key: "devices",
       label: "Devices",
       icon: "bg-devices-sidebar-icon",
