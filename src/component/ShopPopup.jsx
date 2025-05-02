@@ -5,7 +5,7 @@ import { CiStar } from "react-icons/ci";
 import { GoCommentDiscussion } from "react-icons/go";
 import { MdOutlineUpdate } from "react-icons/md";
 import { GrLocation, GrMapLocation } from "react-icons/gr";
-import { SlSocialGoogle } from "react-icons/sl";
+import { SlSocialFacebook, SlSocialGoogle } from "react-icons/sl";
 import { Link } from "react-router-dom";
 import companyIcons from "../assets/checkbox-icon/checkboxIcons";
 
@@ -164,6 +164,23 @@ const ShopPopup = ({ marker, user }) => {
             className="text-white rounded"
           >
             Google Business Dashboard
+          </Link>
+        </div>
+      )}
+
+      {/* Show dashboard link if it's a Google Business entry and user has access */}
+      {isFacebook && user?.access?.facebook && (
+        <div className="flex justify-between">
+          <div className="flex gap-1">
+            <SlSocialFacebook size={16} />
+            <span>Facebook</span>
+          </div>
+          <Link
+            to={`/facebook/${marker.properties.postId}`}
+            target="_blank"
+            className="text-white rounded"
+          >
+            Facebook Dashboard
           </Link>
         </div>
       )}

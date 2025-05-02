@@ -130,7 +130,10 @@ export const parseFacebook = (item, company) => {
       description: item.description || "",
       color: company.color,
       pageId: item.page_id,
+      postId: item.page_last_post_id,
       pageRole: item.page_roles_name || "",
+      phone: item.page_phone || "",
+      website: item.page_website || "",
     },
   };
 };

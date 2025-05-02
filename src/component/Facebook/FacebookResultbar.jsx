@@ -89,7 +89,7 @@ const FacebookResultbar = ({
                           <div className="flex justify-between items-center">
                             {user.access.gbDashboardMap ? (
                               <Link
-                                to={`/facebook/${shop.properties.pageId}`}
+                                to={`/facebook/${shop.properties.postId}`}
                                 target="_blank"
                                 className="group relative px-2 border rounded-lg overflow-hidden transition-all duration-300 ease-in-out hover:pr-44 flex items-center"
                               >

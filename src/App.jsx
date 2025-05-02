@@ -7,6 +7,7 @@ import "leaflet/dist/leaflet.css";
 import "./index.css";
 import DataMap from "./pages/DataMap";
 import NotFound from "./pages/NotFound";
+import FBDashboard from "./pages/FBDashboard";
 
 const App = () => {
   return (
@@ -27,6 +28,14 @@ const App = () => {
           element={
             <PrivateRoute>
               <GBDashboardByMap />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/facebook/:Id"
+          element={
+            <PrivateRoute>
+              <FBDashboard />
             </PrivateRoute>
           }
         />
