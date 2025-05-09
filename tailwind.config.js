@@ -22,8 +22,12 @@ export default {
           "url('src/assets/sidebar/g-business-map.svg')",
         "gbusiness-map-focus-sidebar-icon":
           "url('src/assets/sidebar/g-business-map-focus.svg')",
-        "googleb-button-icon":
-          "url('src/assets/resultbar/googleb-button-icon.svg')",
+        "googleb-button-icon": "url('src/assets/resultbar/googleb-button.svg')",
+        "facebook-sidebar-icon": "url('src/assets/sidebar/facebook.svg')",
+        "facebook-focus-sidebar-icon":
+          "url('src/assets/sidebar/facebook-focus.svg')",
+        "facebook-resultbar-icon":
+          "url('src/assets/resultbar/facebook-button.svg')",
         "devices-sidebar-icon": "url('src/assets/sidebar/devices.svg')",
         "devices-focus-sidebar-icon":
           "url('src/assets/sidebar/devices-focus.svg')",
@@ -37,10 +41,16 @@ export default {
         "close-status": "url('/src/assets/status/close-status.svg')",
         "no-result": "url('/no-result-matching.svg')",
         "no-access": "url('/no-access-permission.svg')",
-        "empty-state-chart": "url('/empty-state-chart.svg')",
-        "empty-state-hours": "url('/empty-state-hours.svg')",
-        "empty-state-interaction": "url('/empty-state-interaction.svg')",
-        "empty-state-table": "url('/empty-state-table.svg')",
+        "empty-state-chart":
+          "url('src/assets/google-business-empty-states/empty-state-chart.svg')",
+        "empty-state-hours":
+          "url('src/assets/google-business-empty-states/empty-state-hours.svg')",
+        "empty-state-interaction":
+          "url('src/assets/google-business-empty-states/empty-state-interaction.svg')",
+        "empty-state-table":
+          "url('src/assets/google-business-empty-states/empty-state-table.svg')",
+        "empty-state-photo":
+          "url('/assets/facebook-empty-states/empty-state-photo.svg')",
         "not-found": "url('/not-found.svg')",
       },
     },

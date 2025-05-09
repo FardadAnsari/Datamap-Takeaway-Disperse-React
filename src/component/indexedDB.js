@@ -18,6 +18,14 @@ const dbPromise = openDB("DataMapDB", 3, {
       store.createIndex("timestamp", "timestamp");
     }
 
+    // Create the "categories" object store if it doesn't exist
+    if (!db.objectStoreNames.contains("categories")) {
+      const store = db.createObjectStore("categories", {
+        keyPath: "id",
+      });
+      store.createIndex("timestamp", "timestamp");
+    }
+
     // Create the "postcode" object store if it doesn't exist
     if (!db.objectStoreNames.contains("postcode")) {
       const store = db.createObjectStore("postcode", {
@@ -65,6 +73,24 @@ export const setCachedCuisineData = async (cuisineId, data) => {
   const db = await dbPromise;
   await db.put("cuisine", {
     id: cuisineId,
+    data,
+    timestamp: Date.now(),
+  });
+};
+
+// Function to get cached categories data
+export const getCachedFacebookCategoryData = async (categoryId) => {
+  const db = await dbPromise;
+
+  const data = await db.get("categories", categoryId);
+  return data ? data.data : null;
+};
+
+// Function to set cached categories data
+export const setCachedFacebookCategoryData = async (categoryId, data) => {
+  const db = await dbPromise;
+  await db.put("categories", {
+    id: categoryId,
     data,
     timestamp: Date.now(),
   });
@@ -120,6 +146,7 @@ export const clearOldCaches = async (ttl = 24 * 60 * 60 * 1000) => {
 
   await clearStore("companies"); // Clear companies data
   await clearStore("cuisine"); // Clear cuisine data
+  await clearStore("categories"); // Clear cuisine data
   await clearStore("postcode"); // Clear postcode data
   await clearStore("region"); // Clear region data
 };

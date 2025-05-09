@@ -102,6 +102,42 @@ export const parseGoogleBusiness = (item, company) => {
   };
 };
 
+export const parseFacebook = (item, company) => {
+  const lon = parseFloat(item.page_location_longitude);
+  const lat = parseFloat(item.page_location_latitude);
+
+  if (isNaN(lat) || isNaN(lon)) {
+    console.warn(
+      `Invalid or missing coordinates for page_id: ${item.page_id || "Unknown"}`
+    );
+    return null;
+  }
+
+  return {
+    type: "Feature",
+    geometry: {
+      type: "Point",
+      coordinates: [lon, lat],
+    },
+    properties: {
+      cluster: false,
+      shop_id: item.page_id || `${company.id}-${lon}-${lat}`,
+      shopName: item.page_name,
+      company: company.name,
+      address: item?.page_location_street || "",
+      postcode: item.page_location_postcode || "",
+      categories: item.page_categories || "",
+      description: item.description || "",
+      color: company.color,
+      pageId: item.page_id,
+      postId: item.page_last_post_id,
+      pageRole: item.page_roles_name || "",
+      phone: item.page_phone || "",
+      website: item.page_website || "",
+    },
+  };
+};
+
 export const transformData = (items, company) => {
   const transformed = items
     .map((item) => {
@@ -112,8 +148,10 @@ export const transformData = (items, company) => {
           return parseType2(item, company);
         case "type3":
           return parseGoogleBusiness(item, company);
+        case "type4":
+          return parseFacebook(item, company);
         default:
-          // console.warn(`company type unknown: ${company.type}`);
+          console.warn(`company type unknown: ${company.type}`);
           return null;
       }
     })
