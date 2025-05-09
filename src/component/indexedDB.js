@@ -1,142 +1,78 @@
 import { openDB } from "idb";
 
-const dbPromise = openDB("DataMapDB", 3, {
+const dbPromise = openDB("DataMapDB", 4, {
   upgrade(db) {
-    // Create the "companies" object store if it doesn't exist
-    if (!db.objectStoreNames.contains("companies")) {
-      const store = db.createObjectStore("companies", {
-        keyPath: "id",
-      });
-      store.createIndex("timestamp", "timestamp");
-    }
+    const stores = ["companies", "cuisine", "categories", "postcode", "region"];
 
-    // Create the "cuisine" object store if it doesn't exist
-    if (!db.objectStoreNames.contains("cuisine")) {
-      const store = db.createObjectStore("cuisine", {
-        keyPath: "id",
-      });
-      store.createIndex("timestamp", "timestamp");
-    }
-
-    // Create the "categories" object store if it doesn't exist
-    if (!db.objectStoreNames.contains("categories")) {
-      const store = db.createObjectStore("categories", {
-        keyPath: "id",
-      });
-      store.createIndex("timestamp", "timestamp");
-    }
-
-    // Create the "postcode" object store if it doesn't exist
-    if (!db.objectStoreNames.contains("postcode")) {
-      const store = db.createObjectStore("postcode", {
-        keyPath: "id",
-      });
-      store.createIndex("timestamp", "timestamp");
-    }
-
-    // Create the "region" object store if it doesn't exist
-    if (!db.objectStoreNames.contains("region")) {
-      const store = db.createObjectStore("region", {
-        keyPath: "id",
-      });
-      store.createIndex("timestamp", "timestamp");
+    for (const storeName of stores) {
+      if (!db.objectStoreNames.contains(storeName)) {
+        const store = db.createObjectStore(storeName, {
+          keyPath: "id",
+        });
+        store.createIndex("timestamp", "timestamp");
+      }
     }
   },
 });
 
-// Function to get cached companies data
-export const getCachedCompanyData = async (companyId) => {
+// Safe get with fallback for missing object stores
+const safeGet = async (storeName, id) => {
   const db = await dbPromise;
-  const data = await db.get("companies", companyId);
-  return data ? data.data : null;
+  if (!db.objectStoreNames.contains(storeName)) return null;
+  try {
+    const data = await db.get(storeName, id);
+    return data ? data.data : null;
+  } catch (err) {
+    console.error(`Failed to get from ${storeName}:`, err);
+    return null;
+  }
 };
 
-// Function to set cached companies data
-export const setCachedCompanyData = async (companyId, data) => {
+const safePut = async (storeName, id, data) => {
   const db = await dbPromise;
-  await db.put("companies", {
-    id: companyId,
-    data,
-    timestamp: Date.now(),
-  });
+  if (!db.objectStoreNames.contains(storeName)) return;
+  try {
+    await db.put(storeName, {
+      id,
+      data,
+      timestamp: Date.now(),
+    });
+  } catch (err) {
+    console.error(`Failed to put to ${storeName}:`, err);
+  }
 };
 
-// Function to get cached cuisine data
-export const getCachedCuisineData = async (cuisineId) => {
-  const db = await dbPromise;
-  const data = await db.get("cuisine", cuisineId);
-  return data ? data.data : null;
-};
+// Company
+export const getCachedCompanyData = (id) => safeGet("companies", id);
+export const setCachedCompanyData = (id, data) =>
+  safePut("companies", id, data);
 
-// Function to set cached cuisine data
-export const setCachedCuisineData = async (cuisineId, data) => {
-  const db = await dbPromise;
-  await db.put("cuisine", {
-    id: cuisineId,
-    data,
-    timestamp: Date.now(),
-  });
-};
+// Cuisine
+export const getCachedCuisineData = (id) => safeGet("cuisine", id);
+export const setCachedCuisineData = (id, data) => safePut("cuisine", id, data);
 
-// Function to get cached categories data
-export const getCachedFacebookCategoryData = async (categoryId) => {
-  const db = await dbPromise;
+// Categories
+export const getCachedFacebookCategoryData = (id) => safeGet("categories", id);
+export const setCachedFacebookCategoryData = (id, data) =>
+  safePut("categories", id, data);
 
-  const data = await db.get("categories", categoryId);
-  return data ? data.data : null;
-};
+// Postcode
+export const getCachedPostcodeData = (id) => safeGet("postcode", id);
+export const setCachedPostcodeData = (id, data) =>
+  safePut("postcode", id, data);
 
-// Function to set cached categories data
-export const setCachedFacebookCategoryData = async (categoryId, data) => {
-  const db = await dbPromise;
-  await db.put("categories", {
-    id: categoryId,
-    data,
-    timestamp: Date.now(),
-  });
-};
+// Region
+export const getCachedRegionData = (id) => safeGet("region", id);
+export const setCachedRegionData = (id, data) => safePut("region", id, data);
 
-// Function to get cached postcode data
-export const getCachedPostcodeData = async (postcodeId) => {
-  const db = await dbPromise;
-  const data = await db.get("postcode", postcodeId);
-  return data ? data.data : null;
-};
-
-// Function to set cached postcode data
-export const setCachedPostcodeData = async (postcodeId, data) => {
-  const db = await dbPromise;
-  await db.put("postcode", {
-    id: postcodeId,
-    data,
-    timestamp: Date.now(),
-  });
-};
-
-// Function to get cached region data
-export const getCachedRegionData = async (regionId) => {
-  const db = await dbPromise;
-  const data = await db.get("region", regionId);
-  return data ? data.data : null;
-};
-
-// Function to set cached region data
-export const setCachedRegionData = async (regionId, data) => {
-  const db = await dbPromise;
-  await db.put("region", {
-    id: regionId,
-    data,
-    timestamp: Date.now(),
-  });
-};
-
-// Clear all caches
+// Clear old data
 export const clearOldCaches = async (ttl = 24 * 60 * 60 * 1000) => {
   const db = await dbPromise;
+  const now = Date.now();
 
   const clearStore = async (storeName) => {
+    if (!db.objectStoreNames.contains(storeName)) return;
     const records = await db.getAll(storeName);
-    const now = Date.now();
     for (const record of records) {
       if (now - record.timestamp > ttl) {
         await db.delete(storeName, record.id);
@@ -144,9 +80,9 @@ export const clearOldCaches = async (ttl = 24 * 60 * 60 * 1000) => {
     }
   };
 
-  await clearStore("companies"); // Clear companies data
-  await clearStore("cuisine"); // Clear cuisine data
-  await clearStore("categories"); // Clear cuisine data
-  await clearStore("postcode"); // Clear postcode data
-  await clearStore("region"); // Clear region data
+  const stores = ["companies", "cuisine", "categories", "postcode", "region"];
+
+  for (const store of stores) {
+    await clearStore(store);
+  }
 };
