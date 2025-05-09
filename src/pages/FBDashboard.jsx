@@ -192,24 +192,28 @@ const FBDashboard = () => {
         <div className="border rounded-2xl p-4 shadow bg-white h-[365px]">
           {/* Cover Image */}
           <div className="w-full h-64 mb-3 relative">
-            <img
-              src={
-                pageInfoData?.cover?.source ||
-                "https://via.placeholder.com/600x200"
-              }
-              alt="Cover"
-              className="w-full h-full bg-cover rounded-xl"
-            />
+            {pageInfoData?.cover?.source ? (
+              <img
+                src={pageInfoData?.cover?.source}
+                alt="Cover"
+                className="w-full h-full bg-cover rounded-xl"
+              />
+            ) : (
+              <div className="flex flex-col items-center justify-center w-full h-full bg-gray-300 rounded-xl">
+                <div className="text-gray-500">Cover photo missing</div>
+              </div>
+            )}
             {/* Profile Picture */}
             <div className="absolute -bottom-16 left-6">
-              <img
-                src={
-                  pageInfoData?.picture?.data?.url ||
-                  "https://via.placeholder.com/100"
-                }
-                alt="Logo"
-                className="w-28 h-28 rounded-full border-4 border-white shadow-md"
-              />
+              {pageInfoData?.picture?.data?.url ? (
+                <img
+                  src={pageInfoData?.picture?.data?.url}
+                  alt="Logo"
+                  className="w-28 h-28 rounded-full border-4 border-white shadow-md"
+                />
+              ) : (
+                <div className="w-28 h-28 bg-gray-300 rounded-full border-4 border-white shadow-md"></div>
+              )}
             </div>
           </div>
 
@@ -237,66 +241,77 @@ const FBDashboard = () => {
           <div className="text-md text-gray-700 space-y-2">
             <div className="flex justify-between">
               <h3 className="font-semibold mb-1">Shop Info:</h3>
-              <div>
-                <span className="font-semibold mb-1">Page Creator: </span>
-                <span>{pageInfoData?.business?.name}</span>
-              </div>
+              {pageInfoData && (
+                <div className="text-sm text-gray-500">
+                  <span className="font-semibold mb-1">Page Creator:</span>
+                  <span> {pageInfoData?.business?.name}</span>
+                </div>
+              )}
             </div>
             <div className="flex gap-1 items-first">
               <span>
                 <GrLocation size={17} />
               </span>
-              <p>
-                {`${pageInfoData?.location?.street}, ${pageInfoData?.location?.city}, ${pageInfoData?.location?.country}`}
-              </p>
+              {pageInfoData && (
+                <p>
+                  {`${pageInfoData?.location?.street}, ${pageInfoData?.location?.city}, ${pageInfoData?.location?.country}`}
+                </p>
+              )}
             </div>
             <div className="flex items-center gap-1">
               <span>
                 <PiPhone size={18} />
               </span>
-              <p>{`${pageInfoData?.phone}`}</p>
+              {pageInfoData && <p>{`${pageInfoData?.phone}`}</p>}
             </div>
             <div className="flex items-center gap-1">
               <span>
                 <HiOutlineEnvelope size={17} />
               </span>
-              <p>{`${pageInfoData?.location?.zip}`}</p>
+              {pageInfoData && <p>{`${pageInfoData?.location?.zip}`}</p>}
             </div>
             <div className="flex items-center gap-1">
               <span>
                 <HiMiniLink size={18} />
               </span>
-              <a
-                target="_blank"
-                href={`${pageInfoData?.website}`}
-                className="text-blue-500"
-              >
-                {`${pageInfoData?.website}`}
-              </a>
+              {pageInfoData && (
+                <a
+                  target="_blank"
+                  href={`${pageInfoData?.website}`}
+                  className="text-blue-500"
+                >
+                  {`${pageInfoData?.website}`}
+                </a>
+              )}
             </div>
           </div>
           <div className="mt-4 border-t pt-2 text-md text-gray-700 space-y-2">
             <span className="font-semibold mb-1">About Shop:</span>
             <p className="text-gray-600 text-md">{pageInfoData?.about}</p>
           </div>
-          {pageInfoData?.hours && (
-            <div className="mt-4 border-t pt-2 text-md text-gray-700 space-y-2">
-              <h4 className="font-semibold mb-1">Opening Hours:</h4>
-              {["mon", "tue", "wed", "thu", "fri", "sat", "sun"].map((day) => {
-                const hours = formatHours(day, pageInfoData.hours);
-                const isClosed = hours === "Closed";
+          <div className="mt-4 border-t pt-2 text-md text-gray-700 space-y-2">
+            <h4 className="font-semibold mb-1">Opening Hours:</h4>
+            {pageInfoData?.hours && (
+              <div>
+                {["mon", "tue", "wed", "thu", "fri", "sat", "sun"].map(
+                  (day) => {
+                    const hours = formatHours(day, pageInfoData.hours);
+                    const isClosed = hours === "Closed";
 
-                return (
-                  <div
-                    key={day}
-                    className={`flex justify-between ${isClosed ? "text-red-500" : ""}`}
-                  >
-                    <span className="font-medium">{dayMap[day]}:</span> {hours}
-                  </div>
-                );
-              })}
-            </div>
-          )}
+                    return (
+                      <div
+                        key={day}
+                        className={`flex justify-between ${isClosed ? "text-red-500" : ""}`}
+                      >
+                        <span className="font-medium">{dayMap[day]}:</span>{" "}
+                        {hours}
+                      </div>
+                    );
+                  }
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
       {/* Last Post */}
@@ -305,30 +320,35 @@ const FBDashboard = () => {
           <h3 className="text-md text-gray-700 font-semibold mb-2">
             Last Post
           </h3>
-          <div className="text-sm">
+          {/* <div className="text-sm">
             <span className="font-semibold text-gray-500">Author: </span>
             <span className="text-gray-700">{postInfoData?.from?.name}</span>
-          </div>
+          </div> */}
         </div>
         <span className="text-sm text-gray-500 mb-2">
           {postInfoData?.created_time}
         </span>
         <p className="text-sm text-gray-700 my-2">{postInfoData?.message}</p>
-        {postInfoData?.attachments?.data[0]?.media_type === "photo" && (
+        {(postInfoData?.attachments?.data[0]?.media_type === "photo" && (
           <img
             src={postInfoData?.attachments?.data[0]?.media?.image?.src}
             alt="Post"
             className="w-full h-full rounded-xl mb-2"
           />
-        )}
-        {postInfoData?.attachments?.data[0]?.media_type === "video" && (
-          <video
-            controls
-            poster={postInfoData?.attachments?.data[0]?.media?.image?.src}
-            className="w-full rounded-xl mb-2"
-          >
-            <source src={postInfoData?.attachments?.data[0]?.media?.source} />
-          </video>
+        )) ||
+          (postInfoData?.attachments?.data[0]?.media_type === "video" && (
+            <video
+              controls
+              poster={postInfoData?.attachments?.data[0]?.media?.image?.src}
+              className="w-full rounded-xl mb-2"
+            >
+              <source src={postInfoData?.attachments?.data[0]?.media?.source} />
+            </video>
+          ))}
+        {!postInfoData && (
+          <div className="flex w-full h-96 bg-gray-300 items-center justify-center">
+            <span className="text-gray-500">Last post photo missing</span>
+          </div>
         )}
         <div className="flex justify-between text-md text-gray-600 mt-2">
           <div className="flex gap-1">
@@ -361,36 +381,42 @@ const FBDashboard = () => {
             <h3 className="font-semibold text-gray-700 mb-2 p-2">
               Page Impression Paid
             </h3>
-            <LineChartComponent
-              data={pageImpressionPaid}
-              xKey="name"
-              lineKey="pv"
-              lineColor="#8884d8"
-            />
+            {pageImpressionPaid && (
+              <LineChartComponent
+                data={pageImpressionPaid}
+                xKey="name"
+                lineKey="pv"
+                lineColor="#8884d8"
+              />
+            )}
           </div>
           <div className="h-full flex flex-col items-first justify-start border-b">
             {/* Page Impression Unique Chart */}
             <h3 className="font-semibold text-gray-700 mb-2 px-2 py-4">
               Page Impression Unique
             </h3>
-            <LineChartComponent
-              data={pageImpressionUnique}
-              xKey="name"
-              lineKey="pv"
-              lineColor="#82ca9d"
-            />
+            {pageImpressionUnique && (
+              <LineChartComponent
+                data={pageImpressionUnique}
+                xKey="name"
+                lineKey="pv"
+                lineColor="#82ca9d"
+              />
+            )}
           </div>
           <div className="h-full flex flex-col items-first justify-start ">
             {/* Page Impression Total Chart */}
             <h3 className="font-semibold text-gray-700 mb-2 px-2 py-4">
               Page Impression Total
             </h3>
-            <LineChartComponent
-              data={pageImpressionTotal}
-              xKey="name"
-              lineKey="pv"
-              lineColor="#ffc658"
-            />
+            {pageImpressionTotal && (
+              <LineChartComponent
+                data={pageImpressionTotal}
+                xKey="name"
+                lineKey="pv"
+                lineColor="#ffc658"
+              />
+            )}
           </div>
         </div>
       </div>
