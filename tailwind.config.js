@@ -41,10 +41,16 @@ export default {
         "close-status": "url('/src/assets/status/close-status.svg')",
         "no-result": "url('/no-result-matching.svg')",
         "no-access": "url('/no-access-permission.svg')",
-        "empty-state-chart": "url('/empty-state-chart.svg')",
-        "empty-state-hours": "url('/empty-state-hours.svg')",
-        "empty-state-interaction": "url('/empty-state-interaction.svg')",
-        "empty-state-table": "url('/empty-state-table.svg')",
+        "empty-state-chart":
+          "url('src/assets/google-business-empty-states/empty-state-chart.svg')",
+        "empty-state-hours":
+          "url('src/assets/google-business-empty-states/empty-state-hours.svg')",
+        "empty-state-interaction":
+          "url('src/assets/google-business-empty-states/empty-state-interaction.svg')",
+        "empty-state-table":
+          "url('src/assets/google-business-empty-states/empty-state-table.svg')",
+        "empty-state-photo":
+          "url('/assets/facebook-empty-states/empty-state-photo.svg')",
         "not-found": "url('/not-found.svg')",
       },
     },
