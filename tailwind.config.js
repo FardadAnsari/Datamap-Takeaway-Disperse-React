@@ -50,7 +50,7 @@ export default {
         "empty-state-table":
           "url('src/assets/google-business-empty-states/empty-state-table.svg')",
         "empty-state-photo":
-          "url('/assets/facebook-empty-states/empty-state-photo.svg')",
+          "url('/facebook-empty-states/empty-state-photo.svg')",
         "not-found": "url('/not-found.svg')",
       },
     },

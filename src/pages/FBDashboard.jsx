@@ -200,7 +200,8 @@ const FBDashboard = () => {
               />
             ) : (
               <div className="flex flex-col items-center justify-center w-full h-full bg-gray-300 rounded-xl">
-                <div className="text-gray-500">Cover photo missing</div>
+                <div className="w-8 h-8 bg-empty-state-photo bg-cover"></div>
+                <div className="text-gray-700">Cover photo missing</div>
               </div>
             )}
             {/* Profile Picture */}
@@ -212,7 +213,9 @@ const FBDashboard = () => {
                   className="w-28 h-28 rounded-full border-4 border-white shadow-md"
                 />
               ) : (
-                <div className="w-28 h-28 bg-gray-300 rounded-full border-4 border-white shadow-md"></div>
+                <div className="flex items-center justify-center w-28 h-28 bg-gray-300 rounded-full border-4 border-white shadow-md">
+                  <div className="justify-self-center w-8 h-8 bg-empty-state-photo bg-cover"></div>
+                </div>
               )}
             </div>
           </div>
@@ -346,8 +349,9 @@ const FBDashboard = () => {
             </video>
           ))}
         {!postInfoData && (
-          <div className="flex w-full h-96 bg-gray-300 items-center justify-center">
-            <span className="text-gray-500">Last post photo missing</span>
+          <div className="flex flex-col w-full h-96 bg-gray-300 items-center justify-center">
+            <div className="w-8 h-8 bg-empty-state-photo bg-cover"></div>
+            <span className="text-gray-700">Last post photo missing</span>
           </div>
         )}
         <div className="flex justify-between text-md text-gray-600 mt-2">
