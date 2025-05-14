@@ -1276,7 +1276,9 @@ const DataMap = () => {
       <div className="relative z-0 h-full w-full">
         <div
           className={`relative h-full w-full transition-all duration-300 ${
-            loadingGoogleBusiness || loadingCompanies ? "blur-sm" : ""
+            loadingFacebook || loadingGoogleBusiness || loadingCompanies
+              ? "blur-sm"
+              : ""
           }`}
         >
           <MapContainer
@@ -1350,7 +1352,7 @@ const DataMap = () => {
         </div>
 
         {/* Loading spinner */}
-        {(loadingGoogleBusiness || loadingCompanies) && (
+        {(loadingFacebook || loadingGoogleBusiness || loadingCompanies) && (
           <div className="absolute inset-0 flex justify-center items-center bg-white bg-opacity-5 z-50">
             <ColorRing
               visible={true}
