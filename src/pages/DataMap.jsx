@@ -52,6 +52,7 @@ import Sidebar from "../component/Sidebar";
 import FacebookFilterbar from "../component/Facebook/FacebookFilterbar";
 import FacebookResultbar from "../component/Facebook/FacebookResultbar";
 import instanceF from "../api/facebook";
+import FBReport from "../component/Facebook/FBReport";
 
 // Function to create a custom icon using a React component
 const createCustomIcon = (PinComponent, options = {}) => {
@@ -217,7 +218,7 @@ const DataMap = () => {
 
   // State for region, cuisine, and region boundary data
   const [region, setRegion] = useState([]);
-  const [cuisine, setCuisine] = useState([]);
+
   const [postcodeData, setPostcodeData] = useState([]);
   const [regionBoundaryData, setRegionBoundaryData] = useState(null);
   const [apiData, setApiData] = useState([]);
@@ -263,6 +264,9 @@ const DataMap = () => {
     })
   );
 
+  //get access token from session storage
+  const accessToken = sessionStorage.getItem("accessToken");
+
   // Fetch region data on component mount
   useEffect(() => {
     const fetchRegion = async () => {
@@ -283,6 +287,8 @@ const DataMap = () => {
   }, []);
 
   // Fetch cuisine data on component mount
+  const [cuisine, setCuisine] = useState([]);
+
   useEffect(() => {
     const fetchCuisine = async () => {
       try {
@@ -302,24 +308,16 @@ const DataMap = () => {
   }, []);
 
   // Fetch categories data on component mount
-
   const [categories, setCategories] = useState([]);
+
   useEffect(() => {
-    const accessToken = sessionStorage.getItem("accessToken");
     const fetchFacebookCategory = async () => {
       try {
         const cachedData = await getCachedFacebookCategoryData("categories");
         if (cachedData) {
           setCategories(cachedData);
         } else {
-          const response = await instanceF.get(
-            "/facebook/fb-geo-data-category/",
-            {
-              headers: {
-                Authorization: `Bearer ${accessToken}`,
-              },
-            }
-          );
+          const response = await instanceF.get("/fb-geo-data-category/");
           setCategories(response.data);
           await setCachedFacebookCategoryData("categories", response.data);
         }
@@ -429,7 +427,6 @@ const DataMap = () => {
       const googleBusinessCompany = googlebusiness[0];
 
       const fetchCompanyData = async (company) => {
-        const accessToken = sessionStorage.getItem("accessToken");
         const cachedData = await getCachedCompanyData(company.id);
         if (cachedData) {
           // console.log(`using cached data for ${company.name}`);
@@ -586,7 +583,6 @@ const DataMap = () => {
       const facebookCompany = facebook[0];
 
       const fetchCompanyData = async (company) => {
-        const accessToken = sessionStorage.getItem("accessToken");
         const cachedData = await getCachedCompanyData(company.id);
         if (cachedData) {
           console.log(`using cached data for ${company.name}`);
@@ -695,8 +691,6 @@ const DataMap = () => {
   }, [user]);
 
   const limitOfRequest = async () => {
-    const accessToken = sessionStorage.getItem("accessToken");
-
     try {
       const response = await instance.get(
         "/account/update-request-remaining/",
@@ -759,7 +753,6 @@ const DataMap = () => {
       }
 
       const fetchCompanyData = async (company) => {
-        const accessToken = sessionStorage.getItem("accessToken");
         const cachedData = await getCachedCompanyData(company.id);
         if (cachedData) {
           // console.log(`using cached data for${company.name}`);
@@ -1193,6 +1186,12 @@ const DataMap = () => {
         loadingFacebook={loadingFacebook}
         errorFacebook={errorFacebook}
         handleResetFacebook={handleResetFacebook}
+      />
+
+      {/* Facebook Report component */}
+      <FBReport
+        isOpen={activePanel === "facebookReport"}
+        setIsOpen={(state) => setActivePanel(state ? "facebookReport" : null)}
       />
 
       {/* DeviceStatus component */}

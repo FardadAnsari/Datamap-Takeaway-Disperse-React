@@ -8,36 +8,43 @@ const Sidebar = ({ activePanel, setActivePanel, user }) => {
     {
       key: "companiesFilterbar",
       label: "Companies",
-      icon: "bg-companies-sidebar-icon",
-      iconActive: "bg-companies-focus-sidebar-icon",
+      icon: "bg-companies",
+      iconActive: "bg-companies-active",
       access: user?.access?.companies,
     },
     {
       key: "gbusinessFilterbar",
       label: "G-Business",
-      icon: "bg-gbusiness-map-sidebar-icon",
-      iconActive: "bg-gbusiness-map-focus-sidebar-icon",
+      icon: "bg-gbusiness-map",
+      iconActive: "bg-gbusiness-map-active",
       access: user?.access?.googleBusinessMap,
     },
     {
       key: "gbusinessDashboard",
       label: "G-Business",
-      icon: "bg-gbusiness-sidebar-icon",
-      iconActive: "bg-gbusiness-focus-sidebar-icon",
+      icon: "bg-gbusiness",
+      iconActive: "bg-gbusiness-active",
       access: user?.access?.googleBusinessPanel,
     },
     {
       key: "facebookFilterbar",
       label: "Facebook",
-      icon: "bg-facebook-sidebar-icon",
-      iconActive: "bg-facebook-focus-sidebar-icon",
+      icon: "bg-facebook",
+      iconActive: "bg-facebook-active",
+      access: user?.access?.facebook,
+    },
+    {
+      key: "facebookReport",
+      label: "Facebook",
+      icon: "bg-facebook-report",
+      iconActive: "bg-facebook-report-active",
       access: user?.access?.facebook,
     },
     {
       key: "devices",
       label: "Devices",
-      icon: "bg-devices-sidebar-icon",
-      iconActive: "bg-devices-focus-sidebar-icon",
+      icon: "bg-devices",
+      iconActive: "bg-devices-active",
       access: user?.access?.devices,
     },
   ];
@@ -45,7 +52,7 @@ const Sidebar = ({ activePanel, setActivePanel, user }) => {
   return (
     <div className="bg-white w-20 h-screen absolute left-0 z-50 flex flex-col items-center border-r">
       {/* Logo or App Icon at the top */}
-      <div className="my-2 bg-cover bg-mealzo-sidebar-icon w-12 h-12" />
+      <div className="my-2 bg-cover bg-mealzo w-12 h-12" />
 
       {/* Navigation Items (top) and Profile (bottom) */}
       <div className="w-full h-full flex flex-col items-center justify-between">

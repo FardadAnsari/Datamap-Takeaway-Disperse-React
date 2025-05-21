@@ -11,26 +11,22 @@ export default {
         "google-business": "url('/google-business.png')",
         "login-background": "url('/login-bg.png')",
         "mealzo-logo": "url('/mealzo-logo.svg')",
-        "mealzo-sidebar-icon": "url('/mealzo-sidebar-icon.svg')",
-        "companies-sidebar-icon": "url('src/assets/sidebar/companies.svg')",
-        "companies-focus-sidebar-icon":
-          "url('src/assets/sidebar/companies-focus.svg')",
-        "gbusiness-sidebar-icon": "url('src/assets/sidebar/g-business.svg')",
-        "gbusiness-focus-sidebar-icon":
-          "url('src/assets/sidebar/g-business-focus.svg')",
-        "gbusiness-map-sidebar-icon":
-          "url('src/assets/sidebar/g-business-map.svg')",
-        "gbusiness-map-focus-sidebar-icon":
-          "url('src/assets/sidebar/g-business-map-focus.svg')",
+        mealzo: "url('/sidebar/mealzo.svg')",
+        companies: "url('/sidebar/companies.svg')",
+        "companies-active": "url('/sidebar/companies-focus.svg')",
+        gbusiness: "url('/sidebar/g-business.svg')",
+        "gbusiness-active": "url('/sidebar/g-business-focus.svg')",
+        "gbusiness-map": "url('/sidebar/g-business-map.svg')",
+        "gbusiness-map-active": "url('/sidebar/g-business-map-focus.svg')",
+        "facebook-report": "url('/sidebar/fb-report.svg')",
+        "facebook-report-active": "url('/sidebar/fb-report-active.svg')",
         "googleb-button-icon": "url('src/assets/resultbar/googleb-button.svg')",
-        "facebook-sidebar-icon": "url('src/assets/sidebar/facebook.svg')",
-        "facebook-focus-sidebar-icon":
-          "url('src/assets/sidebar/facebook-focus.svg')",
+        facebook: "url('/sidebar/facebook.svg')",
+        "facebook-active": "url('/sidebar/facebook-focus.svg')",
         "facebook-resultbar-icon":
           "url('src/assets/resultbar/facebook-button.svg')",
-        "devices-sidebar-icon": "url('src/assets/sidebar/devices.svg')",
-        "devices-focus-sidebar-icon":
-          "url('src/assets/sidebar/devices-focus.svg')",
+        devices: "url('/sidebar/devices.svg')",
+        "devices-active": "url('/sidebar/devices-focus.svg')",
         "justeat-devices": "url('src/assets/devices/justeat-devices.svg')",
         "ubereats-devices": "url('src/assets/devices/ubereats-devices.svg')",
         "foodhub-devices": "url('src/assets/devices/foodhub-devices.svg')",

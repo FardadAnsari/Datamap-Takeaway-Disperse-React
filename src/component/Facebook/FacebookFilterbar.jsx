@@ -29,6 +29,8 @@ const FacebookFilterbar = ({
     name: "categories",
   });
 
+  console.log(categories);
+
   // Function to check if all inputs are empty
   const areAllInputsEmpty = () => {
     return (
@@ -104,7 +106,7 @@ const FacebookFilterbar = ({
                   {...field}
                   className="mb-4"
                   placeholder="Select Categories"
-                  options={(categories || []).map((c) => ({
+                  options={categories.map((c) => ({
                     value: c.page_category?.toLowerCase() || "",
                     label: c.page_category || "",
                   }))}
