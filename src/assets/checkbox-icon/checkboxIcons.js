@@ -1,4 +1,7 @@
+import { ReactComponent as BigFoodieIcon } from "./bigfoodie-checkbox-icon.svg";
 import { ReactComponent as DeliverooIcon } from "./deliveroo-checkbox-icon.svg";
+import { ReactComponent as FeedMeOnlineIcon } from "./feedmeonline-checkbox-icon.svg";
+import { ReactComponent as FoodziIcon } from "./foodzi-checkbox-icon.svg";
 import { ReactComponent as FoodHouseIcon } from "./foodhouse-checkbox-icon.svg";
 import { ReactComponent as FoodHubIcon } from "./foodhub-checkbox-icon.svg";
 import { ReactComponent as GoogleBusinessIcon } from "./googleb-checkbox-icon.svg";
@@ -12,7 +15,10 @@ import { ReactComponent as UberEatsIcon } from "./ubereats-checkbox-icon.svg";
 import { ReactComponent as WhatTheForkIcon } from "./whatthefork-checkbox-icon.svg";
 
 const companyIcons = {
+  bigfoodie: BigFoodieIcon,
   deliveroo: DeliverooIcon,
+  feedmeonline: FeedMeOnlineIcon,
+  foodzi: FoodziIcon,
   foodhub: FoodHubIcon,
   foodhouse: FoodHouseIcon,
   googlebusiness: GoogleBusinessIcon,

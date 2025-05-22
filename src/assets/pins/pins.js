@@ -1,4 +1,7 @@
+import { ReactComponent as BigFoodiePin } from "./bigfoodie-pin.svg";
 import { ReactComponent as DeliverooPin } from "./deliveroo-pin.svg";
+import { ReactComponent as FeedMeOnlinePin } from "./feedmeonline-pin.svg";
+import { ReactComponent as FoodziPin } from "./foodzi-pin.svg";
 import { ReactComponent as FoodHousePin } from "./foodhouse-pin.svg";
 import { ReactComponent as FoodHubPin } from "./foodhub-pin.svg";
 import { ReactComponent as GoogleBusinessPin } from "./googleb-pin.svg";
@@ -13,7 +16,10 @@ import { ReactComponent as UberEatsPin } from "./ubereats-pin.svg";
 import { ReactComponent as WhatTheForkPin } from "./whatthefork-pin.svg";
 
 const companyPins = {
+  bigfoodie: BigFoodiePin,
   deliveroo: DeliverooPin,
+  feedmeonline: FeedMeOnlinePin,
+  foodzi: FoodziPin,
   foodhouse: FoodHousePin,
   foodhub: FoodHubPin,
   googlebusiness: GoogleBusinessPin,

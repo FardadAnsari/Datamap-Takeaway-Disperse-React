@@ -1,8 +1,29 @@
 export const companies = [
   {
+    id: "bgf",
+    name: "Bigfoodie",
+    apiUrl: "/api/v1/companies/bigfoodie/",
+    requiresAuth: true,
+    type: "type1",
+  },
+  {
     id: "dlv",
     name: "Deliveroo",
     apiUrl: "/api/v1/companies/deliveroo/",
+    requiresAuth: true,
+    type: "type1",
+  },
+  {
+    id: "fdo",
+    name: "Feed Me Online",
+    apiUrl: "/api/v1/companies/feedmeonline/",
+    requiresAuth: true,
+    type: "type1",
+  },
+  {
+    id: "fdz",
+    name: "Foodzi",
+    apiUrl: "/api/v1/companies/foodzi/",
     requiresAuth: true,
     type: "type1",
   },
@@ -13,6 +34,7 @@ export const companies = [
     requiresAuth: true,
     type: "type1",
   },
+
   {
     id: "fhb",
     name: "Food Hub",
