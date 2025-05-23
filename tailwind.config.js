@@ -37,6 +37,7 @@ export default {
         "close-status": "url('/src/assets/status/close-status.svg')",
         "no-result": "url('/no-result-matching.svg')",
         "no-access": "url('/no-access-permission.svg')",
+        "refresh-button": "url('/button/refresh-button.svg')",
         "empty-state-chart":
           "url('src/assets/google-business-empty-states/empty-state-chart.svg')",
         "empty-state-hours":

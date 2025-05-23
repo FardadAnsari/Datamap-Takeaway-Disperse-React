@@ -8,6 +8,7 @@ import instanceF from "../../api/facebook";
 const FBReport = ({ isOpen }) => {
   const [AccountPagesCount, setAccountPagesCount] = useState([]);
   const [data, setData] = useState([]);
+  const [searchResultCount, setSearchResultCount] = useState(0);
   const [searchData, setSearchData] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -16,6 +17,7 @@ const FBReport = ({ isOpen }) => {
   const [loading, setLoading] = useState(false);
   const [isSearchActive, setIsSearchActive] = useState(false);
 
+  // Fetch data when currentPage or search toggle changes
   useEffect(() => {
     if (!isSearchActive) {
       fetchData(currentPage);
@@ -25,6 +27,7 @@ const FBReport = ({ isOpen }) => {
   //get access token from session storage
   const accessToken = sessionStorage.getItem("accessToken");
 
+  // Fetch paginated report data
   const fetchData = async (page) => {
     setLoading(true);
     try {
@@ -34,8 +37,8 @@ const FBReport = ({ isOpen }) => {
         },
       });
       console.log("facebook report pageData", response.data);
-
       setData(response.data.results);
+
       setTotalPages(response.data.totalPages);
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -44,6 +47,32 @@ const FBReport = ({ isOpen }) => {
     }
   };
 
+  // Update single item metrics and refresh data
+  const updateItem = async (item) => {
+    setLoading(true);
+    try {
+      const response = await instanceF.get(
+        `/update-fb-report-metric/${item.page_last_post_id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+      console.log("Updated item response:", response.data);
+      if (isSearchActive) {
+        fetchSearchData(searchTerm, currentPage);
+      } else {
+        fetchData(currentPage);
+      }
+    } catch (error) {
+      console.error("Error updating item:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch overall account stats when report panel opens
   useEffect(() => {
     isOpen &&
       instanceF
@@ -59,6 +88,7 @@ const FBReport = ({ isOpen }) => {
         .catch();
   }, [isOpen]);
 
+  // Navigate to a specific page
   const handlePageChange = (newPage) => {
     if (newPage >= 1 && newPage <= totalPages) {
       setCurrentPage(newPage);
@@ -73,18 +103,10 @@ const FBReport = ({ isOpen }) => {
     }
   };
 
+  // Handle manual page number input
   const handleInputChange = (e) => {
     setPageInput(e.target.value);
   };
-
-  // const handlePageSubmit = () => {
-  //   const page = parseInt(pageInput, 10);
-  //   if (!isNaN(page) && page >= 1 && page <= totalPages) {
-  //     setCurrentPage(page);
-  //   } else {
-  //     setPageInput(currentPage.toString());
-  //   }
-  // };
 
   const handlePageSubmit = () => {
     const page = parseInt(pageInput, 10);
@@ -100,6 +122,7 @@ const FBReport = ({ isOpen }) => {
     }
   };
 
+  // Fetch search results by term and page
   const fetchSearchData = async (term = "", page = 1) => {
     setLoading(true);
     try {
@@ -115,6 +138,7 @@ const FBReport = ({ isOpen }) => {
       setSearchData(response.data.results);
       setTotalPages(response.data.totalPages);
       setCurrentPage(response.data.currentPage);
+      setSearchResultCount(response.data.totalSearchhItem);
       setIsSearchActive(true);
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -123,6 +147,7 @@ const FBReport = ({ isOpen }) => {
     }
   };
 
+  // Search input handlers
   const handleSearchTermChange = (e) => {
     setSearchTerm(e.target.value);
   };
@@ -135,14 +160,14 @@ const FBReport = ({ isOpen }) => {
       setIsSearchActive(false);
     }
   };
-
+  // Clear search results
   const handleClearSearch = () => {
     setSearchTerm("");
     setSearchData([]);
     setIsSearchActive(false);
     fetchData(currentPage);
   };
-
+  // Navigate to next page
   const handleNextPage = () => {
     const nextPage = currentPage + 1;
     if (nextPage <= totalPages) {
@@ -155,7 +180,7 @@ const FBReport = ({ isOpen }) => {
       }
     }
   };
-
+  // Navigate to previous page
   const handlePreviousPage = () => {
     const prevPage = currentPage - 1;
     if (prevPage >= 1) {
@@ -168,7 +193,7 @@ const FBReport = ({ isOpen }) => {
       }
     }
   };
-
+  // Determine which dataset to render
   const tableData = isSearchActive ? searchData : data;
 
   return (
@@ -194,6 +219,7 @@ const FBReport = ({ isOpen }) => {
             />
           </div>
         </div>
+        {/* Search bar */}
         <div className="col-span-2 row-span-2 row-start-7">
           <div className="mb-4 flex">
             <input
@@ -217,7 +243,7 @@ const FBReport = ({ isOpen }) => {
           </div>
           {isSearchActive && (
             <div className="flex space-x-4">
-              <p>{searchData.length} Results found</p>
+              <p>{searchResultCount} Results found</p>
               <button
                 onClick={handleClearSearch}
                 className="text-orange-500 hover:text-orange-800"
@@ -227,35 +253,37 @@ const FBReport = ({ isOpen }) => {
             </div>
           )}
         </div>
+        {/* Data table section */}
         <div className="col-span-6 row-span-5 row-start-9 flex flex-col items-center gap-4">
           <table className="min-w-full bg-white rounded-lg shadow-md">
             <thead className="bg-gray-100">
               <tr>
-                <th className="w-52 py-3 text-center text-sm font-semibold text-gray-700 tracking-wider rounded-tl-lg">
+                <th className="w-24 py-3 text-center text-sm font-semibold text-gray-700 tracking-wider rounded-tl-lg"></th>
+                <th className="w-52 py-3 text-center text-sm font-semibold text-gray-700 tracking-wider ">
                   Shop Name
                 </th>
-                <th className="w-32 py-3 text-left text-sm font-semibold text-gray-700 tracking-wider text-center">
+                <th className="w-32 py-3 text-center text-sm font-semibold text-gray-700 tracking-wider">
                   Create Date
                 </th>
-                <th className="w-24 py-3 text-left text-sm font-semibold text-gray-700 tracking-wider text-center">
+                <th className="w-24 py-3 text-center text-sm font-semibold text-gray-700 tracking-wider">
                   Reach
                 </th>
-                <th className="w-24 py-3 text-left text-sm font-semibold text-gray-700 tracking-wider text-center">
+                <th className="w-24 py-3 text-center text-sm font-semibold text-gray-700 tracking-wider">
                   Shares
                 </th>
-                <th className="w-40 py-3 text-left text-sm font-semibold text-gray-700 tracking-wider text-center">
+                <th className="w-40 py-3 text-center text-sm font-semibold text-gray-700 tracking-wider">
                   Watch Time
                 </th>
-                <th className="w-44 py-3 text-left text-sm font-semibold text-gray-700 tracking-wider text-center">
+                <th className="w-44 py-3 text-center text-sm font-semibold text-gray-700 tracking-wider">
                   Average Watch Time
                 </th>
-                <th className="w-24 py-3 text-left text-sm font-semibold text-gray-700 tracking-wider text-center">
+                <th className="w-24 py-3 text-center text-sm font-semibold text-gray-700 tracking-wider">
                   Link Clicks
                 </th>
-                <th className="w-24 py-3 text-left text-sm font-semibold text-gray-700 tracking-wider text-center">
+                <th className="w-24 py-3 text-center text-sm font-semibold text-gray-700 tracking-wider">
                   Reactions
                 </th>
-                <th className="w-24 py-3 text-left text-sm font-semibold text-gray-700 tracking-wider text-center rounded-tr-lg">
+                <th className="w-24 py-3 text-center text-sm font-semibold text-gray-700 tracking-wider rounded-tr-lg">
                   Comments
                 </th>
               </tr>
@@ -263,7 +291,7 @@ const FBReport = ({ isOpen }) => {
             <tbody className="relative divide-y divide-gray-200 min-h-[200px]">
               {loading === true ? (
                 <tr>
-                  <td colSpan="5" className="h-80">
+                  <td colSpan="10" className="h-80">
                     <div className="flex items-center justify-center h-full">
                       <ThreeDots
                         visible={true}
@@ -272,15 +300,13 @@ const FBReport = ({ isOpen }) => {
                         color="#ffa500"
                         radius="9"
                         ariaLabel="three-dots-loading"
-                        wrapperStyle={{}}
-                        wrapperClass=""
                       />
                     </div>
                   </td>
                 </tr>
               ) : tableData.length === 0 ? (
                 <tr>
-                  <td colSpan="5" className="h-80">
+                  <td colSpan="10" className="h-80">
                     <div className="flex flex-col items-center justify-center h-full text-gray-500 gap-4">
                       <div className="w-44 h-44 bg-cover bg-no-result"></div>
                       <p>No Results Matching</p>
@@ -290,32 +316,37 @@ const FBReport = ({ isOpen }) => {
               ) : (
                 tableData.map((item, index) => (
                   <tr key={index}>
+                    <td className="text-sm text-center">
+                      <button
+                        onClick={() => updateItem(item)}
+                        className="w-8 h-8 bg-refresh-button bg-cover border border-green-400 rounded-lg border-2 text-blue-600 hover:text-blue-800 font-semibold"
+                      ></button>
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-ellipsis">
                       {item.page_name}
                     </td>
-
-                    <td className="w-20 text-sm text-center text-gray-900">
+                    <td className="text-sm text-center text-gray-900">
                       {item.page_last_post_created_time}
                     </td>
-                    <td className="w-20 text-sm text-center text-gray-900">
+                    <td className="text-sm text-center text-gray-900">
                       {item.page_last_post_impressions_unique}
                     </td>
-                    <td className="w-20 text-sm text-center text-gray-900">
+                    <td className="text-sm text-center text-gray-900">
                       {item.page_last_post_shares_count}
                     </td>
-                    <td className="w-20 text-sm text-center text-gray-900">
+                    <td className="text-sm text-center text-gray-900">
                       {item.page_last_post_video_view_time}
                     </td>
-                    <td className="w-40 text-sm text-center text-gray-900">
+                    <td className="text-sm text-center text-gray-900">
                       {item.page_last_post_video_avg_watched}
                     </td>
-                    <td className="w-20 text-sm text-center text-gray-900">
+                    <td className="text-sm text-center text-gray-900">
                       {item.page_last_post_link_clicks}
                     </td>
-                    <td className="w-20 text-sm text-center text-gray-900">
+                    <td className="text-sm text-center text-gray-900">
                       {item.page_last_post_reactions_count}
                     </td>
-                    <td className="w-20 text-sm text-center text-gray-900">
+                    <td className="text-sm text-center text-gray-900">
                       {item.page_last_post_comments_count}
                     </td>
                   </tr>
@@ -323,7 +354,7 @@ const FBReport = ({ isOpen }) => {
               )}
             </tbody>
           </table>
-
+          {/* Pagination controls */}
           <div className="w-full flex items-center justify-between">
             {currentPage > 2 ? (
               <button
