@@ -27,7 +27,7 @@ const FBDashboard = () => {
   const accessToken = sessionStorage.getItem("accessToken");
   useEffect(() => {
     instanceF
-      .get(`/facebook/fb-info/${pageId}`, {
+      .get(`/fb-info/${pageId}`, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
@@ -77,7 +77,7 @@ const FBDashboard = () => {
     if (!postId) return;
 
     instanceF
-      .get(`/facebook/fb-post-info/${postId}`, {
+      .get(`/fb-post-info/${postId}`, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
@@ -92,7 +92,7 @@ const FBDashboard = () => {
         if (error.response && error.response.status === 404 && Id) {
           // Try fallback request using `Id`
           instanceF
-            .get(`/facebook/fb-post-info/${Id}`, {
+            .get(`/fb-post-info/${Id}`, {
               headers: {
                 Authorization: `Bearer ${accessToken}`,
               },
@@ -115,7 +115,7 @@ const FBDashboard = () => {
 
   useEffect(() => {
     instanceF
-      .get(`/facebook/page-impressions-paid/${pageId}`, {
+      .get(`/page-impressions-paid/${pageId}`, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
@@ -139,7 +139,7 @@ const FBDashboard = () => {
 
   useEffect(() => {
     instanceF
-      .get(`/facebook/page-impressions-unique/${pageId}`, {
+      .get(`/page-impressions-unique/${pageId}`, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
@@ -163,7 +163,7 @@ const FBDashboard = () => {
 
   useEffect(() => {
     instanceF
-      .get(`/facebook/page-impressions-total/${pageId}`, {
+      .get(`/page-impressions-total/${pageId}`, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
