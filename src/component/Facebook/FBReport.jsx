@@ -3,7 +3,8 @@ import { IoIosArrowRoundBack, IoIosArrowRoundForward } from "react-icons/io";
 import CountUp from "react-countup";
 import { ThreeDots } from "react-loader-spinner";
 import { MdKeyboardDoubleArrowLeft } from "react-icons/md";
-import instanceF from "../../api/facebook";
+import instanceF from "../../api/facebookApi";
+import { Link } from "react-router-dom";
 
 const FBReport = ({ isOpen }) => {
   const [AccountPagesCount, setAccountPagesCount] = useState([]);
@@ -36,7 +37,7 @@ const FBReport = ({ isOpen }) => {
           Authorization: `Bearer ${accessToken}`,
         },
       });
-      console.log("facebook report pageData", response.data);
+      // console.log("facebook report pageData", response.data);
       setData(response.data.results);
 
       setTotalPages(response.data.totalPages);
@@ -82,7 +83,7 @@ const FBReport = ({ isOpen }) => {
           },
         })
         .then((response) => {
-          console.log(response.data);
+          // console.log(response.data);
           setAccountPagesCount(response.data);
         })
         .catch();
@@ -271,9 +272,7 @@ const FBReport = ({ isOpen }) => {
                 <th className="w-24 py-3 text-center text-sm font-semibold text-gray-700 tracking-wider">
                   Shares
                 </th>
-                <th className="w-40 py-3 text-center text-sm font-semibold text-gray-700 tracking-wider">
-                  Watch Time
-                </th>
+
                 <th className="w-44 py-3 text-center text-sm font-semibold text-gray-700 tracking-wider">
                   Average Watch Time
                 </th>
@@ -323,7 +322,13 @@ const FBReport = ({ isOpen }) => {
                       ></button>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-ellipsis">
-                      {item.page_name}
+                      <Link
+                        to={`/facebook/${item.page_last_post_id}`}
+                        target="_blank"
+                        className="text-blue-500"
+                      >
+                        {item.page_name}
+                      </Link>
                     </td>
                     <td className="text-sm text-center text-gray-900">
                       {item.page_last_post_created_time}
@@ -333,9 +338,6 @@ const FBReport = ({ isOpen }) => {
                     </td>
                     <td className="text-sm text-center text-gray-900">
                       {item.page_last_post_shares_count}
-                    </td>
-                    <td className="text-sm text-center text-gray-900">
-                      {item.page_last_post_video_view_time}
                     </td>
                     <td className="text-sm text-center text-gray-900">
                       {item.page_last_post_video_avg_watched}

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import instanceF from "../api/facebook";
+import instanceF from "../api/facebookApi";
 import { useParams } from "react-router-dom";
 import { HiMiniLink, HiOutlineEnvelope } from "react-icons/hi2";
 import { GrLocation } from "react-icons/gr";
