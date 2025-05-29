@@ -13,7 +13,7 @@ import Supercluster from "supercluster";
 import L from "leaflet";
 import instance from "../api/api";
 import ClusterMarker from "../component/ClusterMarker";
-import { Controller, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import pointInPolygon from "point-in-polygon";
 import { ColorRing } from "react-loader-spinner";
 import {
@@ -33,7 +33,7 @@ import {
 import CompaniesResultBar from "../component/Companies/CompaniesResultbar";
 import companyPins from "../assets/pins/pins";
 import { useUser } from "../api/userPermission";
-import CompaniesFilterbar from "../component/Companies/CompaniesFilterbar";
+
 import Profilebar from "../component/Profile/Profilebar";
 import { companies } from "../component/Companies/companies";
 import { googlebusiness } from "../component/GoogleBusiness/googlebusiness";
@@ -44,18 +44,15 @@ import ChangePasswordModal from "../component/Profile/ChangePasswordModal";
 import { IoIosArrowDown, IoIosArrowUp } from "react-icons/io";
 import DeviceStatus from "../component/Devices/DeviceStatus";
 import GoogleBusinessResultbar from "../component/GoogleBusiness/GoogleBusinessResultbar";
-import GoogleBusinessFilterbar from "../component/GoogleBusiness/GoogleBusinessFilterbar";
 import GBDashboard from "../component/GoogleBusiness/GBDashboard";
 
 import ShopPopup from "../component/ShopPopup";
 import Sidebar from "../component/Sidebar";
-import FacebookFilterbar from "../component/Facebook/FacebookFilterbar";
 import FacebookResultbar from "../component/Facebook/FacebookResultbar";
-import instanceF from "../api/facebook";
+import instanceF from "../api/facebookApi";
 import FBReport from "../component/Facebook/FBReport";
 import Filterbar from "../component/Filterbar";
 import companyIcons from "../assets/checkbox-icon/checkboxIcons";
-import ReactSlider from "react-slider";
 
 // Function to create a custom icon using a React component
 const createCustomIcon = (PinComponent, options = {}) => {
