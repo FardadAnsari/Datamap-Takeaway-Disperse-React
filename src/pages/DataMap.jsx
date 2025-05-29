@@ -13,7 +13,7 @@ import Supercluster from "supercluster";
 import L from "leaflet";
 import instance from "../api/api";
 import ClusterMarker from "../component/ClusterMarker";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import pointInPolygon from "point-in-polygon";
 import { ColorRing } from "react-loader-spinner";
 import {
@@ -53,6 +53,9 @@ import FacebookFilterbar from "../component/Facebook/FacebookFilterbar";
 import FacebookResultbar from "../component/Facebook/FacebookResultbar";
 import instanceF from "../api/facebook";
 import FBReport from "../component/Facebook/FBReport";
+import Filterbar from "../component/Filterbar";
+import companyIcons from "../assets/checkbox-icon/checkboxIcons";
+import ReactSlider from "react-slider";
 
 // Function to create a custom icon using a React component
 const createCustomIcon = (PinComponent, options = {}) => {
@@ -206,14 +209,17 @@ const DataMap = () => {
   // Reset handlers for the forms
   const handleResetCompanies = () => {
     resetCompanies();
+    setApiData([]);
   };
 
   const handleResetGoogleBusiness = () => {
     resetGoogleBusiness();
+    setApiData([]);
   };
 
   const handleResetFacebook = () => {
     resetFacebook();
+    setApiData([]);
   };
 
   // State for region, cuisine, and region boundary data
@@ -318,6 +324,7 @@ const DataMap = () => {
           setCategories(cachedData);
         } else {
           const response = await instanceF.get("/fb-geo-data-category/");
+          // console.log("categories", response.data);
           setCategories(response.data);
           await setCachedFacebookCategoryData("categories", response.data);
         }
@@ -585,7 +592,7 @@ const DataMap = () => {
       const fetchCompanyData = async (company) => {
         const cachedData = await getCachedCompanyData(company.id);
         if (cachedData) {
-          console.log(`using cached data for ${company.name}`);
+          // console.log(`using cached data for ${company.name}`);
           return cachedData;
         } else {
           try {
@@ -605,7 +612,7 @@ const DataMap = () => {
       };
 
       const response = await fetchCompanyData(facebookCompany);
-      console.log("Response from Face book:", response);
+      // console.log("Response from Face book:", response);
 
       let points = transformData(response, facebookCompany).filter((point) => {
         const [lon, lat] = point.geometry.coordinates;
@@ -619,7 +626,7 @@ const DataMap = () => {
         );
       });
 
-      console.log("Points after first filter:", points);
+      // console.log("Points after first filter:", points);
 
       const { searchTerm, categories } = data;
 
@@ -1124,42 +1131,114 @@ const DataMap = () => {
       />
 
       {/* CompaniesFilterbar component */}
-      <CompaniesFilterbar
-        reqRemainder={reqRemainder}
+
+      <Filterbar
+        title="Companies Filter"
         isOpen={activePanel === "companiesFilterbar"}
-        setIsOpen={(state) =>
-          setActivePanel(state ? "companiesFilterbar" : null)
-        }
-        registerCompanies={registerCompanies}
-        handleSubmitCompanies={handleSubmitCompanies}
-        controlCompanies={controlCompanies}
-        watchCompanies={watchCompanies}
-        region={region}
-        cuisine={cuisine}
-        companies={companies}
-        onSubmitCompanies={onSubmitCompanies}
-        onSubmitGoogleBusiness={onSubmitGoogleBusiness}
-        loadingCompanies={loadingCompanies}
-        errorCompanies={errorCompanies}
-        handleResetCompanies={handleResetCompanies}
+        control={controlCompanies}
+        register={registerCompanies}
+        handleSubmit={handleSubmitCompanies}
+        onSubmit={onSubmitCompanies}
+        onReset={handleResetCompanies}
+        error={errorCompanies}
+        loading={loadingCompanies}
+        disableSubmit={reqRemainder <= 0}
+        companyIcons={companyIcons}
+        fields={[
+          { name: "searchTerm", type: "text", placeholder: "Search Shop" },
+          {
+            name: "selectedCompanies",
+            type: "checkbox-list",
+            label: "Select Company (required)",
+            options: companies.map((company) => ({
+              value: company.apiUrl,
+              label: company.name,
+              iconKey: company.name.replace(/\s+/g, "").toLowerCase(),
+            })),
+          },
+          {
+            name: "region",
+            type: "multi-select",
+            label: "Select Regions",
+            options: region.map((r) => ({ value: r.value, label: r.label })),
+          },
+          {
+            name: "cuisine",
+            type: "multi-select",
+            label: "Select Categories",
+            options: cuisine.map((c) => ({
+              value: c.cuisine_name.toLowerCase(),
+              label: c.cuisine_name,
+            })),
+          },
+          {
+            name: "ratingRange",
+            type: "rating-slider",
+            label: "Select Rating Range",
+          },
+          {
+            name: "reviewRange",
+            type: "review-range",
+            label: "Select Review Range",
+            minRules: {
+              valueAsNumber: true,
+              min: { value: 0, message: "Min must be ≥ 0" },
+              validate: (v) =>
+                isNaN(v) ||
+                v <= watchCompanies("reviewRange.max") ||
+                "Min > Max",
+            },
+            maxRules: {
+              valueAsNumber: true,
+              min: { value: 0, message: "Max must be ≥ 0" },
+              validate: (v) =>
+                isNaN(v) ||
+                v >= watchCompanies("reviewRange.min") ||
+                "Max < Min",
+            },
+          },
+        ]}
       />
 
       {/* GoogleBusinessFilterbar component */}
-      <GoogleBusinessFilterbar
+
+      <Filterbar
+        title="Google Businesses Filter"
         isOpen={activePanel === "gbusinessFilterbar"}
-        setIsOpen={(state) =>
-          setActivePanel(state ? "gbusinessFilterbar" : null)
-        }
-        registerGoogleBusiness={registerGoogleBusiness}
-        handleSubmitGoogleBusiness={handleSubmitGoogleBusiness}
-        controlGoogleBusiness={controlGoogleBusiness}
-        region={region}
-        postcodeData={postcodeData}
-        cuisine={cuisine}
-        onSubmitGoogleBusiness={onSubmitGoogleBusiness}
-        loadingGoogleBusiness={loadingGoogleBusiness}
-        errorGoogleBusiness={errorGoogleBusiness}
-        handleResetGoogleBusiness={handleResetGoogleBusiness}
+        control={controlGoogleBusiness}
+        register={registerGoogleBusiness}
+        handleSubmit={handleSubmitGoogleBusiness}
+        onSubmit={onSubmitGoogleBusiness}
+        onReset={handleResetGoogleBusiness}
+        error={errorGoogleBusiness}
+        loading={loadingGoogleBusiness}
+        fields={[
+          { name: "searchTerm", type: "text", placeholder: "Search Shop" },
+          {
+            name: "region",
+            type: "multi-select",
+            label: "Select Regions",
+            options: region,
+          },
+          {
+            name: "postcode",
+            type: "single-select",
+            label: "Select Postcode",
+            options: postcodeData.map((p) => ({
+              value: p.postCode,
+              label: p.postCode,
+            })),
+          },
+          {
+            name: "cuisine",
+            type: "multi-select",
+            label: "Select Categories",
+            options: cuisine.map((c) => ({
+              value: c.cuisine_name.toLowerCase(),
+              label: c.cuisine_name,
+            })),
+          },
+        ]}
       />
 
       {/* GoogleBusinessPanel component */}
@@ -1171,21 +1250,35 @@ const DataMap = () => {
       />
 
       {/* FacebookFilterbar component */}
-      <FacebookFilterbar
+
+      <Filterbar
+        title="Facebook Filter"
         isOpen={activePanel === "facebookFilterbar"}
-        setIsOpen={(state) =>
-          setActivePanel(state ? "facebookFilterbar" : null)
-        }
-        registerFacebook={registerFacebook}
-        handleSubmitFacebook={handleSubmitFacebook}
-        controlFacebook={controlFacebook}
-        region={region}
-        postcodeData={postcodeData}
-        categories={categories}
-        onSubmitFacebook={onSubmitFacebook}
-        loadingFacebook={loadingFacebook}
-        errorFacebook={errorFacebook}
-        handleResetFacebook={handleResetFacebook}
+        control={controlFacebook}
+        register={registerFacebook}
+        handleSubmit={handleSubmitFacebook}
+        onSubmit={onSubmitFacebook}
+        onReset={handleResetFacebook}
+        error={errorFacebook}
+        loading={loadingFacebook}
+        fields={[
+          { name: "searchTerm", type: "text", placeholder: "Search Shop" },
+          {
+            name: "region",
+            type: "multi-select",
+            label: "Select Regions",
+            options: region.map((r) => ({ value: r.value, label: r.label })),
+          },
+          {
+            name: "categories",
+            type: "multi-select",
+            label: "Select Categories",
+            options: categories.map((c) => ({
+              value: c.page_category?.toLowerCase() || "",
+              label: c.page_category || "",
+            })),
+          },
+        ]}
       />
 
       {/* Facebook Report component */}
