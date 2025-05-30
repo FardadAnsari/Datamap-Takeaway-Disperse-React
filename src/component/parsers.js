@@ -107,9 +107,9 @@ export const parseFacebook = (item, company) => {
   const lat = parseFloat(item.page_location_latitude);
 
   if (isNaN(lat) || isNaN(lon)) {
-    console.warn(
-      `Invalid or missing coordinates for page_id: ${item.page_id || "Unknown"}`
-    );
+    // console.warn(
+    //   `Invalid or missing coordinates for page_id: ${item.page_id || "Unknown"}`
+    // );
     return null;
   }
 
@@ -157,6 +157,6 @@ export const transformData = (items, company) => {
     })
     .filter((item) => item !== null);
 
-  console.log(`Transformed data for ${company.name}:`, transformed);
+  // console.log(`Transformed data for ${company.name}:`, transformed);
   return transformed;
 };
