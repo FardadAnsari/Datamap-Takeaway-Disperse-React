@@ -21,7 +21,8 @@ export function useUser() {
   };
 
   const { data, error, isLoading } = useSWR(
-    "https://takeawaytracker.mealzo.co.uk/account/user/",
+    "https://google.mega-data.co.uk/account/user/",
+    // "https://takeawaytracker.mealzo.co.uk/account/user/",
     // "https://marketing.mealzo.co.uk/account/user/",
 
     fetcher
