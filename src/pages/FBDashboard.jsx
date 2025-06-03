@@ -35,7 +35,7 @@ const FBDashboard = () => {
       .then((response) => {
         setPageInfoData(response.data);
         setPostId(response.data.live_post);
-        console.log(response.data);
+        // console.log(response.data);
       })
       .catch((error) => {
         console.log(error);
@@ -84,9 +84,9 @@ const FBDashboard = () => {
       })
       .then((response) => {
         setPostInfoData(response.data);
-        console.log(response.data);
-        console.log(response.status);
-        console.log(response.data.attachments.data[0].media_type);
+        // console.log(response.data);
+        // console.log(response.status);
+        // console.log(response.data.attachments.data[0].media_type);
       })
       .catch((error) => {
         if (error.response && error.response.status === 404 && Id) {
@@ -99,7 +99,7 @@ const FBDashboard = () => {
             })
             .then((response) => {
               setPostInfoData(response.data);
-              console.log(response.data);
+              // console.log(response.data);
               console.log(response.data.attachments.data[0].media_type);
             })
             .catch((error) => {
@@ -121,7 +121,7 @@ const FBDashboard = () => {
         },
       })
       .then((response) => {
-        console.log(response.data);
+        // console.log(response.data);
         setPageImpressionPaid(
           response.data.values.map((entry) => ({
             name: entry.end_time,
@@ -145,7 +145,7 @@ const FBDashboard = () => {
         },
       })
       .then((response) => {
-        console.log(response.data);
+        // console.log(response.data);
         setPageImpressionUnique(
           response.data.values.map((entry) => ({
             name: entry.end_time,
@@ -169,7 +169,7 @@ const FBDashboard = () => {
         },
       })
       .then((response) => {
-        console.log(response.data);
+        // console.log(response.data);
         setPageImpressionTotal(
           response.data.values.map((entry) => ({
             name: entry.end_time,
