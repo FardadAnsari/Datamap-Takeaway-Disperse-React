@@ -75,7 +75,7 @@ const Sidebar = ({ activePanel, setActivePanel, user }) => {
             >
               {/* Dynamic icon: focus or default */}
               <div
-                className={`my-1 bg-cover w-7 h-7  ${
+                className={`my-1 bg-cover w-7 h-7 ${
                   activePanel === key ? iconActive : icon
                 }`}
               ></div>
