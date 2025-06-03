@@ -61,7 +61,7 @@ const Sidebar = ({ activePanel, setActivePanel, user }) => {
           {items.map(({ key, label, icon, iconActive, access }) => (
             <button
               key={key}
-              className={`py-4 text-center flex flex-col items-center ${
+              className={`py-2 text-center flex flex-col items-center ${
                 activePanel === key ? "bg-orange-100 text-orange-600" : ""
               } ${
                 access === false
@@ -75,11 +75,11 @@ const Sidebar = ({ activePanel, setActivePanel, user }) => {
             >
               {/* Dynamic icon: focus or default */}
               <div
-                className={`my-1 bg-cover w-7 h-7 ${
+                className={`my-1 bg-cover w-7 h-7  ${
                   activePanel === key ? iconActive : icon
                 }`}
-              />
-              <p className="text-sm">{label}</p>
+              ></div>
+              <p className="2xl:text-sm text-xs">{label}</p>
             </button>
           ))}
         </div>

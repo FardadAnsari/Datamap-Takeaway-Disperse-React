@@ -172,7 +172,7 @@ const CompaniesResultBar = ({
               <div className="flex-1 overflow-y-auto">
                 <p>Total result {commonShops.length}</p>
                 <Virtuoso
-                  style={{ height: "95%", width: "100%" }}
+                  style={{ height: "94%", width: "100%" }}
                   totalCount={Math.min(visibleCommonShops, commonShops.length)}
                   itemContent={(index) => {
                     const shop = commonShops[index];
