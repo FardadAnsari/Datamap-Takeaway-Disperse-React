@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const instanceF = axios.create({
-  baseURL: "https://marketing.mealzo.co.uk/facebook",
+  baseURL: "https://facebook.mega-data.co.uk/facebook",
   headers: {
     "Content-Type": "application/json",
   },
