@@ -5,7 +5,7 @@ import {
   IoIosArrowRoundForward,
 } from "react-icons/io";
 import { GoDotFill } from "react-icons/go";
-import instance from "../../api/statusApi";
+import instance from "../../api/deviceApi";
 import CountUp from "react-countup";
 import { ThreeDots } from "react-loader-spinner";
 import { MdKeyboardDoubleArrowLeft } from "react-icons/md";
