@@ -1,4 +1,5 @@
-export const parseType1 = (item, company) => {
+// Parses companies' data except Mealzo item into GeoJSON format
+export const parseCompanies = (item, company) => {
   const lon = parseFloat(item.longitude);
   const lat = parseFloat(item.latitude);
   if (isNaN(lat) || isNaN(lon)) return null;
@@ -29,10 +30,16 @@ export const parseType1 = (item, company) => {
   };
 };
 
-export const parseType2 = (item, company) => {
+// Parses a Mealzo company item into GeoJSON format
+export const parseMealzo = (item, company) => {
   const lon = parseFloat(item.Longitude);
   const lat = parseFloat(item.Latitude);
-  if (isNaN(lat) || isNaN(lon)) return null;
+  if (
+    isNaN(lat) ||
+    isNaN(lon) ||
+    String(item.Account_Status).toLowerCase() !== "active"
+  )
+    return null;
 
   return {
     type: "Feature",
@@ -53,15 +60,14 @@ export const parseType2 = (item, company) => {
   };
 };
 
+// Parses a Google Business item into GeoJSON format
 export const parseGoogleBusiness = (item, company) => {
   if (
     !item.latlng ||
     typeof item.latlng.longitude === "undefined" ||
     typeof item.latlng.latitude === "undefined"
   ) {
-    // console.warn(
-    //   `Location data missing for shop_id: ${item.shop_id || "Unknown"}`
-    // );
+    // console.warn(`Location data missing for shop_id: ${item.shop_id || "Unknown"}`);
     return null;
   }
   const lon = parseFloat(item.latlng.longitude);
@@ -102,14 +108,13 @@ export const parseGoogleBusiness = (item, company) => {
   };
 };
 
+// Parses a Facebook page item into GeoJSON format
 export const parseFacebook = (item, company) => {
   const lon = parseFloat(item.page_location_longitude);
   const lat = parseFloat(item.page_location_latitude);
 
   if (isNaN(lat) || isNaN(lon)) {
-    // console.warn(
-    //   `Invalid or missing coordinates for page_id: ${item.page_id || "Unknown"}`
-    // );
+    // console.warn(`Invalid or missing coordinates for page_id: ${item.page_id || "Unknown"}`);
     return null;
   }
 
@@ -138,14 +143,15 @@ export const parseFacebook = (item, company) => {
   };
 };
 
+// Transforms a list of items from different company types into GeoJSON features
 export const transformData = (items, company) => {
   const transformed = items
     .map((item) => {
       switch (company.type) {
         case "type1":
-          return parseType1(item, company);
+          return parseCompanies(item, company);
         case "type2":
-          return parseType2(item, company);
+          return parseMealzo(item, company);
         case "type3":
           return parseGoogleBusiness(item, company);
         case "type4":
