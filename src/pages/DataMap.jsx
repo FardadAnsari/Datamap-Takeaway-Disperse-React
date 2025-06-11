@@ -442,6 +442,7 @@ const DataMap = () => {
                 Authorization: `Bearer ${accessToken}`,
               },
             });
+            console.log(`Raw response for ${company.name}:`, response.data);
             await setCachedCompanyData(company.id, response.data);
             // console.log(`received and cached data for ${company.name}`);
             return response.data;
@@ -769,7 +770,7 @@ const DataMap = () => {
               },
             });
             await setCachedCompanyData(company.id, response.data);
-            // console.log(`recieve and cache data for ${company.name}`);
+            console.log(`recieve and cache data for ${company.name}`);
             return response.data;
           } catch (error) {
             console.error(`error in fetching data ${company.name}:`, error);
@@ -787,7 +788,7 @@ const DataMap = () => {
       );
 
       const responses = await Promise.all(requests);
-      // console.log("response from companies", responses);
+      console.log("response from companies", responses);
 
       let points = responses
         .flatMap((res, index) => transformData(res, selectedCompanyList[index]))
