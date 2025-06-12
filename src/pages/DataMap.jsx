@@ -283,7 +283,7 @@ const DataMap = () => {
           await setCachedRegionData("region", response.data);
         }
       } catch (error) {
-        console.log(error);
+        console.error(error);
       }
     };
     fetchRegion();
@@ -304,7 +304,7 @@ const DataMap = () => {
           await setCachedCuisineData("cuisine", response.data);
         }
       } catch (error) {
-        console.log(error);
+        console.error(error);
       }
     };
     fetchCuisine();
@@ -442,7 +442,7 @@ const DataMap = () => {
                 Authorization: `Bearer ${accessToken}`,
               },
             });
-            console.log(`Raw response for ${company.name}:`, response.data);
+            // console.log(`Raw response for ${company.name}:`, response.data);
             await setCachedCompanyData(company.id, response.data);
             // console.log(`received and cached data for ${company.name}`);
             return response.data;
@@ -600,7 +600,7 @@ const DataMap = () => {
               },
             });
             await setCachedCompanyData(company.id, response.data);
-            console.log(`received and cached data for ${company.name}`);
+            // console.log(`received and cached data for ${company.name}`);
             return response.data;
           } catch (error) {
             console.error(`error in fetching data ${company.name}:`, error);
@@ -770,7 +770,7 @@ const DataMap = () => {
               },
             });
             await setCachedCompanyData(company.id, response.data);
-            console.log(`recieve and cache data for ${company.name}`);
+            // console.log(`recieve and cache data for ${company.name}`);
             return response.data;
           } catch (error) {
             console.error(`error in fetching data ${company.name}:`, error);
@@ -788,7 +788,8 @@ const DataMap = () => {
       );
 
       const responses = await Promise.all(requests);
-      console.log("response from companies", responses);
+
+      // console.log("response from companies", responses);
 
       let points = responses
         .flatMap((res, index) => transformData(res, selectedCompanyList[index]))
@@ -1122,11 +1123,7 @@ const DataMap = () => {
   return (
     <div className="relative h-screen w-screen overflow-hidden">
       {/* Sidebar with navigation buttons */}
-      <Sidebar
-        activePanel={activePanel}
-        setActivePanel={setActivePanel}
-        user={user}
-      />
+      <Sidebar activePanel={activePanel} setActivePanel={setActivePanel} />
 
       {/* CompaniesFilterbar component */}
 
@@ -1142,6 +1139,7 @@ const DataMap = () => {
         loading={loadingCompanies}
         disableSubmit={reqRemainder <= 0}
         companyIcons={companyIcons}
+        reqRemainder={reqRemainder}
         fields={[
           { name: "searchTerm", type: "text", placeholder: "Search Shop" },
           {
@@ -1295,7 +1293,6 @@ const DataMap = () => {
       <Profilebar
         isOpen={activePanel === "profile"}
         setIsOpen={(state) => setActivePanel(state ? "profile" : null)}
-        user={user}
         onLogoutClick={handleLogoutClick}
         onChangePassClick={handleChangePassClick}
       />
@@ -1433,7 +1430,7 @@ const DataMap = () => {
                   }}
                 >
                   <Popup className="p-0 m-0 custom-popup" offset={[-1, -30]}>
-                    <ShopPopup marker={marker} user={user} />
+                    <ShopPopup marker={marker} />
                   </Popup>
                 </Marker>
               );

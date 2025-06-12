@@ -8,6 +8,7 @@ import { GrLocation, GrMapLocation } from "react-icons/gr";
 import { SlSocialFacebook, SlSocialGoogle } from "react-icons/sl";
 import { Link } from "react-router-dom";
 import companyIcons from "../assets/checkbox-icon/checkboxIcons";
+import { useUser } from "../api/userPermission";
 
 //  InfoRow renders a label + value row with fallback to "None" if empty.
 const InfoRow = ({ icon, label, value }) => (
@@ -42,7 +43,9 @@ const LinkRow = ({ icon, label, link }) => (
 );
 
 // ShopPopup component renders the content of the Leaflet <Popup> for each shop marker.
-const ShopPopup = ({ marker, user }) => {
+const ShopPopup = ({ marker }) => {
+  const { user } = useUser();
+
   // Normalize company key (e.g., "Google Business" => "googlebusiness")
   const companyKey = marker.properties.company
     .replace(/\s+/g, "")

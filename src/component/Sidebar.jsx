@@ -1,8 +1,11 @@
 import { RiAccountCircleFill } from "react-icons/ri";
+import { useUser } from "../api/userPermission";
 
 // Sidebar navigation component for the DataMap app.
 
-const Sidebar = ({ activePanel, setActivePanel, user }) => {
+const Sidebar = ({ activePanel, setActivePanel }) => {
+  const { user } = useUser();
+
   // Define each sidebar item: its key, label, icon classes, and access permission
   const items = [
     {

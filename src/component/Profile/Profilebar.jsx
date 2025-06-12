@@ -1,4 +1,3 @@
-import { IoIosArrowBack } from "react-icons/io";
 import { MdAccountCircle } from "react-icons/md";
 import { GoOrganization } from "react-icons/go";
 import { RiLockPasswordLine, RiLogoutCircleRLine } from "react-icons/ri";

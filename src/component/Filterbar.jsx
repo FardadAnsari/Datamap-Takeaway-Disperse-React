@@ -2,6 +2,7 @@ import Select from "react-select";
 import { Controller, useWatch } from "react-hook-form";
 import ReactSlider from "react-slider";
 import AutoCompletionMultiSelectStyles from "./AutoCompletionMultiSelectStyles";
+import { useUser } from "../api/userPermission";
 
 const Filterbar = ({
   title,
@@ -18,7 +19,6 @@ const Filterbar = ({
   watch,
   companyIcons,
   reqRemainder,
-  user,
 }) => {
   const watchedFields = useWatch({ control });
 
@@ -33,6 +33,9 @@ const Filterbar = ({
     );
   };
 
+  const { user } = useUser();
+  console.log(user);
+
   return (
     <div
       className={`w-80 absolute top-0 left-20 flex flex-col h-full bg-white z-10 transition-transform duration-300 ease-in-out ${
@@ -44,7 +47,7 @@ const Filterbar = ({
         style={{ height: "10%" }}
       >
         <span className="text-xl font-bold">{title}</span>
-        {user?.isLimited && (
+        {title === "Companies Filter" && user?.isLimited && (
           <div className="flex text-orange-500 font-bold gap-1">
             <span>{reqRemainder}</span>
             <span>/</span>
