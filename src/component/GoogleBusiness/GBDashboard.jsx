@@ -13,8 +13,9 @@ import { useNavigate } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import { useUser } from "../../api/userPermission";
 import { IoInformationCircleSharp } from "react-icons/io5";
-
-import { IoIosArrowBack } from "react-icons/io";
+import { MdOutlinePermMedia } from "react-icons/md";
+import { MdPermMedia } from "react-icons/md";
+import GoogleBusinessUploadModal from "./GoogleBusinessUploadModal";
 
 const GBDashboard = ({ isOpen }) => {
   const { user } = useUser();
@@ -337,14 +338,29 @@ const GBDashboard = ({ isOpen }) => {
                   selectedBusInfo &&
                   isVerified && (
                     <button
-                      onClick={() => handleEditOpen(4)}
+                      onClick={() => handleEditOpen(1)}
                       className={`flex justify-between items-center py-2 px-2 text-lg text-orange-500 text-left transition ease-in delay-190 bg-orange-100 rounded-lg`}
                     >
-                      {editOpen === 4 ? <LuPencilLine /> : <LuPencil />}
+                      {editOpen === 1 ? <LuPencilLine /> : <LuPencil />}
+                    </button>
+                  )}
+                {user?.access?.gbDashboardEdit &&
+                  selectedBusInfo &&
+                  isVerified && (
+                    <button
+                      onClick={() => handleEditOpen(2)}
+                      className={`flex justify-between items-center py-2 px-2 text-lg text-orange-500 text-left transition ease-in delay-190 bg-orange-100 rounded-lg`}
+                    >
+                      {editOpen === 2 ? (
+                        <MdPermMedia size={20} />
+                      ) : (
+                        <MdOutlinePermMedia size={20} />
+                      )}
                     </button>
                   )}
               </div>
             </div>
+
             {user?.access?.gbDashboardEdit && (
               <div className="flex items-center gap-2 border-2 border-orange-300 p-2 rounded-lg">
                 <IoInformationCircleSharp color="orange" size={26} />
@@ -353,7 +369,8 @@ const GBDashboard = ({ isOpen }) => {
                 </p>
               </div>
             )}
-            {editOpen === 4 && (
+
+            {editOpen === 1 && (
               <GoogleBusinessModal
                 isOpen={true}
                 onClose={() => setEditOpen(null)}
@@ -362,6 +379,15 @@ const GBDashboard = ({ isOpen }) => {
                 webUrl={weburl}
                 phoneNumber={shopPhone.primaryPhone}
                 shopAddress={shopAddress}
+              />
+            )}
+
+            {editOpen === 2 && (
+              <GoogleBusinessUploadModal
+                isOpen={true}
+                onClose={() => setEditOpen(null)}
+                locationId={locationId}
+                selectedAcc={selectedAcc}
               />
             )}
 
