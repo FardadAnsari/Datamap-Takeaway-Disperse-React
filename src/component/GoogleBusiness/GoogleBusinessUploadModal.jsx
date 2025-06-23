@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { IoMdClose } from "react-icons/io";
-import { FaFilePdf, FaImage } from "react-icons/fa";
+import { IoCloudUploadOutline } from "react-icons/io5";
+import { FaFilePdf, FaImage, FaRegTrashAlt } from "react-icons/fa";
 import instance from "../../api/api";
 
 const GoogleBusinessUploadModal = ({
@@ -16,43 +17,94 @@ const GoogleBusinessUploadModal = ({
   const [activeTab, setActiveTab] = useState("uploadfiles");
   const [activeCategory, setActiveCategory] = useState("COVER");
   const [uploads, setUploads] = useState([]);
-
   const [fetchedMedias, setFetchedMedias] = useState([]);
   const [loadingFiles, setLoadingFiles] = useState(false);
   const [mediaFilter, setMediaFilter] = useState("All");
+  const [currentIndexes, setCurrentIndexes] = useState({
+    All: 0,
+    COVER: 0,
+    LOGO: 0,
+    MENU: 0,
+    ADDITIONAL: 0,
+  });
 
-  const [currentIndex, setCurrentIndex] = useState(0); // for custom carousel
+  const normalizeCategory = (raw) => {
+    const cat = raw?.toUpperCase?.() || "";
+    if (cat === "PROFILE") return "LOGO";
+    if (["COVER", "LOGO", "MENU", "ADDITIONAL"].includes(cat)) return cat;
+    return "ADDITIONAL";
+  };
+
+  const formatCategory = (cat) =>
+    cat.charAt(0).toUpperCase() + cat.slice(1).toLowerCase();
+
+  const getFilteredMedia = () =>
+    mediaFilter === "All"
+      ? fetchedMedias
+      : fetchedMedias.filter(
+          (file) =>
+            normalizeCategory(file.locationAssociation?.category) ===
+            mediaFilter
+        );
+
+  const fetchFiles = async () => {
+    setLoadingFiles(true);
+    try {
+      const response = await instance.get(
+        `/api/v1/google/media/${accountId}/${locationId}/`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+      setFetchedMedias(response.data || []);
+      console.log(response.data);
+    } catch (error) {
+      console.error("Error fetching media files:", error);
+    } finally {
+      setLoadingFiles(false);
+    }
+  };
 
   useEffect(() => {
     if (activeTab === "viewfiles") {
-      const fetchFiles = async () => {
-        setLoadingFiles(true);
-        try {
-          const response = await instance.get(
-            `/api/v1/google/media/${accountId}/${locationId}/`,
-            {
-              headers: {
-                Authorization: `Bearer ${accessToken}`,
-              },
-            }
-          );
-          setFetchedMedias(response.data || []);
-        } catch (error) {
-          console.error("Error fetching media files:", error);
-        } finally {
-          setLoadingFiles(false);
-        }
-      };
-
       fetchFiles();
     }
   }, [activeTab, accountId, locationId, accessToken]);
+
+  const handleDeleteMedia = async () => {
+    const currentMedia = getFilteredMedia()[currentIndexes[mediaFilter]];
+    if (!currentMedia) return;
+
+    if (!window.confirm("Are you sure you want to delete this image?")) return;
+
+    const mediaId = currentMedia.name.split("/").pop();
+
+    try {
+      await instance.delete(
+        `/api/v1/google/media/${accountId}/${locationId}/${mediaId}/delete/`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+      await fetchFiles(); // Refresh list
+      setCurrentIndexes((prev) => ({
+        ...prev,
+        [mediaFilter]: 0,
+      }));
+    } catch (error) {
+      console.error("Failed to delete media:", error);
+      alert("Error deleting media.");
+    }
+  };
 
   if (!isOpen) return null;
 
   const handleFileUpload = (e) => {
     const files = Array.from(e.target.files);
-
     const newUploads = files.map((file) => ({
       file,
       name: file.name,
@@ -61,9 +113,7 @@ const GoogleBusinessUploadModal = ({
       status: "uploading",
       progress: 0,
     }));
-
     setUploads((prev) => [...prev, ...newUploads]);
-
     newUploads.forEach((upload) => uploadFile(upload));
   };
 
@@ -93,7 +143,6 @@ const GoogleBusinessUploadModal = ({
           },
         }
       );
-
       const success = response.status >= 200 && response.status < 300;
       setUploads((prev) =>
         prev.map((u) =>
@@ -103,6 +152,7 @@ const GoogleBusinessUploadModal = ({
         )
       );
     } catch (error) {
+      console.error(error);
       setUploads((prev) =>
         prev.map((u) =>
           u.name === upload.name ? { ...u, status: "failed" } : u
@@ -123,20 +173,22 @@ const GoogleBusinessUploadModal = ({
     setUploads((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const filteredMedia = fetchedMedias.filter((file) =>
-    mediaFilter === "All" ? true : file.category === mediaFilter
-  );
-
   const goToPrev = () => {
-    setCurrentIndex((prev) =>
-      prev === 0 ? filteredMedia.length - 1 : prev - 1
-    );
+    const filtered = getFilteredMedia();
+    setCurrentIndexes((prev) => ({
+      ...prev,
+      [mediaFilter]:
+        prev[mediaFilter] === 0 ? filtered.length - 1 : prev[mediaFilter] - 1,
+    }));
   };
 
   const goToNext = () => {
-    setCurrentIndex((prev) =>
-      prev === filteredMedia.length - 1 ? 0 : prev + 1
-    );
+    const filtered = getFilteredMedia();
+    setCurrentIndexes((prev) => ({
+      ...prev,
+      [mediaFilter]:
+        prev[mediaFilter] === filtered.length - 1 ? 0 : prev[mediaFilter] + 1,
+    }));
   };
 
   const modalContent = (
@@ -157,10 +209,7 @@ const GoogleBusinessUploadModal = ({
               key={tab}
               onClick={() => {
                 setActiveTab(tab);
-                if (tab === "viewfiles") {
-                  setMediaFilter("All");
-                  setCurrentIndex(0);
-                }
+                if (tab === "viewfiles") setMediaFilter("All");
               }}
               className={`flex-1 px-4 py-2 text-sm font-medium ${
                 activeTab === tab ? "bg-black text-white" : "text-gray-700"
@@ -181,28 +230,32 @@ const GoogleBusinessUploadModal = ({
                   onClick={() => setActiveCategory(cat)}
                   className={`px-3 py-1 rounded-full border ${
                     activeCategory === cat
-                      ? "bg-black text-white"
+                      ? "bg-orange-500 text-white"
                       : "text-gray-600"
                   }`}
                 >
-                  {cat.charAt(0).toUpperCase() + cat.slice(1).toLowerCase()}
+                  {formatCategory(cat)}
                 </button>
               ))}
             </div>
 
             <div className="border-2 border-dashed border-gray-300 p-6 text-center rounded-md">
+              <IoCloudUploadOutline size={20} />
               <p className="text-sm mb-2">
                 Choose a file or drag & drop it here.
                 <br />
-                JPEG, PNG, PDF, MP4 up to 50 MB.
+                JPEG, JPG, PNG, up to 20 MB.
               </p>
-              <input
-                type="file"
-                multiple
-                accept=".jpg,.jpeg,.png,.pdf,.mp4"
-                onChange={handleFileUpload}
-                className="mx-auto mt-2"
-              />
+              <label className="inline-block border mt-4 text-sm px-4 py-2 rounded cursor-pointer hover:bg-gray-100 transition">
+                Browse File
+                <input
+                  type="file"
+                  multiple
+                  accept=".jpg,.jpeg,.png"
+                  onChange={handleFileUpload}
+                  className="hidden"
+                />
+              </label>
             </div>
 
             {uploads.length > 0 && (
@@ -223,7 +276,6 @@ const GoogleBusinessUploadModal = ({
                           {upload.name}
                         </span>
                       </div>
-
                       <div className="flex items-center gap-2">
                         {upload.status === "uploading" && (
                           <span className="text-yellow-600">Uploading...</span>
@@ -250,7 +302,6 @@ const GoogleBusinessUploadModal = ({
                         </button>
                       </div>
                     </div>
-
                     {upload.status === "uploading" && (
                       <div className="mt-1">
                         <div className="w-full bg-gray-200 h-2 rounded">
@@ -275,19 +326,12 @@ const GoogleBusinessUploadModal = ({
         {activeTab === "viewfiles" && (
           <>
             <div className="flex gap-2 mb-4 overflow-x-auto text-sm">
-              {[
-                "All",
-                "COVER",
-                "MENU",
-                "FOOD & DRINK",
-                "VIBE",
-                "COMFORT FOOD",
-              ].map((cat) => (
+              {["All", "COVER", "LOGO", "MENU", "ADDITIONAL"].map((cat) => (
                 <button
                   key={cat}
                   onClick={() => {
                     setMediaFilter(cat);
-                    setCurrentIndex(0);
+                    setCurrentIndexes((prev) => ({ ...prev, [cat]: 0 }));
                   }}
                   className={`px-3 py-1 rounded-full border whitespace-nowrap ${
                     mediaFilter === cat
@@ -295,7 +339,7 @@ const GoogleBusinessUploadModal = ({
                       : "text-gray-600"
                   }`}
                 >
-                  {cat}
+                  {formatCategory(cat)}
                 </button>
               ))}
             </div>
@@ -304,7 +348,7 @@ const GoogleBusinessUploadModal = ({
               <p className="text-center text-sm text-gray-500">
                 Loading files...
               </p>
-            ) : filteredMedia.length === 0 ? (
+            ) : getFilteredMedia().length === 0 ? (
               <p className="text-center text-sm text-gray-500">
                 No media found.
               </p>
@@ -312,11 +356,24 @@ const GoogleBusinessUploadModal = ({
               <div className="relative w-full h-64 bg-gray-100 rounded overflow-hidden">
                 <div className="w-full h-full flex justify-center items-center">
                   <img
-                    src={filteredMedia[currentIndex].sourceUrl}
-                    alt={filteredMedia[currentIndex].fileName || "Image"}
+                    src={
+                      getFilteredMedia()[currentIndexes[mediaFilter]]?.googleUrl
+                    }
+                    alt={
+                      getFilteredMedia()[currentIndexes[mediaFilter]]
+                        ?.fileName || "Image"
+                    }
                     className="max-h-full max-w-full object-contain"
                   />
                 </div>
+
+                {/* Delete button */}
+                <button
+                  onClick={handleDeleteMedia}
+                  className="absolute top-2 right-2 bg-red-100 hover:bg-red-200 text-white p-1 text-xs rounded shadow"
+                >
+                  <FaRegTrashAlt color="red" size={16} />
+                </button>
 
                 <button
                   onClick={goToPrev}
@@ -332,12 +389,19 @@ const GoogleBusinessUploadModal = ({
                 </button>
 
                 <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex gap-1">
-                  {filteredMedia.map((_, idx) => (
+                  {getFilteredMedia().map((_, idx) => (
                     <button
                       key={idx}
-                      onClick={() => setCurrentIndex(idx)}
+                      onClick={() =>
+                        setCurrentIndexes((prev) => ({
+                          ...prev,
+                          [mediaFilter]: idx,
+                        }))
+                      }
                       className={`w-2 h-2 rounded-full ${
-                        idx === currentIndex ? "bg-black" : "bg-gray-400"
+                        idx === currentIndexes[mediaFilter]
+                          ? "bg-black"
+                          : "bg-gray-400"
                       }`}
                     />
                   ))}
@@ -346,15 +410,6 @@ const GoogleBusinessUploadModal = ({
             )}
           </>
         )}
-
-        <div className="flex justify-end gap-2 mt-6">
-          <button
-            className="px-4 py-2 text-sm rounded bg-gray-200 hover:bg-gray-300"
-            onClick={onClose}
-          >
-            Cancel
-          </button>
-        </div>
       </div>
     </div>
   );

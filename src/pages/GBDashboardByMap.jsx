@@ -12,8 +12,11 @@ import { ToastContainer } from "react-toastify";
 import GoogleBusinessModal from "../component/GoogleBusiness/GoogleBusinessModal";
 import { useUser } from "../api/userPermission";
 import { LuPencil, LuPencilLine } from "react-icons/lu";
+import { MdOutlinePermMedia, MdPermMedia } from "react-icons/md";
+import GoogleBusinessUploadModal from "../component/GoogleBusiness/GoogleBusinessUploadModal";
 
 const GBDashboardByMap = () => {
+  const selectedAcc = { value: "accounts/103526686887949354169" };
   const { locationId } = useParams();
 
   const [editOpen, setEditOpen] = useState(null);
@@ -36,7 +39,6 @@ const GBDashboardByMap = () => {
         const response = await instance.get(
           `api/v1/google/verifications/${locationId}`
         );
-        console.log(response);
 
         // Handle empty response.data or missing verifications property
         if (response.data && response.data.verifications) {
@@ -250,7 +252,19 @@ const GBDashboardByMap = () => {
                     onClick={() => handleEditOpen(4)}
                     className={`flex justify-between items-center py-2 px-2 text-lg text-orange-500 text-left transition ease-in delay-190 bg-orange-100 rounded-lg`}
                   >
-                    {editOpen === 4 ? <LuPencilLine /> : <LuPencil />}
+                    {editOpen === 1 ? <LuPencilLine /> : <LuPencil />}
+                  </button>
+                )}
+                {user?.access?.gbIsPhotoChange && isVerified && (
+                  <button
+                    onClick={() => handleEditOpen(2)}
+                    className={`flex justify-between items-center py-2 px-2 text-lg text-orange-500 text-left transition ease-in delay-190 bg-orange-100 rounded-lg`}
+                  >
+                    {editOpen === 2 ? (
+                      <MdPermMedia size={20} />
+                    ) : (
+                      <MdOutlinePermMedia size={20} />
+                    )}
                   </button>
                 )}
               </div>
@@ -263,7 +277,7 @@ const GBDashboardByMap = () => {
                 </p>
               </div>
             )}
-            {editOpen === 4 && (
+            {editOpen === 1 && (
               <GoogleBusinessModal
                 isOpen={true}
                 onClose={() => setEditOpen(null)}
@@ -272,6 +286,14 @@ const GBDashboardByMap = () => {
                 webUrl={weburl}
                 phoneNumber={shopPhone.primaryPhone}
                 shopAddress={shopAddress}
+              />
+            )}
+            {editOpen === 2 && (
+              <GoogleBusinessUploadModal
+                isOpen={true}
+                onClose={() => setEditOpen(null)}
+                locationId={locationId}
+                selectedAcc={selectedAcc}
               />
             )}
 

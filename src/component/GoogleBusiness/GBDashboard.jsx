@@ -71,10 +71,12 @@ const GBDashboard = ({ isOpen }) => {
         },
       })
       .then((response) => {
-        // console.log(response.data);
+        console.log(response.data);
         setAccountList(response.data.accounts);
       })
-      .catch();
+      .catch((error) => {
+        console.error(error);
+      });
   }, []);
 
   useEffect(() => {
@@ -94,6 +96,7 @@ const GBDashboard = ({ isOpen }) => {
             );
             setBusinessInfo(response.data);
           } catch (error) {
+            console.error(error);
             error.status === 401 &&
               toast.error(
                 "Your tokens have been exhausted. Please contact the R&D department to resolve this issue."
@@ -119,7 +122,7 @@ const GBDashboard = ({ isOpen }) => {
   }, [selectedBusInfo]);
 
   useEffect(() => {
-    if (selectedBusInfo) {
+    if (selectedBusInfo && locationId) {
       instance
         .get(`/api/v1/google/get-title/${locationId}`, {
           headers: {
@@ -131,12 +134,14 @@ const GBDashboard = ({ isOpen }) => {
 
           setShopTitle(response.data.location.title);
         })
-        .catch();
+        .catch((error) => {
+          console.error(error);
+        });
     }
   }, [locationId, selectedBusInfo]);
 
   useEffect(() => {
-    if (selectedBusInfo) {
+    if (selectedBusInfo && locationId) {
       instance
         .get(`api/v1/google/get-update-openstatus/${locationId}`, {
           headers: {
@@ -148,7 +153,9 @@ const GBDashboard = ({ isOpen }) => {
 
           setShopActivityStatus(response.data.location.openInfo.status);
         })
-        .catch();
+        .catch((error) => {
+          console.error(error);
+        });
     }
   }, [locationId, selectedBusInfo]);
 
@@ -157,7 +164,7 @@ const GBDashboard = ({ isOpen }) => {
 
   useEffect(() => {
     const fetchVerificationData = async () => {
-      if (selectedBusInfo) {
+      if (selectedBusInfo && locationId) {
         try {
           const response = await instance.get(
             `api/v1/google/verifications/${locationId}`
@@ -204,7 +211,7 @@ const GBDashboard = ({ isOpen }) => {
   const [weburl, setWeburl] = useState();
 
   useEffect(() => {
-    if (selectedBusInfo) {
+    if (selectedBusInfo && locationId) {
       instance
         .get(`api/v1/google/get-shop-attribute/${locationId}`, {
           headers: {
@@ -217,6 +224,9 @@ const GBDashboard = ({ isOpen }) => {
           setShopPhone(response.data.location.phoneNumbers);
           setShopAddress(response.data.location.storefrontAddress);
           setWeburl(response.data.location.websiteUri);
+        })
+        .catch((error) => {
+          console.error(error);
         });
     }
   }, [locationId, selectedBusInfo]);
@@ -234,7 +244,7 @@ const GBDashboard = ({ isOpen }) => {
   ];
 
   useEffect(() => {
-    if (selectedBusInfo) {
+    if (selectedBusInfo && locationId) {
       instance
         .get(`api/v1/google/metric/mob-desk-search-count/${locationId}`, {
           headers: {
@@ -263,7 +273,7 @@ const GBDashboard = ({ isOpen }) => {
     { name: "Mobile", value: mapCount.BUSINESS_IMPRESSIONS_MOBILE_MAPS },
   ];
   useEffect(() => {
-    if (selectedBusInfo) {
+    if (selectedBusInfo && locationId) {
       instance
         .get(`/api/v1/google/metric/mob-desk-map-count/${locationId}`, {
           headers: {
@@ -289,7 +299,7 @@ const GBDashboard = ({ isOpen }) => {
   const [webCallCount, setWebCallCount] = useState({});
 
   useEffect(() => {
-    if (selectedBusInfo) {
+    if (selectedBusInfo && locationId) {
       instance
         .get(`/api/v1/google/metric/web-call-count/${locationId}`, {
           headers: {
@@ -344,7 +354,7 @@ const GBDashboard = ({ isOpen }) => {
                       {editOpen === 1 ? <LuPencilLine /> : <LuPencil />}
                     </button>
                   )}
-                {user?.access?.gbDashboardEdit &&
+                {user?.access?.gbIsPhotoChange &&
                   selectedBusInfo &&
                   isVerified && (
                     <button
