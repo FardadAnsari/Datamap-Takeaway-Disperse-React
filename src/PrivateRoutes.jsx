@@ -38,7 +38,7 @@ const PrivateRoute = ({ children }) => {
           },
         });
         setIsAuthenticated(true); // Token is valid
-        document.title = "Data Map"; // Set page title
+        document.title = "Mega Data"; // Set page title
       } catch (error) {
         console.error("Access token expired or invalid", error);
         await logoutAndClear(); // If validation fails, log out
@@ -57,7 +57,7 @@ const PrivateRoute = ({ children }) => {
         sessionStorage.setItem("accessToken", token); // Save received token
         setIsAuthenticated(true);
         setLoading(false);
-        document.title = "Data Map";
+        document.title = "Mega Data";
       } else if (type === "LOGOUT") {
         await logoutAndClear(); // Perform logout and cleanup
         setIsAuthenticated(false);
