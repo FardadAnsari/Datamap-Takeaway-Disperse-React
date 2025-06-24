@@ -148,9 +148,15 @@ const Filterbar = ({
                             step={0.1}
                             value={value}
                             onChange={onChange}
-                            renderThumb={(props, state) => (
-                              <div {...props}>{state.valueNow}</div>
-                            )}
+                            renderThumb={(props, state) => {
+                              // pull the key out first
+                              const { key, ...rest } = props;
+                              return (
+                                <div key={key} {...rest}>
+                                  {state.valueNow}
+                                </div>
+                              );
+                            }}
                           />
                         </div>
                       )}
