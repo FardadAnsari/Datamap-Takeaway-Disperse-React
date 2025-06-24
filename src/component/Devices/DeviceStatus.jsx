@@ -359,7 +359,7 @@ const DeviceStatus = ({ isOpen }) => {
                 value="id"
                 checked={searchType === "id"}
                 onChange={handleSearchTypeChange}
-                className="mr-2 w-4 h-4 accent-orange-400"
+                className="mr-2 form-radio text-orange-500 focus:ring-orange-500"
               />
               By Shop ID
             </label>
@@ -369,7 +369,7 @@ const DeviceStatus = ({ isOpen }) => {
                 value="name"
                 checked={searchType === "name"}
                 onChange={handleSearchTypeChange}
-                className="mr-2 w-4 h-4 accent-orange-400"
+                className="mr-2 form-radio text-orange-500 focus:ring-orange-500"
               />
               By Shop Name
             </label>

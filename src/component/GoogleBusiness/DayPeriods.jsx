@@ -40,7 +40,7 @@ const DayPeriods = ({ dayIndex }) => {
                 type="number"
                 {...field}
                 placeholder="HH"
-                className="border px-1 py-1 rounded w-10 text-center"
+                className="border border-gray-300 px-1 py-1 rounded w-10 text-center"
                 onFocus={() => {
                   if (field.value === 0) {
                     field.onChange("");
@@ -68,7 +68,7 @@ const DayPeriods = ({ dayIndex }) => {
                 type="number"
                 {...field}
                 placeholder="MM"
-                className="border px-1 py-1 rounded w-10 text-center"
+                className="border border-gray-300 px-1 py-1 rounded w-10 text-center"
                 onFocus={() => {
                   if (field.value === 0) {
                     field.onChange("");
@@ -98,7 +98,7 @@ const DayPeriods = ({ dayIndex }) => {
                 type="number"
                 {...field}
                 placeholder="HH"
-                className="border px-1 py-1 rounded w-10 text-center"
+                className="border border-gray-300 px-1 py-1 rounded w-10 text-center"
                 onFocus={() => {
                   if (field.value === 0) {
                     field.onChange("");
@@ -126,7 +126,7 @@ const DayPeriods = ({ dayIndex }) => {
                 type="number"
                 {...field}
                 placeholder="MM"
-                className="border px-1 py-1 rounded w-10 text-center"
+                className="border border-gray-300 px-1 py-1 rounded w-10 text-center"
                 onFocus={() => {
                   if (field.value === 0) {
                     field.onChange("");
