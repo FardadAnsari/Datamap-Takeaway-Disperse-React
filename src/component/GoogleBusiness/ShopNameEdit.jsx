@@ -47,6 +47,7 @@ const ShopNameEdit = ({ locationId, shopName }) => {
         toast.error("Error applying changes. Please try again later.");
       }
     } catch (error) {
+      console.error(error);
       if (error.response?.status === 401) {
         toast.error(
           "Your tokens have been exhausted. Please contact the R&D department to resolve this issue."

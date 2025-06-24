@@ -44,6 +44,7 @@ const WebSiteUriEdit = ({ locationId, webUrl }) => {
         }
       })
       .catch((error) => {
+        console.error(error);
         error.status === 401 &&
           toast.error(
             "Your tokens have been exhausted. Please contact the R&D department to resolve this issue."
@@ -64,7 +65,7 @@ const WebSiteUriEdit = ({ locationId, webUrl }) => {
         <input
           type="text"
           {...register("websiteUri", { required: true })}
-          className="border p-2 rounded-lg"
+          className="border-gray-300 p-2 rounded-lg"
           placeholder="Enter new website URL"
         />
       </div>

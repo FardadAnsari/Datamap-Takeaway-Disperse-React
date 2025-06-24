@@ -38,7 +38,7 @@ const KeywordsAnalytics = ({ locationId }) => {
           }));
           setSearchInsights(processedData);
         } catch (error) {
-          console.log(error);
+          console.error(error);
           error?.status === 500 && setNoData(true);
           error?.status === 403 && setNotAllowed(true);
         }

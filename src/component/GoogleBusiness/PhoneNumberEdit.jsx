@@ -44,6 +44,7 @@ const PhoneNumberEdit = ({ locationId, phoneNumber }) => {
         }
       })
       .catch((error) => {
+        console.error(error);
         error.status === 401 &&
           toast.error(
             "Your tokens have been exhausted. Please contact the R&D department to resolve this issue."
