@@ -27,6 +27,8 @@ const GoogleBusinessUploadModal = ({
     MENU: 0,
     ADDITIONAL: 0,
   });
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [pendingDeleteMedia, setPendingDeleteMedia] = useState(null);
 
   const normalizeCategory = (raw) => {
     const cat = raw?.toUpperCase?.() || "";
@@ -73,13 +75,18 @@ const GoogleBusinessUploadModal = ({
     }
   }, [activeTab, accountId, locationId, accessToken]);
 
-  const handleDeleteMedia = async () => {
+  // When delete icon is clicked
+  const handleAskDelete = () => {
     const currentMedia = getFilteredMedia()[currentIndexes[mediaFilter]];
     if (!currentMedia) return;
+    setPendingDeleteMedia(currentMedia);
+    setShowDeleteConfirm(true);
+  };
 
-    if (!window.confirm("Are you sure you want to delete this image?")) return;
-
-    const mediaId = currentMedia.name.split("/").pop();
+  // When "Yes, Delete" is confirmed
+  const confirmDelete = async () => {
+    if (!pendingDeleteMedia) return;
+    const mediaId = pendingDeleteMedia.name.split("/").pop();
 
     try {
       await instance.delete(
@@ -90,7 +97,7 @@ const GoogleBusinessUploadModal = ({
           },
         }
       );
-      await fetchFiles(); // Refresh list
+      await fetchFiles();
       setCurrentIndexes((prev) => ({
         ...prev,
         [mediaFilter]: 0,
@@ -98,6 +105,9 @@ const GoogleBusinessUploadModal = ({
     } catch (error) {
       console.error("Failed to delete media:", error);
       alert("Error deleting media.");
+    } finally {
+      setShowDeleteConfirm(false);
+      setPendingDeleteMedia(null);
     }
   };
 
@@ -223,24 +233,34 @@ const GoogleBusinessUploadModal = ({
         {/* Upload Tab */}
         {activeTab === "uploadfiles" && (
           <>
-            <div className="flex gap-2 mb-4 text-sm">
-              {["COVER", "LOGO", "MENU", "ADDITIONAL"].map((cat) => (
-                <button
-                  key={cat}
-                  onClick={() => setActiveCategory(cat)}
-                  className={`px-3 py-1 rounded-full border ${
-                    activeCategory === cat
-                      ? "bg-orange-500 text-white"
-                      : "text-gray-600"
-                  }`}
+            <div className="flex gap-4 mb-4 text-sm text-gray-800">
+              {[
+                { value: "COVER", label: "Cover" },
+                { value: "LOGO", label: "Logo" },
+                { value: "MENU", label: "Menu" },
+                { value: "ADDITIONAL", label: "Additional" },
+              ].map(({ value, label }) => (
+                <label
+                  key={value}
+                  className="flex items-center gap-2 cursor-pointer"
                 >
-                  {formatCategory(cat)}
-                </button>
+                  <input
+                    type="radio"
+                    name="media-category"
+                    value={value}
+                    checked={activeCategory === value}
+                    onChange={() => setActiveCategory(value)}
+                    className="form-radio text-orange-500 focus:ring-orange-500"
+                  />
+                  <span>{label}</span>
+                </label>
               ))}
             </div>
 
             <div className="border-2 border-dashed border-gray-300 p-6 text-center rounded-md">
-              <IoCloudUploadOutline size={20} />
+              <div className="flex justify-center items-center mb-3">
+                <IoCloudUploadOutline size={40} className="text-gray-500" />
+              </div>
               <p className="text-sm mb-2">
                 Choose a file or drag & drop it here.
                 <br />
@@ -322,6 +342,35 @@ const GoogleBusinessUploadModal = ({
           </>
         )}
 
+        {/* Delete Confirmation */}
+
+        {showDeleteConfirm && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+            <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-sm text-center">
+              <p className="text-gray-800 text-sm mb-4">
+                Are you sure you want to delete this photo?
+              </p>
+              <div className="flex justify-center gap-4">
+                <button
+                  onClick={confirmDelete}
+                  className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 text-sm"
+                >
+                  Yes, Delete
+                </button>
+                <button
+                  onClick={() => {
+                    setShowDeleteConfirm(false);
+                    setPendingDeleteMedia(null);
+                  }}
+                  className="border border-gray-300 px-4 py-2 rounded text-sm hover:bg-gray-100"
+                >
+                  No, Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* View Tab */}
         {activeTab === "viewfiles" && (
           <>
@@ -369,7 +418,7 @@ const GoogleBusinessUploadModal = ({
 
                 {/* Delete button */}
                 <button
-                  onClick={handleDeleteMedia}
+                  onClick={handleAskDelete}
                   className="absolute top-2 right-2 bg-red-100 hover:bg-red-200 text-white p-1 text-xs rounded shadow"
                 >
                   <FaRegTrashAlt color="red" size={16} />
