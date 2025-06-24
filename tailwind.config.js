@@ -33,7 +33,7 @@ export default {
         "total-off-devices": "url('/devices/total-off-device.svg')",
         "total-shops": "url('/devices/total-shops-icon.svg')",
         "open-status": "url('/status/open-status.svg')",
-        "close-status": "url('//status/close-status.svg')",
+        "close-status": "url('/status/close-status.svg')",
         "no-result": "url('/no-result-matching.svg')",
         "no-access": "url('/no-access-permission.svg')",
         "refresh-button": "url('/button/refresh-button.svg')",
@@ -51,5 +51,5 @@ export default {
       },
     },
   },
-  plugins: [],
+  plugins: [require("@tailwindcss/forms")],
 };
