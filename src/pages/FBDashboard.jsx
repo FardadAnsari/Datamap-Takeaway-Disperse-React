@@ -186,7 +186,7 @@ const FBDashboard = () => {
   }, [pageId]);
 
   return (
-    <div className="h-screen p-4 grid grid-cols-1 lg:grid-cols-3 gap-4">
+    <div className="h-screen bg-stone-50 p-4 grid grid-cols-1 lg:grid-cols-3 gap-4">
       <div className="flex flex-col gap-4 h-full">
         {/* Shop Profile */}
         <div className="border rounded-2xl p-4 shadow bg-white h-[365px]">

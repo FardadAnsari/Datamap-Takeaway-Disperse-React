@@ -172,7 +172,7 @@ const DeviceStatus = ({ isOpen }) => {
 
   return (
     <div
-      className={`max-w-screen w-[calc(100%-80px)] p-6 absolute top-0 left-20 flex flex-col h-full overflow-y-auto bg-white z-40 transition-transform duration-700 ease-in-out ${
+      className={`max-w-screen w-[calc(100%-80px)] p-6 absolute top-0 left-20 flex flex-col h-full overflow-y-auto bg-stone-50 z-40 transition-transform duration-700 ease-in-out ${
         isOpen ? "translate-x-0" : "-translate-x-full"
       }`}
     >

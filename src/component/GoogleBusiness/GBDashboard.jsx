@@ -323,7 +323,7 @@ const GBDashboard = ({ isOpen }) => {
     <div
       className={`max-w-screen w-[calc(100%-80px)] absolute top-0 left-20 flex flex-col h-full ${editOpen ? "overflow-y-hidden" : "overflow-y-auto"} bg-white z-40 transition-transform duration-700 ease-in-out ${
         isOpen ? "translate-x-0" : "-translate-x-full"
-      } font-sans bg-yellow-50`}
+      } font-sans bg-stone-50`}
     >
       <div className="flex justify-between px-12 py-6 mb-6 border-solid bg-white shadow">
         <div className="flex items-center gap-4">
