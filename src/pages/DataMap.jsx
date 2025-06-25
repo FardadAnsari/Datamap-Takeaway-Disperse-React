@@ -352,7 +352,7 @@ const DataMap = () => {
           }
         }
       } catch (error) {
-        console.log(error);
+        console.error(error);
         setPostcodeData([]);
       }
     };

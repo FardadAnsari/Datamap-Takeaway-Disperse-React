@@ -71,7 +71,7 @@ const GBDashboard = ({ isOpen }) => {
         },
       })
       .then((response) => {
-        console.log(response.data);
+        // console.log(response.data);
         setAccountList(response.data.accounts);
       })
       .catch((error) => {
