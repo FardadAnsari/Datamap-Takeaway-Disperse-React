@@ -5,6 +5,7 @@ import { ReactComponent as FoodziIcon } from "./foodzi-checkbox-icon.svg";
 import { ReactComponent as FoodHouseIcon } from "./foodhouse-checkbox-icon.svg";
 import { ReactComponent as FoodHubIcon } from "./foodhub-checkbox-icon.svg";
 import { ReactComponent as GoogleBusinessIcon } from "./googleb-checkbox-icon.svg";
+import { ReactComponent as grub24Icon } from "./grub24-checkbox-icon.svg";
 import { ReactComponent as JustEatIcon } from "./justeat-checkbox-icon.svg";
 import { ReactComponent as KuickIcon } from "./kuick-checkbox-icon.svg";
 import { ReactComponent as MealzoIcon } from "./mealzo-checkbox-icon.svg";
@@ -22,6 +23,7 @@ const companyIcons = {
   foodhub: FoodHubIcon,
   foodhouse: FoodHouseIcon,
   googlebusiness: GoogleBusinessIcon,
+  grub24: grub24Icon,
   justeat: JustEatIcon,
   kuick: KuickIcon,
   mealzo: MealzoIcon,

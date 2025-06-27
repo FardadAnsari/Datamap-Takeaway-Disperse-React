@@ -34,11 +34,17 @@ export const companies = [
     requiresAuth: true,
     type: "type1",
   },
-
   {
     id: "fhb",
     name: "Food Hub",
     apiUrl: "/api/v1/companies/foodhub/",
+    requiresAuth: true,
+    type: "type1",
+  },
+  {
+    id: "grb",
+    name: "Grub24",
+    apiUrl: "/api/v1/companies/grub24/",
     requiresAuth: true,
     type: "type1",
   },

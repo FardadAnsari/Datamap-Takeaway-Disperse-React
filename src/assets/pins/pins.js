@@ -6,6 +6,7 @@ import { ReactComponent as FoodHousePin } from "./foodhouse-pin.svg";
 import { ReactComponent as FoodHubPin } from "./foodhub-pin.svg";
 import { ReactComponent as GoogleBusinessPin } from "./googleb-pin.svg";
 import { ReactComponent as FacebookPin } from "./facebook-pin.svg";
+import { ReactComponent as Grub24Pin } from "./grub24-pin.svg";
 import { ReactComponent as JustEatPin } from "./justeat-pin.svg";
 import { ReactComponent as KuickPin } from "./kuick-pin.svg";
 import { ReactComponent as MealzoPin } from "./mealzo-pin.svg";
@@ -24,6 +25,7 @@ const companyPins = {
   foodhub: FoodHubPin,
   googlebusiness: GoogleBusinessPin,
   facebook: FacebookPin,
+  grub24: Grub24Pin,
   justeat: JustEatPin,
   kuick: KuickPin,
   mealzo: MealzoPin,
