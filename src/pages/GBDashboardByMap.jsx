@@ -247,7 +247,7 @@ const GBDashboardByMap = () => {
                 ) : null}
                 {user?.access?.gbDashboardEdit && (
                   <button
-                    onClick={() => handleEditOpen(4)}
+                    onClick={() => handleEditOpen(1)}
                     className={`flex justify-between items-center py-2 px-2 text-lg text-orange-500 text-left transition ease-in delay-190 bg-orange-100 rounded-lg`}
                   >
                     {editOpen === 1 ? <LuPencilLine /> : <LuPencil />}
