@@ -49,13 +49,12 @@ const Login = () => {
 
   return (
     <div className="flex items-center justify-center h-screen bg-cover bg-login-background">
-      <div className="w-1/4 h-max flex flex-col bg-white rounded-lg shadow-lg overflow-hidden p-8">
+      <div className="lg:w-1/4 md:w-1/3 sm:w-3/4 h-max flex flex-col bg-white rounded-lg shadow-lg overflow-hidden p-8">
         <form
           className="h-full flex flex-col justify-between"
           onSubmit={handleSubmit(handleLogin)}
         >
-          <div className="w-44 h-10 bg-cover self-center bg-mealzo-logo mb-6"></div>
-          <p className="text-sm font-bold  text-orange-500 mb-1">Login</p>
+          <p className="text-sm font-bold text-orange-500 mb-1">Login</p>
           <p className="text-xl font-bold text-gray-800 mb-1">
             Good to see you again!
           </p>
