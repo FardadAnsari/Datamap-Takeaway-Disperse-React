@@ -1,5 +1,12 @@
 export const companies = [
   {
+    id: "mlz",
+    name: "Mealzo",
+    apiUrl: "/api/v1/zoho/mealzo/",
+    requiresAuth: true,
+    type: "type2",
+  },
+  {
     id: "bgf",
     name: "Bigfoodie",
     apiUrl: "/api/v1/companies/bigfoodie/",
@@ -61,13 +68,6 @@ export const companies = [
     apiUrl: "/api/v1/companies/kuick/",
     requiresAuth: true,
     type: "type1",
-  },
-  {
-    id: "mlz",
-    name: "Mealzo",
-    apiUrl: "/api/v1/zoho/mealzo/",
-    requiresAuth: true,
-    type: "type2",
   },
   {
     id: "oyo",
