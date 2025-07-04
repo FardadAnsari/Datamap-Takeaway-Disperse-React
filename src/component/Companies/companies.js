@@ -20,6 +20,20 @@ export const companies = [
     requiresAuth: true,
     type: "type1",
   },
+  // {
+  //   id: "ear",
+  //   name: "Eat And Repeat",
+  //   apiUrl: "/api/v1/companies/eatandrepeat/",
+  //   requiresAuth: true,
+  //   type: "type1",
+  // },
+  // {
+  //   id: "etz",
+  //   name: "Eatzy",
+  //   apiUrl: "/api/v1/companies/eatzy/",
+  //   requiresAuth: true,
+  //   type: "type1",
+  // },
   {
     id: "fdo",
     name: "Feed Me Online",
@@ -69,6 +83,13 @@ export const companies = [
     requiresAuth: true,
     type: "type1",
   },
+  // {
+  //   id: "ord",
+  //   name: "Ordara",
+  //   apiUrl: "/api/v1/companies/ordara/",
+  //   requiresAuth: true,
+  //   type: "type1",
+  // },
   {
     id: "oyo",
     name: "OrderYoYo",
