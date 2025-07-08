@@ -1,9 +1,5 @@
 import { useEffect, useState } from "react";
-import {
-  IoIosArrowBack,
-  IoIosArrowRoundBack,
-  IoIosArrowRoundForward,
-} from "react-icons/io";
+import { IoIosArrowRoundBack, IoIosArrowRoundForward } from "react-icons/io";
 import { GoDotFill } from "react-icons/go";
 import instance from "../../api/deviceApi";
 import CountUp from "react-countup";

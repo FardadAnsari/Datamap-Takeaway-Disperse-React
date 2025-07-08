@@ -72,8 +72,8 @@ const Sidebar = ({ activePanel, setActivePanel }) => {
               <button
                 key={key}
                 className={`py-2 text-center flex flex-col items-center ${
-                  activePanel === key ? "bg-orange-100 text-orange-600" : ""
-                } `}
+                  activePanel === key ? "bg-orange-100" : ""
+                }`}
                 onClick={() =>
                   setActivePanel((prev) => (prev === key ? null : key))
                 }
@@ -90,9 +90,15 @@ const Sidebar = ({ activePanel, setActivePanel }) => {
                   }`}
                 />
                 <p
-                  className={`2xl:text-sm text-xs ${
-                    access === false ? "text-gray-400" : "text-black"
-                  }`}
+                  className={`2xl:text-sm text-xs 
+                    ${
+                      access === false
+                        ? "text-gray-400"
+                        : activePanel === key
+                          ? "text-orange-600"
+                          : "text-gray-900"
+                    }
+                  `}
                 >
                   {label}
                 </p>
