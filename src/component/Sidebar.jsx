@@ -13,6 +13,7 @@ const Sidebar = ({ activePanel, setActivePanel }) => {
       label: "Companies",
       icon: "bg-companies",
       iconActive: "bg-companies-active",
+      iconNoAccess: "bg-companies-no-access",
       access: user?.access?.companies,
     },
     {
@@ -20,6 +21,7 @@ const Sidebar = ({ activePanel, setActivePanel }) => {
       label: "G-Business",
       icon: "bg-gbusiness-map",
       iconActive: "bg-gbusiness-map-active",
+      iconNoAccess: "bg-gbusiness-map-no-access",
       access: user?.access?.googleBusinessMap,
     },
     {
@@ -27,6 +29,7 @@ const Sidebar = ({ activePanel, setActivePanel }) => {
       label: "G-Business",
       icon: "bg-gbusiness",
       iconActive: "bg-gbusiness-active",
+      iconNoAccess: "bg-gbusiness-no-access",
       access: user?.access?.googleBusinessPanel,
     },
     {
@@ -34,6 +37,7 @@ const Sidebar = ({ activePanel, setActivePanel }) => {
       label: "Facebook",
       icon: "bg-facebook",
       iconActive: "bg-facebook-active",
+      iconNoAccess: "bg-facebook-no-access",
       access: user?.access?.facebook,
     },
     {
@@ -41,6 +45,7 @@ const Sidebar = ({ activePanel, setActivePanel }) => {
       label: "Facebook",
       icon: "bg-facebook-report",
       iconActive: "bg-facebook-report-active",
+      iconNoAccess: "bg-facebook-report-no-access",
       access: user?.access?.facebook,
     },
     {
@@ -48,6 +53,7 @@ const Sidebar = ({ activePanel, setActivePanel }) => {
       label: "Devices",
       icon: "bg-devices",
       iconActive: "bg-devices-active",
+      iconNoAccess: "bg-devices-no-access",
       access: user?.access?.devices,
     },
   ];
@@ -61,30 +67,38 @@ const Sidebar = ({ activePanel, setActivePanel }) => {
       <div className="w-full h-full flex flex-col items-center justify-between">
         {/* Top buttons (Companies, G-Business, etc) */}
         <div className="w-full flex flex-col">
-          {items.map(({ key, label, icon, iconActive, access }) => (
-            <button
-              key={key}
-              className={`py-2 text-center flex flex-col items-center ${
-                activePanel === key ? "bg-orange-100 text-orange-600" : ""
-              } ${
-                access === false
-                  ? "bg-gray-200 text-gray-600 cursor-not-allowed"
-                  : ""
-              }`}
-              onClick={() =>
-                setActivePanel((prev) => (prev === key ? null : key))
-              }
-              disabled={access === false}
-            >
-              {/* Dynamic icon: focus or default */}
-              <div
-                className={`my-1 bg-cover w-7 h-7 ${
-                  activePanel === key ? iconActive : icon
-                }`}
-              ></div>
-              <p className="2xl:text-sm text-xs">{label}</p>
-            </button>
-          ))}
+          {items.map(
+            ({ key, label, icon, iconActive, iconNoAccess, access }) => (
+              <button
+                key={key}
+                className={`py-2 text-center flex flex-col items-center ${
+                  activePanel === key ? "bg-orange-100 text-orange-600" : ""
+                } `}
+                onClick={() =>
+                  setActivePanel((prev) => (prev === key ? null : key))
+                }
+                disabled={access === false}
+              >
+                {/* Dynamic icon: focus or default */}
+                <div
+                  className={`my-1 bg-cover w-7 h-7 ${
+                    access === false
+                      ? iconNoAccess
+                      : activePanel === key
+                        ? iconActive
+                        : icon
+                  }`}
+                />
+                <p
+                  className={`2xl:text-sm text-xs ${
+                    access === false ? "text-gray-400" : "text-black"
+                  }`}
+                >
+                  {label}
+                </p>
+              </button>
+            )
+          )}
         </div>
 
         {/* Bottom profile icon */}

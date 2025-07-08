@@ -5,7 +5,7 @@ import { useUser } from "../../api/userPermission";
 
 const Profilebar = ({ isOpen, onLogoutClick, onChangePassClick }) => {
   const { user } = useUser();
-  console.log(user);
+  // console.log(user);
 
   return (
     <div
