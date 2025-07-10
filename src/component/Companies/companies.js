@@ -27,13 +27,13 @@ export const companies = [
     requiresAuth: true,
     type: "type1",
   },
-  // {
-  //   id: "etz",
-  //   name: "Eatzy",
-  //   apiUrl: "/api/v1/companies/eatzy/",
-  //   requiresAuth: true,
-  //   type: "type1",
-  // },
+  {
+    id: "etz",
+    name: "Eatzy",
+    apiUrl: "/api/v1/companies/eatzy/",
+    requiresAuth: true,
+    type: "type1",
+  },
   {
     id: "fdo",
     name: "Feed Me Online",
