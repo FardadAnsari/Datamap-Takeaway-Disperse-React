@@ -18,6 +18,7 @@ import { ReactComponent as ScoffablePin } from "./scoffable-pin.svg";
 import { ReactComponent as StraightFromPin } from "./straightfrom-pin.svg";
 import { ReactComponent as UberEatsPin } from "./ubereats-pin.svg";
 import { ReactComponent as WhatTheForkPin } from "./whatthefork-pin.svg";
+import { ReactComponent as ZposPin } from "./zpos-pin.svg";
 
 const companyPins = {
   mealzo: MealzoPin,
@@ -40,6 +41,7 @@ const companyPins = {
   straightfrom: StraightFromPin,
   ubereats: UberEatsPin,
   whatthefork: WhatTheForkPin,
+  zpos: ZposPin,
 };
 
 export default companyPins;

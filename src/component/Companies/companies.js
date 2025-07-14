@@ -125,4 +125,11 @@ export const companies = [
     requiresAuth: true,
     type: "type1",
   },
+  {
+    id: "zps",
+    name: "Zpos",
+    apiUrl: "/api/v1/companies/zpos/",
+    requiresAuth: true,
+    type: "type1",
+  },
 ];

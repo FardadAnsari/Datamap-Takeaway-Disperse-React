@@ -17,6 +17,7 @@ import { ReactComponent as ScoffableIcon } from "./scoffable-checkbox-icon.svg";
 import { ReactComponent as StraightFromIcon } from "./straightfrom-checkbox-icon.svg";
 import { ReactComponent as UberEatsIcon } from "./ubereats-checkbox-icon.svg";
 import { ReactComponent as WhatTheForkIcon } from "./whatthefork-checkbox-icon.svg";
+import { ReactComponent as ZposIcon } from "./zpos-checkbox-icon.svg";
 
 const companyIcons = {
   mealzo: MealzoIcon,
@@ -38,6 +39,7 @@ const companyIcons = {
   straightfrom: StraightFromIcon,
   ubereats: UberEatsIcon,
   whatthefork: WhatTheForkIcon,
+  zpos: ZposIcon,
 };
 
 export default companyIcons;
