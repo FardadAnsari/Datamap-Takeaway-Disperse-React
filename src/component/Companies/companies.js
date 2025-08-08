@@ -119,6 +119,13 @@ export const companies = [
     type: "type1",
   },
   {
+    id: "ujc",
+    name: "UJustCook",
+    apiUrl: "/api/v1/companies/ujustcook/",
+    requiresAuth: true,
+    type: "type1",
+  },
+  {
     id: "wtf",
     name: "What The Fork",
     apiUrl: "/api/v1/companies/whatthefork/",

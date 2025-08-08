@@ -17,6 +17,7 @@ import { ReactComponent as OrderYoYoPin } from "./orderyoyo-pin.svg";
 import { ReactComponent as ScoffablePin } from "./scoffable-pin.svg";
 import { ReactComponent as StraightFromPin } from "./straightfrom-pin.svg";
 import { ReactComponent as UberEatsPin } from "./ubereats-pin.svg";
+import { ReactComponent as UJustCookPin } from "./ujustcook-pin.svg";
 import { ReactComponent as WhatTheForkPin } from "./whatthefork-pin.svg";
 import { ReactComponent as ZposPin } from "./zpos-pin.svg";
 
@@ -40,6 +41,7 @@ const companyPins = {
   scoffable: ScoffablePin,
   straightfrom: StraightFromPin,
   ubereats: UberEatsPin,
+  ujustcook: UJustCookPin,
   whatthefork: WhatTheForkPin,
   zpos: ZposPin,
 };
