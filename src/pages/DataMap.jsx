@@ -53,6 +53,7 @@ import instanceF from "../api/facebookApi";
 import FBReport from "../component/Facebook/FBReport";
 import Filterbar from "../component/Filterbar";
 import companyIcons from "../assets/checkbox-icon/checkboxIcons";
+import ContinuousDeviceStatus from "../component/ContinuousDevices/ContinuousDeviceStatus";
 
 // Function to create a custom icon using a React component
 const createCustomIcon = (PinComponent, options = {}) => {
@@ -1287,6 +1288,14 @@ const DataMap = () => {
       <DeviceStatus
         isOpen={activePanel === "devices"}
         setIsOpen={(state) => setActivePanel(state ? "devices" : null)}
+      />
+
+      {/* ContinuousDeviceStatus component */}
+      <ContinuousDeviceStatus
+        isOpen={activePanel === "continuousDevices"}
+        setIsOpen={(state) =>
+          setActivePanel(state ? "continuousDevices" : null)
+        }
       />
 
       {/* Profilebar component */}
