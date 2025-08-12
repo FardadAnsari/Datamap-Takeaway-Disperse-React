@@ -12,6 +12,7 @@ import { ReactComponent as FacebookPin } from "./facebook-pin.svg";
 import { ReactComponent as Grub24Pin } from "./grub24-pin.svg";
 import { ReactComponent as JustEatPin } from "./justeat-pin.svg";
 import { ReactComponent as KuickPin } from "./kuick-pin.svg";
+import { ReactComponent as LeedsDeliveryPin } from "./leedsdelivery-pin.svg";
 import { ReactComponent as OrdaraPin } from "./ordara-pin.svg";
 import { ReactComponent as OrderYoYoPin } from "./orderyoyo-pin.svg";
 import { ReactComponent as ScoffablePin } from "./scoffable-pin.svg";
@@ -36,6 +37,7 @@ const companyPins = {
   grub24: Grub24Pin,
   justeat: JustEatPin,
   kuick: KuickPin,
+  leedsdelivery: LeedsDeliveryPin,
   ordara: OrdaraPin,
   orderyoyo: OrderYoYoPin,
   scoffable: ScoffablePin,

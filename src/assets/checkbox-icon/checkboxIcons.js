@@ -11,6 +11,7 @@ import { ReactComponent as GoogleBusinessIcon } from "./googleb-checkbox.svg";
 import { ReactComponent as grub24Icon } from "./grub24-checkbox.svg";
 import { ReactComponent as JustEatIcon } from "./justeat-checkbox.svg";
 import { ReactComponent as KuickIcon } from "./kuick-checkbox.svg";
+import { ReactComponent as LeedsDeliveryIcon } from "./leedsdelivery-checkbox.svg";
 import { ReactComponent as OrdaraIcon } from "./ordara-checkbox.svg";
 import { ReactComponent as OrderYoYoIcon } from "./orderyoyo-checkbox.svg";
 import { ReactComponent as ScoffableIcon } from "./scoffable-checkbox.svg";
@@ -34,6 +35,7 @@ const companyIcons = {
   grub24: grub24Icon,
   justeat: JustEatIcon,
   kuick: KuickIcon,
+  leedsdelivery: LeedsDeliveryIcon,
   ordara: OrdaraIcon,
   orderyoyo: OrderYoYoIcon,
   scoffable: ScoffableIcon,

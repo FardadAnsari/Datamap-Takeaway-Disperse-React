@@ -84,6 +84,13 @@ export const companies = [
     type: "type1",
   },
   {
+    id: "ldd",
+    name: "Leeds Delivery",
+    apiUrl: "/api/v1/companies/leedsdelivery/",
+    requiresAuth: true,
+    type: "type1",
+  },
+  {
     id: "ord",
     name: "Ordara",
     apiUrl: "/api/v1/companies/ordara/",
