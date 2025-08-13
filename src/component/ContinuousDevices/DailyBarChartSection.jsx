@@ -24,15 +24,6 @@ const monthOpts = [
   { value: 11, label: "November" },
   { value: 12, label: "December" },
 ];
-
-/**
- * Props:
- *  - data: rows with keys `${Company}_open` / `${Company}_closed`
- *  - companyLabels: array of company display labels e.g. ["JustEat","FoodHub","FeedMeOnline"]
- *  - month: number 1..12
- *  - setMonth: fn(number)
- *  - headerRightExtra?: optional JSX
- */
 const DailyBarChartSection = ({
   data,
   companyLabels = [],
@@ -125,13 +116,13 @@ const DailyBarChartSection = ({
             dataKey="open"
             name="On / Open"
             stackId="status"
-            fill="#22c55e"
+            fill="#aee34cff"
           />
           <Bar
             dataKey="closed"
             name="Off / Closed"
             stackId="status"
-            fill="#ef4444"
+            fill="#f66464ff"
           />
         </BarChart>
       </ResponsiveContainer>
