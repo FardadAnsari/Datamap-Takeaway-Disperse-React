@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import Select from "react-select";
 import LineChartSection from "./LineChartSection";
 import { useForm, Controller } from "react-hook-form";
@@ -31,7 +31,7 @@ const companyToPath = (value) => {
   }
 };
 
-const companyToDailyPath = (value) => {
+const companyToDailyStatsPath = (value) => {
   switch (value) {
     case "foodhub":
       return "/foodhub/foodhub-delivery-status/";
@@ -41,6 +41,19 @@ const companyToDailyPath = (value) => {
       return "/feedmeonline/feedmeonline-delivery-status/";
     default:
       return "/foodhub/foodhub-delivery-status/";
+  }
+};
+
+const companyToShopSummaryPath = (value) => {
+  switch (value) {
+    case "foodhub":
+      return "/foodhub/foodhub-shopsummary/";
+    case "justeat":
+      return "/justeat/justeat-shopsummary/";
+    case "feedmeonline":
+      return "/feedmeonline/feedmeonline-shopsummary/";
+    default:
+      return "/foodhub/foodhub-shopsummary/";
   }
 };
 
@@ -69,10 +82,8 @@ const joinNatural = (arr) =>
 
 const buildFilterSummary = (values) => {
   const cityLabel = values.city?.label ?? "—";
-  const companies = (
-    values.companies?.length ? values.companies : [{ label: "FoodHub" }]
-  ).map((c) => c.label);
-  const companiesText = joinNatural(companies);
+  const companies = (values.companies ?? []).map((c) => c.label);
+  const companiesText = companies.length ? joinNatural(companies) : "—";
 
   const [minR = 0, maxR = 5] = values.ratingRange || [0, 5];
   const ratingText = `rating ${Number(minR).toFixed(1)}–${Number(maxR).toFixed(1)}`;
@@ -104,11 +115,10 @@ const makeSkeleton = (companyLabels = []) =>
   });
 
 const fetchPerCompany = async (companies, params) => {
-  const selected = companies?.length
-    ? companies
-    : [{ value: "foodhub", label: "FoodHub" }];
+  if (!companies?.length)
+    throw new Error("Please select at least one company.");
 
-  const tasks = selected.map((c) => ({
+  const tasks = companies.map((c) => ({
     label: c.label,
     req: instance.get(companyToPath(c.value), { params }),
   }));
@@ -131,14 +141,14 @@ const fetchPerCompany = async (companies, params) => {
   return grouped;
 };
 
-const fetchDailyPerCompany = async (companies, params) => {
-  const selected = companies?.length
-    ? companies
-    : [{ value: "foodhub", label: "FoodHub" }];
+// Accepts either top-level array OR { daily_stats: [...] }
+const fetchDailyStatsPerCompany = async (companies, params) => {
+  if (!companies?.length)
+    throw new Error("Please select at least one company.");
 
-  const tasks = selected.map((c) => ({
+  const tasks = companies.map((c) => ({
     label: c.label,
-    req: instance.get(companyToDailyPath(c.value), { params }),
+    req: instance.get(companyToDailyStatsPath(c.value), { params }),
   }));
 
   const settled = await Promise.allSettled(tasks.map((t) => t.req));
@@ -147,7 +157,37 @@ const fetchDailyPerCompany = async (companies, params) => {
   settled.forEach((res, idx) => {
     const label = tasks[idx].label;
     if (res.status === "fulfilled") {
-      const arr = res.value?.data?.daily_stats;
+      const payload = res.value?.data;
+      const arr = Array.isArray(payload) ? payload : payload?.daily_stats;
+      grouped[label] = Array.isArray(arr) ? arr : [];
+    } else {
+      grouped[label] = [];
+    }
+  });
+
+  const anyData = Object.values(grouped).some((arr) => arr.length > 0);
+  if (!anyData) throw new Error("All daily requests failed or returned empty.");
+
+  return grouped;
+};
+
+const fetchShopSummary = async (companies, params, month) => {
+  if (!companies?.length)
+    throw new Error("Please select at least one company.");
+
+  const tasks = companies.map((c) => ({
+    label: c.label,
+    req: instance.get(companyToShopSummaryPath(c.value), { params }),
+  }));
+
+  const settled = await Promise.allSettled(tasks.map((t) => t.req));
+
+  const grouped = {};
+  settled.forEach((res, idx) => {
+    const label = tasks[idx].label;
+    if (res.status === "fulfilled") {
+      const payload = res.value?.data;
+      const arr = Array.isArray(payload) ? payload : payload?.daily_stats;
       grouped[label] = Array.isArray(arr) ? arr : [];
     } else {
       grouped[label] = [];
@@ -184,7 +224,7 @@ const toMonthlyAvgPerCompany = (groupedRows, year = YEAR) => {
     bucketsByLabel.set(lbl, m);
   });
 
-  // compose chart rows
+  // compose chart rows (only up to current month)
   return MONTHS.slice(0, currentMonthIndex + 1).map((labelMonth, idx) => {
     const mm = String(idx + 1).padStart(2, "0");
     const key = `${year}-${mm}`;
@@ -246,6 +286,9 @@ const makeDailySkeleton = (labels = [], year = YEAR, month = 1) => {
 // ---------- component ----------
 const ContinuousDeviceStatus = ({ isOpen }) => {
   const [showFilter, setShowFilter] = useState(false);
+  const [shopSummaryData, setShopSummaryData] = useState({});
+
+  // MONTHLY (Line) — default skeleton with all company labels
   const [chartData, setChartData] = useState(
     makeSkeleton(companyOptions.map((c) => c.label))
   );
@@ -254,23 +297,22 @@ const ContinuousDeviceStatus = ({ isOpen }) => {
 
   const defaultFormValues = {
     city: { value: "glasgow", label: "Glasgow" },
-    companies: [{ value: "foodhub", label: "FoodHub" }],
+    companies: [], // <-- no default company
     ratingRange: [0, 5],
     reviewMin: undefined,
     reviewMax: undefined,
   };
-  const [summary, setSummary] = useState(buildFilterSummary(defaultFormValues));
 
-  // Daily: always visible
+  const [summary, setSummary] = useState("");
   const [dailyMonth, setDailyMonth] = useState(new Date().getMonth() + 1);
   const [dailyData, setDailyData] = useState(
-    // empty chart by default
-    makeDailySkeleton(["FoodHub"], YEAR, dailyMonth)
+    makeDailySkeleton([], YEAR, dailyMonth) // no bars initially
   );
+  const [dailyCompanyLabels, setDailyCompanyLabels] = useState([]); // tabs empty
   const [loadingDaily, setLoadingDaily] = useState(false);
   const [errorDaily, setErrorDaily] = useState("");
-  const [lastFilters, setLastFilters] = useState(defaultFormValues);
-  const [selectedCompany, setSelectedCompany] = useState("FoodHub"); // tabs
+  const [lastFilters, setLastFilters] = useState(null);
+  const [selectedCompany, setSelectedCompany] = useState(""); // none selected
 
   const {
     register,
@@ -281,27 +323,84 @@ const ContinuousDeviceStatus = ({ isOpen }) => {
   } = useForm({ defaultValues: defaultFormValues });
 
   const refreshDaily = async (filters, monthNum) => {
+    if (!filters?.companies?.length) return; // enforce selection
     setErrorDaily("");
     setLoadingDaily(true);
     try {
-      const params = { year: YEAR, month: monthNum, city: filters.city?.value };
-      const grouped = await fetchDailyPerCompany(filters.companies, params);
-      setDailyData(toDailyRowsPerCompany(grouped, YEAR, monthNum));
+      const params = {
+        year: YEAR,
+        month: monthNum, // Pass the selected month
+        city: filters.city?.value,
+      };
+      const grouped = await fetchDailyStatsPerCompany(
+        filters.companies,
+        params
+      );
+
+      // detect month from first available date
+      const firstArr = Object.values(grouped).find(
+        (a) => Array.isArray(a) && a.length
+      );
+      const firstDate = firstArr?.find((d) => d?.date)?.date; // e.g., "2025-05-01"
+      const detectedMonth = firstDate ? Number(firstDate.slice(5, 7)) : null;
+
+      if (detectedMonth && detectedMonth !== monthNum) {
+        // switch the UI month; effect below will refetch with new month
+        setDailyMonth(detectedMonth);
+        setDailyData(toDailyRowsPerCompany(grouped, YEAR, detectedMonth));
+      } else {
+        setDailyData(toDailyRowsPerCompany(grouped, YEAR, monthNum));
+      }
     } catch (e) {
       console.error(e);
       const labels = (filters.companies || []).map((c) => c.label);
-      setDailyData(
-        makeDailySkeleton(labels.length ? labels : ["FoodHub"], YEAR, monthNum)
-      );
+      setDailyData(makeDailySkeleton(labels, YEAR, monthNum));
       setErrorDaily("Failed to load daily stats.");
     } finally {
       setLoadingDaily(false);
     }
   };
 
+  useEffect(() => {
+    if (!lastFilters?.companies?.length) return; // Ensure companies are selected
+    const params = {
+      year: YEAR,
+      city: lastFilters.city?.value,
+      min_rating: lastFilters.ratingRange[0],
+      max_rating: lastFilters.ratingRange[1],
+      month: dailyMonth, // Send the updated month
+    };
+
+    // Fetch the shop summary data whenever the month changes
+    const fetchSummary = async () => {
+      try {
+        const shopSummary = await fetchShopSummary(
+          lastFilters.companies,
+          params, // Pass updated params with the new month
+          dailyMonth // Pass the new month here as well
+        );
+        setShopSummaryData(shopSummary); // Update shop summary data in state
+      } catch (e) {
+        console.error(e);
+        setError("Failed to load shop summary data.");
+      }
+    };
+
+    fetchSummary(); // Trigger fetch when month changes
+  }, [dailyMonth, lastFilters]); // Dependencies: `dailyMonth` and `lastFilters`
+
   const onSubmit = async (values) => {
     setError("");
     setLoading(true);
+
+    setSummary(buildFilterSummary(values));
+
+    if (!values.companies?.length) {
+      setLoading(false);
+      setError("Please select at least one company.");
+      return;
+    }
+
     try {
       const [minRating, maxRating] = values.ratingRange || [0, 5];
 
@@ -315,86 +414,75 @@ const ContinuousDeviceStatus = ({ isOpen }) => {
         setError("Minimum reviews cannot be greater than maximum.");
         return;
       }
+
       const params = {
         year: YEAR,
         city: values.city?.value,
         min_rating: minRating,
         max_rating: maxRating,
+        month: dailyMonth, // Add selected month here
       };
       if (values.reviewMin !== "" && values.reviewMin != null)
         params.min_reviews = Number(values.reviewMin);
       if (values.reviewMax !== "" && values.reviewMax != null)
         params.max_reviews = Number(values.reviewMax);
 
+      // MONTHLY
       const grouped = await fetchPerCompany(values.companies, params);
       setChartData(toMonthlyAvgPerCompany(grouped, YEAR));
-      setSummary(buildFilterSummary(values));
-      setShowFilter(false);
 
-      // daily
+      // DAILY — set labels and fetch
+      const labels = values.companies.map((c) => c.label);
+      setDailyCompanyLabels(labels);
+      setSelectedCompany(labels[0] || "");
       setLastFilters(values);
-      await refreshDaily(values, dailyMonth);
+      await refreshDaily(values, dailyMonth); // Pass the month here
 
-      // set active tab to first selected company
-      const firstLabel = (
-        values.companies?.length ? values.companies : [{ label: "FoodHub" }]
-      )[0].label;
-      setSelectedCompany(firstLabel);
+      // SHOP SUMMARY — fetch shop summary data with month as parameter
+      const shopSummary = await fetchShopSummary(
+        values.companies,
+        params, // Pass params with the month
+        dailyMonth // Pass the month here as well
+      );
+      setShopSummaryData(shopSummary); // Store the shop summary data
+
+      setShowFilter(false);
     } catch (e) {
       console.error(e);
       const labels = (values.companies || []).map((c) => c.label);
       setChartData(makeSkeleton(labels));
       setError("Filtering failed. Please try again.");
 
-      // keep daily visible but empty
-      setDailyData(
-        makeDailySkeleton(
-          labels.length ? labels : ["FoodHub"],
-          YEAR,
-          dailyMonth
-        )
-      );
+      setDailyCompanyLabels(labels);
+      setSelectedCompany(labels[0] || "");
+      setDailyData(makeDailySkeleton(labels, YEAR, dailyMonth));
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    if (!lastFilters) return;
+    if (!lastFilters?.companies?.length) return;
     refreshDaily(lastFilters, dailyMonth);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dailyMonth]);
 
-  const onClear = async () => {
+  const onClear = () => {
     const defaults = {
       city: { value: "glasgow", label: "Glasgow" },
-      companies: [{ value: "foodhub", label: "FoodHub" }],
+      companies: [], // no default company
       ratingRange: [0, 5],
       reviewMin: "",
       reviewMax: "",
     };
     reset(defaults);
+    setSummary(""); // hide summary again
     setError("");
-    setLoading(true);
-    try {
-      const params = { year: YEAR, city: defaults.city.value };
-      const grouped = await fetchPerCompany(defaults.companies, params);
-      setChartData(toMonthlyAvgPerCompany(grouped, YEAR));
-      setSummary(buildFilterSummary(defaults));
-      setLastFilters(defaults);
-      setSelectedCompany("FoodHub");
-
-      // keep daily visible but empty
-      setDailyData(makeDailySkeleton(["FoodHub"], YEAR, dailyMonth));
-      setErrorDaily("");
-    } catch (e) {
-      console.error(e);
-      setChartData(makeSkeleton(["FoodHub"]));
-      setError("Failed to reload defaults.");
-      setDailyData(makeDailySkeleton(["FoodHub"], YEAR, dailyMonth));
-    } finally {
-      setLoading(false);
-    }
+    setChartData(makeSkeleton(companyOptions.map((c) => c.label)));
+    setLastFilters(null);
+    setDailyCompanyLabels([]);
+    setSelectedCompany("");
+    setDailyData(makeDailySkeleton([], YEAR, dailyMonth));
+    setErrorDaily("");
   };
 
   return (
@@ -408,6 +496,7 @@ const ContinuousDeviceStatus = ({ isOpen }) => {
       </div>
 
       <div className="flex flex-col gap-4 py-6">
+        {/* MONTHLY (Line) */}
         <div className="p-4 border rounded-xl shadow-lg relative">
           <div className="mx-2 mb-2 flex justify-between items-center">
             <span className="text-xl">{YEAR}</span>
@@ -420,13 +509,15 @@ const ContinuousDeviceStatus = ({ isOpen }) => {
             </button>
           </div>
 
-          <p
-            className="mx-2 mb-3 text-sm text-gray-700"
-            aria-live="polite"
-            role="status"
-          >
-            {summary}
-          </p>
+          {summary && (
+            <p
+              className="mx-2 mb-3 text-sm text-gray-700"
+              aria-live="polite"
+              role="status"
+            >
+              {summary}
+            </p>
+          )}
 
           <hr />
           {error && (
@@ -442,7 +533,7 @@ const ContinuousDeviceStatus = ({ isOpen }) => {
           )}
         </div>
 
-        {/* DAILY: always rendered */}
+        {/* DAILY (Bar) — always rendered */}
         <div className="relative">
           {errorDaily && (
             <div className="my-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded p-2">
@@ -451,16 +542,13 @@ const ContinuousDeviceStatus = ({ isOpen }) => {
           )}
           <DailyBarChartSection
             data={dailyData}
-            companyLabels={(lastFilters.companies?.length
-              ? lastFilters.companies
-              : [{ label: "FoodHub" }]
-            ).map((c) => c.label)}
+            companyLabels={dailyCompanyLabels}
             activeCompany={selectedCompany}
             setActiveCompany={setSelectedCompany}
             month={dailyMonth}
             setMonth={setDailyMonth}
-            openColor="#22c55e" // green
-            closedColor="#ef4444" // red
+            openColor="#22c55e"
+            closedColor="#ef4444"
           />
           {loadingDaily && (
             <div className="absolute inset-0 bg-white/40 backdrop-blur-[1px] rounded-xl flex items-center justify-center text-gray-600">
@@ -468,6 +556,37 @@ const ContinuousDeviceStatus = ({ isOpen }) => {
             </div>
           )}
         </div>
+      </div>
+
+      {/* SHOP SUMMARY */}
+      <div className="p-4 border rounded-xl shadow-lg mt-6">
+        <h3 className="text-xl font-semibold mb-4">Shop Summary</h3>
+        {Object.keys(shopSummaryData).length > 0 ? (
+          <table className="min-w-full table-auto">
+            <thead>
+              <tr>
+                <th className="px-4 py-2 border">Shop Name</th>
+                <th className="px-4 py-2 border">Open</th>
+                <th className="px-4 py-2 border">Closed</th>
+              </tr>
+            </thead>
+            <tbody>
+              {Object.keys(shopSummaryData).map((company) => (
+                <React.Fragment key={company}>
+                  {shopSummaryData[company].map((shop, index) => (
+                    <tr key={index}>
+                      <td className="px-4 py-2 border">{shop.shop_name}</td>
+                      <td className="px-4 py-2 border">{shop.open}</td>
+                      <td className="px-4 py-2 border">{shop.closed}</td>
+                    </tr>
+                  ))}
+                </React.Fragment>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <p>No shop summary data available.</p>
+        )}
       </div>
 
       {showFilter && (
