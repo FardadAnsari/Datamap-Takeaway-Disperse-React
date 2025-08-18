@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from "react";
-import Select from "react-select";
+import { useEffect, useState } from "react";
 import LineChartSection from "./LineChartSection";
-import { useForm, Controller } from "react-hook-form";
-import ReactSlider from "react-slider";
+import { useForm, FormProvider } from "react-hook-form";
 import instance from "../../api/continuousApi";
 import DailyBarChartSection from "./DailyBarChartSection";
+import ShopSummaryTable from "./ShopSummaryTable";
+import FilterDrawer from "./FilterDrawer";
 
 const cityOptions = [
   { value: "glasgow", label: "Glasgow" },
@@ -106,7 +106,20 @@ const buildFilterSummary = (values) => {
   return `Results for ${companiesText} in ${cityLabel} (${ratingText}${reviewsText}).`;
 };
 
-// ---------- helpers ----------
+/* ---------------- logging helper ---------------- */
+const logFetch = (label, endpoint, params, status, extra = {}) => {
+  const ts = new Date().toISOString();
+  console.log(
+    `[${ts}] [${label}] endpoint=${endpoint}`,
+    "params:",
+    params,
+    "status:",
+    status,
+    extra
+  );
+};
+
+/* ---------------- helpers ---------------- */
 const makeSkeleton = (companyLabels = []) =>
   MONTHS.map((m) => {
     const row = { name: m };
@@ -120,6 +133,7 @@ const fetchPerCompany = async (companies, params) => {
 
   const tasks = companies.map((c) => ({
     label: c.label,
+    endpoint: companyToPath(c.value),
     req: instance.get(companyToPath(c.value), { params }),
   }));
 
@@ -127,17 +141,22 @@ const fetchPerCompany = async (companies, params) => {
 
   const grouped = {};
   settled.forEach((res, idx) => {
-    const label = tasks[idx].label;
+    const { label, endpoint } = tasks[idx];
     if (res.status === "fulfilled" && Array.isArray(res.value?.data)) {
       grouped[label] = res.value.data;
+      logFetch(label, endpoint, params, "success", {
+        rows: grouped[label].length,
+      });
     } else {
-      grouped[label] = []; // keep key so UI is stable
+      grouped[label] = [];
+      logFetch(label, endpoint, params, "error", {
+        error: res.reason?.message,
+      });
     }
   });
 
   const anyData = Object.values(grouped).some((arr) => arr.length > 0);
   if (!anyData) throw new Error("All requests failed or returned empty.");
-
   return grouped;
 };
 
@@ -148,6 +167,7 @@ const fetchDailyStatsPerCompany = async (companies, params) => {
 
   const tasks = companies.map((c) => ({
     label: c.label,
+    endpoint: companyToDailyStatsPath(c.value),
     req: instance.get(companyToDailyStatsPath(c.value), { params }),
   }));
 
@@ -155,28 +175,34 @@ const fetchDailyStatsPerCompany = async (companies, params) => {
 
   const grouped = {};
   settled.forEach((res, idx) => {
-    const label = tasks[idx].label;
+    const { label, endpoint } = tasks[idx];
     if (res.status === "fulfilled") {
       const payload = res.value?.data;
       const arr = Array.isArray(payload) ? payload : payload?.daily_stats;
       grouped[label] = Array.isArray(arr) ? arr : [];
+      logFetch(`${label} (Daily)`, endpoint, params, "success", {
+        rows: grouped[label].length,
+      });
     } else {
       grouped[label] = [];
+      logFetch(`${label} (Daily)`, endpoint, params, "error", {
+        error: res.reason?.message,
+      });
     }
   });
 
   const anyData = Object.values(grouped).some((arr) => arr.length > 0);
   if (!anyData) throw new Error("All daily requests failed or returned empty.");
-
   return grouped;
 };
 
-const fetchShopSummary = async (companies, params, month) => {
+const fetchShopSummary = async (companies, params) => {
   if (!companies?.length)
     throw new Error("Please select at least one company.");
 
   const tasks = companies.map((c) => ({
     label: c.label,
+    endpoint: companyToShopSummaryPath(c.value),
     req: instance.get(companyToShopSummaryPath(c.value), { params }),
   }));
 
@@ -184,19 +210,31 @@ const fetchShopSummary = async (companies, params, month) => {
 
   const grouped = {};
   settled.forEach((res, idx) => {
-    const label = tasks[idx].label;
+    const { label, endpoint } = tasks[idx];
     if (res.status === "fulfilled") {
       const payload = res.value?.data;
-      const arr = Array.isArray(payload) ? payload : payload?.daily_stats;
-      grouped[label] = Array.isArray(arr) ? arr : [];
+      const arr = Array.isArray(payload)
+        ? payload
+        : Array.isArray(payload?.shop_summary)
+          ? payload.shop_summary
+          : Array.isArray(payload?.data)
+            ? payload.data
+            : [];
+      grouped[label] = arr;
+      logFetch(`${label} (Summary)`, endpoint, params, "success", {
+        rows: grouped[label].length,
+      });
     } else {
       grouped[label] = [];
+      logFetch(`${label} (Summary)`, endpoint, params, "error", {
+        error: res.reason?.message,
+      });
     }
   });
 
   const anyData = Object.values(grouped).some((arr) => arr.length > 0);
-  if (!anyData) throw new Error("All daily requests failed or returned empty.");
-
+  if (!anyData)
+    throw new Error("All shop summary requests failed or returned empty.");
   return grouped;
 };
 
@@ -205,7 +243,6 @@ const toMonthlyAvgPerCompany = (groupedRows, year = YEAR) => {
   const currentMonthIndex = now.getMonth(); // 0=Jan
   const labels = Object.keys(groupedRows);
 
-  // build buckets by label -> Map("YYYY-MM" -> [counts])
   const bucketsByLabel = new Map();
   labels.forEach((lbl) => {
     const rows = groupedRows[lbl] || [];
@@ -224,7 +261,6 @@ const toMonthlyAvgPerCompany = (groupedRows, year = YEAR) => {
     bucketsByLabel.set(lbl, m);
   });
 
-  // compose chart rows (only up to current month)
   return MONTHS.slice(0, currentMonthIndex + 1).map((labelMonth, idx) => {
     const mm = String(idx + 1).padStart(2, "0");
     const key = `${year}-${mm}`;
@@ -283,12 +319,12 @@ const makeDailySkeleton = (labels = [], year = YEAR, month = 1) => {
   });
 };
 
-// ---------- component ----------
+/* ---------------- component ---------------- */
 const ContinuousDeviceStatus = ({ isOpen }) => {
   const [showFilter, setShowFilter] = useState(false);
   const [shopSummaryData, setShopSummaryData] = useState({});
 
-  // MONTHLY (Line) — default skeleton with all company labels
+  // MONTHLY (Line)
   const [chartData, setChartData] = useState(
     makeSkeleton(companyOptions.map((c) => c.label))
   );
@@ -296,56 +332,69 @@ const ContinuousDeviceStatus = ({ isOpen }) => {
   const [error, setError] = useState("");
 
   const defaultFormValues = {
-    city: { value: "glasgow", label: "Glasgow" },
-    companies: [], // <-- no default company
+    city: null,
+    companies: [],
     ratingRange: [0, 5],
     reviewMin: undefined,
     reviewMax: undefined,
   };
 
   const [summary, setSummary] = useState("");
-  const [dailyMonth, setDailyMonth] = useState(new Date().getMonth() + 1);
+  const [dailyMonth, setDailyMonth] = useState(new Date().getMonth() + 1); // for daily chart
+  const [shopMonth, setShopMonth] = useState(new Date().getMonth() + 1); // independent month for summary
   const [dailyData, setDailyData] = useState(
-    makeDailySkeleton([], YEAR, dailyMonth) // no bars initially
+    makeDailySkeleton([], YEAR, dailyMonth)
   );
-  const [dailyCompanyLabels, setDailyCompanyLabels] = useState([]); // tabs empty
+  const [dailyCompanyLabels, setDailyCompanyLabels] = useState([]);
   const [loadingDaily, setLoadingDaily] = useState(false);
   const [errorDaily, setErrorDaily] = useState("");
   const [lastFilters, setLastFilters] = useState(null);
-  const [selectedCompany, setSelectedCompany] = useState(""); // none selected
+  const [selectedCompany, setSelectedCompany] = useState("");
 
-  const {
-    register,
-    handleSubmit,
-    reset,
-    control,
-    formState: { isSubmitting },
-  } = useForm({ defaultValues: defaultFormValues });
+  // Shop Summary: tabs + loading/error
+  const [shopCompanyLabels, setShopCompanyLabels] = useState([]);
+  const [shopActiveCompany, setShopActiveCompany] = useState("");
+  const [loadingShopSummary, setLoadingShopSummary] = useState(false);
+  const [errorShopSummary, setErrorShopSummary] = useState("");
+
+  // const {
+  //   register,
+  //   handleSubmit,
+  //   reset,
+  //   control,
+  //   formState: { isSubmitting },
+  // } = useForm({ defaultValues: defaultFormValues });
+
+  const methods = useForm({ defaultValues: defaultFormValues });
+  // Keep active summary tab valid
+  useEffect(() => {
+    if (!shopCompanyLabels.length) {
+      setShopActiveCompany("");
+      return;
+    }
+    if (!shopActiveCompany || !shopCompanyLabels.includes(shopActiveCompany)) {
+      setShopActiveCompany(shopCompanyLabels[0]);
+    }
+  }, [shopCompanyLabels, shopActiveCompany]);
 
   const refreshDaily = async (filters, monthNum) => {
-    if (!filters?.companies?.length) return; // enforce selection
+    if (!filters?.companies?.length) return;
     setErrorDaily("");
     setLoadingDaily(true);
     try {
-      const params = {
-        year: YEAR,
-        month: monthNum, // Pass the selected month
-        city: filters.city?.value,
-      };
+      const params = { year: YEAR, month: monthNum, city: filters.city?.value };
       const grouped = await fetchDailyStatsPerCompany(
         filters.companies,
         params
       );
 
-      // detect month from first available date
       const firstArr = Object.values(grouped).find(
         (a) => Array.isArray(a) && a.length
       );
-      const firstDate = firstArr?.find((d) => d?.date)?.date; // e.g., "2025-05-01"
+      const firstDate = firstArr?.find((d) => d?.date)?.date; // "YYYY-MM-DD"
       const detectedMonth = firstDate ? Number(firstDate.slice(5, 7)) : null;
 
       if (detectedMonth && detectedMonth !== monthNum) {
-        // switch the UI month; effect below will refetch with new month
         setDailyMonth(detectedMonth);
         setDailyData(toDailyRowsPerCompany(grouped, YEAR, detectedMonth));
       } else {
@@ -361,40 +410,54 @@ const ContinuousDeviceStatus = ({ isOpen }) => {
     }
   };
 
+  // Fetch Shop Summary when month or filters change (independent of daily)
   useEffect(() => {
-    if (!lastFilters?.companies?.length) return; // Ensure companies are selected
+    if (!lastFilters?.companies?.length) return;
+
     const params = {
       year: YEAR,
       city: lastFilters.city?.value,
       min_rating: lastFilters.ratingRange[0],
       max_rating: lastFilters.ratingRange[1],
-      month: dailyMonth, // Send the updated month
+      month: shopMonth,
+      ...(lastFilters.reviewMin != null && lastFilters.reviewMin !== ""
+        ? { min_reviews: Number(lastFilters.reviewMin) }
+        : {}),
+      ...(lastFilters.reviewMax != null && lastFilters.reviewMax !== ""
+        ? { max_reviews: Number(lastFilters.reviewMax) }
+        : {}),
     };
 
-    // Fetch the shop summary data whenever the month changes
     const fetchSummary = async () => {
+      setErrorShopSummary("");
+      setLoadingShopSummary(true);
       try {
         const shopSummary = await fetchShopSummary(
           lastFilters.companies,
-          params, // Pass updated params with the new month
-          dailyMonth // Pass the new month here as well
+          params
         );
-        setShopSummaryData(shopSummary); // Update shop summary data in state
+        setShopSummaryData(shopSummary);
       } catch (e) {
         console.error(e);
-        setError("Failed to load shop summary data.");
+        setErrorShopSummary("Failed to load shop summary data.");
+        setShopSummaryData({});
+      } finally {
+        setLoadingShopSummary(false);
       }
     };
 
-    fetchSummary(); // Trigger fetch when month changes
-  }, [dailyMonth, lastFilters]); // Dependencies: `dailyMonth` and `lastFilters`
+    fetchSummary();
+  }, [shopMonth, lastFilters]);
 
   const onSubmit = async (values) => {
     setError("");
     setLoading(true);
-
     setSummary(buildFilterSummary(values));
-
+    if (!values.city) {
+      setLoading(false);
+      setError("Please select a city.");
+      return;
+    }
     if (!values.companies?.length) {
       setLoading(false);
       setError("Please select at least one company.");
@@ -415,36 +478,50 @@ const ContinuousDeviceStatus = ({ isOpen }) => {
         return;
       }
 
-      const params = {
+      const paramsCommon = {
         year: YEAR,
         city: values.city?.value,
         min_rating: minRating,
         max_rating: maxRating,
-        month: dailyMonth, // Add selected month here
       };
       if (values.reviewMin !== "" && values.reviewMin != null)
-        params.min_reviews = Number(values.reviewMin);
+        paramsCommon.min_reviews = Number(values.reviewMin);
       if (values.reviewMax !== "" && values.reviewMax != null)
-        params.max_reviews = Number(values.reviewMax);
+        paramsCommon.max_reviews = Number(values.reviewMax);
 
       // MONTHLY
-      const grouped = await fetchPerCompany(values.companies, params);
+      const grouped = await fetchPerCompany(values.companies, {
+        ...paramsCommon,
+        month: dailyMonth,
+      });
       setChartData(toMonthlyAvgPerCompany(grouped, YEAR));
 
-      // DAILY — set labels and fetch
+      // DAILY
       const labels = values.companies.map((c) => c.label);
       setDailyCompanyLabels(labels);
       setSelectedCompany(labels[0] || "");
       setLastFilters(values);
-      await refreshDaily(values, dailyMonth); // Pass the month here
+      await refreshDaily(values, dailyMonth);
 
-      // SHOP SUMMARY — fetch shop summary data with month as parameter
-      const shopSummary = await fetchShopSummary(
-        values.companies,
-        params, // Pass params with the month
-        dailyMonth // Pass the month here as well
-      );
-      setShopSummaryData(shopSummary); // Store the shop summary data
+      // SHOP SUMMARY — setup tabs and fetch with independent month
+      const shopLabels = values.companies.map((c) => c.label);
+      setShopCompanyLabels(shopLabels);
+      setShopActiveCompany(shopLabels[0] || "");
+
+      setLoadingShopSummary(true);
+      try {
+        const shopSummary = await fetchShopSummary(values.companies, {
+          ...paramsCommon,
+          month: shopMonth,
+        });
+        setShopSummaryData(shopSummary);
+      } catch (e) {
+        console.error(e);
+        setErrorShopSummary("Failed to load shop summary data.");
+        setShopSummaryData({});
+      } finally {
+        setLoadingShopSummary(false);
+      }
 
       setShowFilter(false);
     } catch (e) {
@@ -469,13 +546,13 @@ const ContinuousDeviceStatus = ({ isOpen }) => {
   const onClear = () => {
     const defaults = {
       city: { value: "glasgow", label: "Glasgow" },
-      companies: [], // no default company
+      companies: [],
       ratingRange: [0, 5],
       reviewMin: "",
       reviewMax: "",
     };
-    reset(defaults);
-    setSummary(""); // hide summary again
+    methods.reset(defaults);
+    setSummary("");
     setError("");
     setChartData(makeSkeleton(companyOptions.map((c) => c.label)));
     setLastFilters(null);
@@ -483,6 +560,12 @@ const ContinuousDeviceStatus = ({ isOpen }) => {
     setSelectedCompany("");
     setDailyData(makeDailySkeleton([], YEAR, dailyMonth));
     setErrorDaily("");
+    setShopSummaryData({});
+    setShopMonth(new Date().getMonth() + 1);
+    setShopCompanyLabels([]);
+    setShopActiveCompany("");
+    setLoadingShopSummary(false);
+    setErrorShopSummary("");
   };
 
   return (
@@ -533,7 +616,7 @@ const ContinuousDeviceStatus = ({ isOpen }) => {
           )}
         </div>
 
-        {/* DAILY (Bar) — always rendered */}
+        {/* DAILY (Bar) */}
         <div className="relative">
           {errorDaily && (
             <div className="my-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded p-2">
@@ -543,12 +626,14 @@ const ContinuousDeviceStatus = ({ isOpen }) => {
           <DailyBarChartSection
             data={dailyData}
             companyLabels={dailyCompanyLabels}
-            activeCompany={selectedCompany}
-            setActiveCompany={setSelectedCompany}
+            activeCompany={selectedCompany} /* ignored by child, harmless */
+            setActiveCompany={
+              setSelectedCompany
+            } /* ignored by child, harmless */
             month={dailyMonth}
             setMonth={setDailyMonth}
-            openColor="#22c55e"
-            closedColor="#ef4444"
+            openColor="#22c55e" /* ignored by child, harmless */
+            closedColor="#ef4444" /* ignored by child, harmless */
           />
           {loadingDaily && (
             <div className="absolute inset-0 bg-white/40 backdrop-blur-[1px] rounded-xl flex items-center justify-center text-gray-600">
@@ -559,177 +644,28 @@ const ContinuousDeviceStatus = ({ isOpen }) => {
       </div>
 
       {/* SHOP SUMMARY */}
-      <div className="p-4 border rounded-xl shadow-lg mt-6">
-        <h3 className="text-xl font-semibold mb-4">Shop Summary</h3>
-        {Object.keys(shopSummaryData).length > 0 ? (
-          <table className="min-w-full table-auto">
-            <thead>
-              <tr>
-                <th className="px-4 py-2 border">Shop Name</th>
-                <th className="px-4 py-2 border">Open</th>
-                <th className="px-4 py-2 border">Closed</th>
-              </tr>
-            </thead>
-            <tbody>
-              {Object.keys(shopSummaryData).map((company) => (
-                <React.Fragment key={company}>
-                  {shopSummaryData[company].map((shop, index) => (
-                    <tr key={index}>
-                      <td className="px-4 py-2 border">{shop.shop_name}</td>
-                      <td className="px-4 py-2 border">{shop.open}</td>
-                      <td className="px-4 py-2 border">{shop.closed}</td>
-                    </tr>
-                  ))}
-                </React.Fragment>
-              ))}
-            </tbody>
-          </table>
-        ) : (
-          <p>No shop summary data available.</p>
-        )}
-      </div>
+      <ShopSummaryTable
+        labels={shopCompanyLabels}
+        activeLabel={shopActiveCompany}
+        onChangeActive={setShopActiveCompany}
+        month={shopMonth}
+        onChangeMonth={setShopMonth}
+        dataByLabel={shopSummaryData}
+        loading={loadingShopSummary}
+        error={errorShopSummary}
+      />
 
       {showFilter && (
-        <div
-          className="fixed right-6 top-6 w-96 max-w-[95vw] bg-white border shadow-xl rounded-xl z-50"
-          role="dialog"
-          aria-label="Companies Filter"
-        >
-          <form
-            onSubmit={handleSubmit(onSubmit)}
-            className="flex flex-col h-full"
-          >
-            <div className="px-4 py-3 border-b flex items-center justify-between">
-              <span className="text-lg font-semibold">Companies Filter</span>
-              <button
-                type="button"
-                onClick={() => setShowFilter(false)}
-                className="text-gray-500 hover:text-gray-700"
-                aria-label="Close"
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className="flex-1 overflow-y-auto p-4 space-y-6">
-              <div className="border-b pb-4">
-                <label className="block text-sm mb-1">Select City</label>
-                <Controller
-                  name="city"
-                  control={control}
-                  render={({ field }) => (
-                    <Select
-                      {...field}
-                      options={cityOptions}
-                      placeholder="Choose a city..."
-                      isClearable
-                    />
-                  )}
-                />
-              </div>
-
-              <div className="border-b pb-4">
-                <label className="block text-sm mb-1">Select Companies</label>
-                <Controller
-                  name="companies"
-                  control={control}
-                  render={({ field }) => (
-                    <Select
-                      {...field}
-                      options={companyOptions}
-                      isMulti
-                      placeholder="Choose companies..."
-                      closeMenuOnSelect={false}
-                    />
-                  )}
-                />
-              </div>
-
-              <div className="border-b pb-4">
-                <p className="text-lg font-normal mb-2">Filter by Rating</p>
-                <div className="flex justify-between text-sm text-gray-600">
-                  <span>Minimum</span>
-                  <span>Maximum</span>
-                </div>
-                <Controller
-                  name="ratingRange"
-                  control={control}
-                  render={({ field: { onChange, value } }) => (
-                    <div className="px-1 py-2">
-                      <ReactSlider
-                        className="relative w-full h-6 my-4"
-                        thumbClassName="bg-orange-500 h-10 w-10 rounded-full cursor-grab border-2 border-white flex items-center justify-center text-white font-bold transform -translate-y-1/2 top-1/2"
-                        trackClassName="bg-gray-300 h-1 top-1/2 transform -translate-y-1/2 rounded"
-                        min={0}
-                        max={5}
-                        step={0.1}
-                        minDistance={0.1}
-                        value={value}
-                        onChange={onChange}
-                        pearling
-                        renderThumb={(props, state) => {
-                          const { key, ...rest } = props;
-                          return (
-                            <div key={key} {...rest}>
-                              {state.valueNow.toFixed(1)}
-                            </div>
-                          );
-                        }}
-                      />
-                    </div>
-                  )}
-                />
-              </div>
-
-              <div>
-                <p className="text-lg font-normal mb-2">Set Review Range</p>
-                <div className="flex justify-between gap-4">
-                  <div className="flex-1">
-                    <label className="text-sm mb-1 block">Minimum</label>
-                    <input
-                      type="number"
-                      min="0"
-                      placeholder="0"
-                      {...register("reviewMin", {
-                        setValueAs: (v) => (v === "" ? undefined : Number(v)),
-                      })}
-                      className="w-full px-3 py-2 border rounded"
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <label className="text-sm mb-1 block">Maximum</label>
-                    <input
-                      type="number"
-                      min="0"
-                      placeholder="1000"
-                      {...register("reviewMax", {
-                        setValueAs: (v) => (v === "" ? undefined : Number(v)),
-                      })}
-                      className="w-full px-3 py-2 border rounded"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="px-4 py-3 border-t flex gap-2">
-              <button
-                type="button"
-                onClick={onClear}
-                className="w-2/5 py-2 bg-white border-2 border-orange-500 text-orange-600 rounded hover:bg-gray-50"
-              >
-                Clear
-              </button>
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-3/5 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 disabled:bg-orange-300"
-              >
-                {isSubmitting ? "Filtering..." : "Filter"}
-              </button>
-            </div>
-          </form>
-        </div>
+        <FormProvider {...methods}>
+          <FilterDrawer
+            isOpen={showFilter}
+            onClose={() => setShowFilter(false)}
+            onSubmit={onSubmit}
+            onClear={onClear}
+            cityOptions={cityOptions}
+            companyOptions={companyOptions}
+          />
+        </FormProvider>
       )}
     </div>
   );
