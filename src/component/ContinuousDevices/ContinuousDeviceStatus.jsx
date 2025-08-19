@@ -6,12 +6,6 @@ import DailyBarChartSection from "./DailyBarChartSection";
 import ShopSummaryTable from "./ShopSummaryTable";
 import FilterDrawer from "./FilterDrawer";
 
-const cityOptions = [
-  { value: "glasgow", label: "Glasgow" },
-  { value: "edinburgh", label: "Edinburgh" },
-  { value: "aberdeen", label: "Aberdeen" },
-];
-
 const companyOptions = [
   { value: "foodhub", label: "FoodHub" },
   { value: "justeat", label: "JustEat" },
@@ -56,6 +50,7 @@ const companyToShopSummaryPath = (value) => {
       return "/foodhub/foodhub-shopsummary/";
   }
 };
+// const accessToken = sessionStorage.getItem("accessToken");
 
 const YEAR = 2025;
 const MONTHS = [
@@ -80,8 +75,15 @@ const joinNatural = (arr) =>
       ? arr.join(" and ")
       : `${arr.slice(0, -1).join(", ")} and ${arr[arr.length - 1]}`;
 
+const buildLocationParam = (filters) =>
+  filters?.postcode?.value
+    ? { postcode: filters.postcode.value }
+    : filters?.city?.value
+      ? { city: filters.city.value }
+      : {};
 const buildFilterSummary = (values) => {
-  const cityLabel = values.city?.label ?? "—";
+  const cityLabel = values.city?.label ?? "";
+  const postcodeLabel = values.postcode?.label ?? "";
   const companies = (values.companies ?? []).map((c) => c.label);
   const companiesText = companies.length ? joinNatural(companies) : "—";
 
@@ -103,7 +105,7 @@ const buildFilterSummary = (values) => {
   else if (hasMinReviews) reviewsText = `, min reviews ${values.reviewMin}`;
   else if (hasMaxReviews) reviewsText = `, max reviews ${values.reviewMax}`;
 
-  return `Results for ${companiesText} in ${cityLabel} (${ratingText}${reviewsText}).`;
+  return `Results for ${companiesText} in ${cityLabel} ${postcodeLabel} (${ratingText}${reviewsText}).`;
 };
 
 /* ---------------- logging helper ---------------- */
@@ -120,6 +122,7 @@ const logFetch = (label, endpoint, params, status, extra = {}) => {
 };
 
 /* ---------------- helpers ---------------- */
+
 const makeSkeleton = (companyLabels = []) =>
   MONTHS.map((m) => {
     const row = { name: m };
@@ -134,7 +137,15 @@ const fetchPerCompany = async (companies, params) => {
   const tasks = companies.map((c) => ({
     label: c.label,
     endpoint: companyToPath(c.value),
-    req: instance.get(companyToPath(c.value), { params }),
+    req: instance.get(
+      companyToPath(c.value),
+      // {
+      //   headers: {
+      //     Authorization: `Bearer ${accessToken}`,
+      //   },
+      // },
+      { params }
+    ),
   }));
 
   const settled = await Promise.allSettled(tasks.map((t) => t.req));
@@ -160,7 +171,6 @@ const fetchPerCompany = async (companies, params) => {
   return grouped;
 };
 
-// Accepts either top-level array OR { daily_stats: [...] }
 const fetchDailyStatsPerCompany = async (companies, params) => {
   if (!companies?.length)
     throw new Error("Please select at least one company.");
@@ -168,7 +178,15 @@ const fetchDailyStatsPerCompany = async (companies, params) => {
   const tasks = companies.map((c) => ({
     label: c.label,
     endpoint: companyToDailyStatsPath(c.value),
-    req: instance.get(companyToDailyStatsPath(c.value), { params }),
+    req: instance.get(
+      companyToDailyStatsPath(c.value),
+      // {
+      //   headers: {
+      //     Authorization: `Bearer ${accessToken}`,
+      //   },
+      // },
+      { params }
+    ),
   }));
 
   const settled = await Promise.allSettled(tasks.map((t) => t.req));
@@ -196,15 +214,30 @@ const fetchDailyStatsPerCompany = async (companies, params) => {
   return grouped;
 };
 
-const fetchShopSummary = async (companies, params) => {
+// replace your fetchShopSummary with this version
+const fetchShopSummary = async (companies, params, pagesByLabel = {}) => {
   if (!companies?.length)
     throw new Error("Please select at least one company.");
 
-  const tasks = companies.map((c) => ({
-    label: c.label,
-    endpoint: companyToShopSummaryPath(c.value),
-    req: instance.get(companyToShopSummaryPath(c.value), { params }),
-  }));
+  const tasks = companies.map((c) => {
+    const endpoint = companyToShopSummaryPath(c.value);
+    const label = c.label;
+    // IMPORTANT: pass page per company (default 1)
+    const page = pagesByLabel[label] ?? 1;
+    return {
+      label,
+      endpoint,
+      req: instance.get(
+        endpoint,
+        // {
+        //   headers: {
+        //     Authorization: `Bearer ${accessToken}`,
+        //   },
+        // },
+        { params: { ...params, page } }
+      ),
+    };
+  });
 
   const settled = await Promise.allSettled(tasks.map((t) => t.req));
 
@@ -212,27 +245,57 @@ const fetchShopSummary = async (companies, params) => {
   settled.forEach((res, idx) => {
     const { label, endpoint } = tasks[idx];
     if (res.status === "fulfilled") {
-      const payload = res.value?.data;
-      const arr = Array.isArray(payload)
+      const payload = res.value?.data || {};
+      // normalize shapes:
+      const rows = Array.isArray(payload)
         ? payload
-        : Array.isArray(payload?.shop_summary)
-          ? payload.shop_summary
-          : Array.isArray(payload?.data)
-            ? payload.data
-            : [];
-      grouped[label] = arr;
-      logFetch(`${label} (Summary)`, endpoint, params, "success", {
-        rows: grouped[label].length,
-      });
+        : Array.isArray(payload?.results)
+          ? payload.results
+          : Array.isArray(payload?.shop_summary)
+            ? payload.shop_summary
+            : Array.isArray(payload?.data)
+              ? payload.data
+              : [];
+
+      const meta = {
+        totalPages:
+          payload?.totalPages ??
+          payload?.total_pages ??
+          payload?.pages?.total ??
+          1,
+        currentPage: payload?.currentPage ?? payload?.page ?? 1,
+        totalItems: payload?.total_items ?? payload?.count ?? rows.length,
+        next: payload?.pages?.next ?? payload?.next ?? null,
+        previous: payload?.pages?.previous ?? payload?.previous ?? null,
+        dateRange: payload?.date_range ?? null,
+      };
+
+      grouped[label] = { rows, meta };
+      logFetch(
+        `${label} (Summary)`,
+        endpoint,
+        { ...params, page: pagesByLabel[label] ?? 1 },
+        "success",
+        {
+          rows: rows.length,
+          page: meta.currentPage,
+          totalPages: meta.totalPages,
+        }
+      );
     } else {
-      grouped[label] = [];
+      grouped[label] = {
+        rows: [],
+        meta: { totalPages: 1, currentPage: 1, totalItems: 0 },
+      };
       logFetch(`${label} (Summary)`, endpoint, params, "error", {
         error: res.reason?.message,
       });
     }
   });
 
-  const anyData = Object.values(grouped).some((arr) => arr.length > 0);
+  const anyData = Object.values(grouped).some(
+    (v) => (v?.rows || []).length > 0
+  );
   if (!anyData)
     throw new Error("All shop summary requests failed or returned empty.");
   return grouped;
@@ -323,6 +386,7 @@ const makeDailySkeleton = (labels = [], year = YEAR, month = 1) => {
 const ContinuousDeviceStatus = ({ isOpen }) => {
   const [showFilter, setShowFilter] = useState(false);
   const [shopSummaryData, setShopSummaryData] = useState({});
+  const [shopPages, setShopPages] = useState({});
 
   // MONTHLY (Line)
   const [chartData, setChartData] = useState(
@@ -333,6 +397,7 @@ const ContinuousDeviceStatus = ({ isOpen }) => {
 
   const defaultFormValues = {
     city: null,
+    postcode: null,
     companies: [],
     ratingRange: [0, 5],
     reviewMin: undefined,
@@ -382,7 +447,11 @@ const ContinuousDeviceStatus = ({ isOpen }) => {
     setErrorDaily("");
     setLoadingDaily(true);
     try {
-      const params = { year: YEAR, month: monthNum, city: filters.city?.value };
+      const params = {
+        year: YEAR,
+        month: monthNum,
+        ...buildLocationParam(filters),
+      };
       const grouped = await fetchDailyStatsPerCompany(
         filters.companies,
         params
@@ -400,11 +469,16 @@ const ContinuousDeviceStatus = ({ isOpen }) => {
       } else {
         setDailyData(toDailyRowsPerCompany(grouped, YEAR, monthNum));
       }
-    } catch (e) {
-      console.error(e);
+    } catch (err) {
+      console.error(err);
       const labels = (filters.companies || []).map((c) => c.label);
       setDailyData(makeDailySkeleton(labels, YEAR, monthNum));
       setErrorDaily("Failed to load daily stats.");
+      const status = err?.response?.status;
+      if (status === 401) setError("Session expired. Please log in again.");
+      else if (status === 403)
+        setError("You don't have permission to view this data.");
+      else setError("Request failed. Please try again.");
     } finally {
       setLoadingDaily(false);
     }
@@ -416,7 +490,7 @@ const ContinuousDeviceStatus = ({ isOpen }) => {
 
     const params = {
       year: YEAR,
-      city: lastFilters.city?.value,
+      ...buildLocationParam(lastFilters),
       min_rating: lastFilters.ratingRange[0],
       max_rating: lastFilters.ratingRange[1],
       month: shopMonth,
@@ -434,12 +508,18 @@ const ContinuousDeviceStatus = ({ isOpen }) => {
       try {
         const shopSummary = await fetchShopSummary(
           lastFilters.companies,
-          params
+          params,
+          shopPages
         );
         setShopSummaryData(shopSummary);
-      } catch (e) {
-        console.error(e);
+      } catch (err) {
+        console.error(err);
         setErrorShopSummary("Failed to load shop summary data.");
+        const status = err?.response?.status;
+        if (status === 401) setError("Session expired. Please log in again.");
+        else if (status === 403)
+          setError("You don't have permission to view this data.");
+        else setError("Request failed. Please try again.");
         setShopSummaryData({});
       } finally {
         setLoadingShopSummary(false);
@@ -447,7 +527,11 @@ const ContinuousDeviceStatus = ({ isOpen }) => {
     };
 
     fetchSummary();
-  }, [shopMonth, lastFilters]);
+  }, [shopMonth, lastFilters, shopPages]); // <-- add shopPages
+
+  const handleShopPageChange = (label, nextPage) => {
+    setShopPages((prev) => ({ ...prev, [label]: nextPage }));
+  };
 
   const onSubmit = async (values) => {
     setError("");
@@ -480,7 +564,7 @@ const ContinuousDeviceStatus = ({ isOpen }) => {
 
       const paramsCommon = {
         year: YEAR,
-        city: values.city?.value,
+        ...buildLocationParam(values),
         min_rating: minRating,
         max_rating: maxRating,
       };
@@ -507,6 +591,7 @@ const ContinuousDeviceStatus = ({ isOpen }) => {
       const shopLabels = values.companies.map((c) => c.label);
       setShopCompanyLabels(shopLabels);
       setShopActiveCompany(shopLabels[0] || "");
+      setShopPages(Object.fromEntries(shopLabels.map((lbl) => [lbl, 1])));
 
       setLoadingShopSummary(true);
       try {
@@ -515,8 +600,13 @@ const ContinuousDeviceStatus = ({ isOpen }) => {
           month: shopMonth,
         });
         setShopSummaryData(shopSummary);
-      } catch (e) {
-        console.error(e);
+      } catch (err) {
+        console.error(err);
+        const status = err?.response?.status;
+        if (status === 401) setError("Session expired. Please log in again.");
+        else if (status === 403)
+          setError("You don't have permission to view this data.");
+        else setError("Request failed. Please try again.");
         setErrorShopSummary("Failed to load shop summary data.");
         setShopSummaryData({});
       } finally {
@@ -524,8 +614,13 @@ const ContinuousDeviceStatus = ({ isOpen }) => {
       }
 
       setShowFilter(false);
-    } catch (e) {
-      console.error(e);
+    } catch (err) {
+      console.error(err);
+      const status = err?.response?.status;
+      if (status === 401) setError("Session expired. Please log in again.");
+      else if (status === 403)
+        setError("You don't have permission to view this data.");
+      else setError("Request failed. Please try again.");
       const labels = (values.companies || []).map((c) => c.label);
       setChartData(makeSkeleton(labels));
       setError("Filtering failed. Please try again.");
@@ -545,7 +640,8 @@ const ContinuousDeviceStatus = ({ isOpen }) => {
 
   const onClear = () => {
     const defaults = {
-      city: { value: "glasgow", label: "Glasgow" },
+      city: null,
+      postcode: null,
       companies: [],
       ratingRange: [0, 5],
       reviewMin: "",
@@ -574,34 +670,32 @@ const ContinuousDeviceStatus = ({ isOpen }) => {
         isOpen ? "translate-x-0" : "-translate-x-full"
       }`}
     >
-      <div className="mx-4 flex justify-between items-center">
+      <div className="mx-4 flex justify-between items-center pb-4">
         <span className="text-2xl font-bold">Continuous Devices Status</span>
       </div>
+      <hr />
+      <div className="mx-2 py-2 flex justify-between items-center">
+        <p
+          className="mx-2 text-md text-gray-700"
+          aria-live="polite"
+          role="status"
+        >
+          {summary ? summary : ""}
+        </p>
 
-      <div className="flex flex-col gap-4 py-6">
+        <button
+          onClick={() => setShowFilter(true)}
+          className="flex gap-2 items-center px-6 py-3 rounded-lg border text-gray-600 border-gray-300 hover:bg-gray-50"
+        >
+          <div className="w-6 h-6 bg-filter-button bg-cover" />
+          <p className="text-md">Filter</p>
+        </button>
+      </div>
+
+      <div className="flex flex-col gap-4 py-2">
         {/* MONTHLY (Line) */}
         <div className="p-4 border rounded-xl shadow-lg relative">
-          <div className="mx-2 mb-2 flex justify-between items-center">
-            <span className="text-xl">{YEAR}</span>
-            <button
-              onClick={() => setShowFilter(true)}
-              className="flex gap-2 items-center px-3 py-1 rounded-lg border text-gray-600 border-gray-300 hover:bg-gray-50"
-            >
-              <div className="w-6 h-6 bg-filter-button bg-cover" />
-              <span>Filter</span>
-            </button>
-          </div>
-
-          {summary && (
-            <p
-              className="mx-2 mb-3 text-sm text-gray-700"
-              aria-live="polite"
-              role="status"
-            >
-              {summary}
-            </p>
-          )}
-
+          <p className="text-xl p-2">{YEAR}</p>
           <hr />
           {error && (
             <div className="my-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded p-2">
@@ -626,14 +720,12 @@ const ContinuousDeviceStatus = ({ isOpen }) => {
           <DailyBarChartSection
             data={dailyData}
             companyLabels={dailyCompanyLabels}
-            activeCompany={selectedCompany} /* ignored by child, harmless */
-            setActiveCompany={
-              setSelectedCompany
-            } /* ignored by child, harmless */
+            activeCompany={selectedCompany}
+            setActiveCompany={setSelectedCompany}
             month={dailyMonth}
             setMonth={setDailyMonth}
-            openColor="#22c55e" /* ignored by child, harmless */
-            closedColor="#ef4444" /* ignored by child, harmless */
+            openColor="#22c55e"
+            closedColor="#ef4444"
           />
           {loadingDaily && (
             <div className="absolute inset-0 bg-white/40 backdrop-blur-[1px] rounded-xl flex items-center justify-center text-gray-600">
@@ -650,9 +742,10 @@ const ContinuousDeviceStatus = ({ isOpen }) => {
         onChangeActive={setShopActiveCompany}
         month={shopMonth}
         onChangeMonth={setShopMonth}
-        dataByLabel={shopSummaryData}
+        dataByLabel={shopSummaryData} // { label: { rows, meta } }
         loading={loadingShopSummary}
         error={errorShopSummary}
+        onChangePage={(page) => handleShopPageChange(shopActiveCompany, page)} // NEW
       />
 
       {showFilter && (
@@ -662,7 +755,6 @@ const ContinuousDeviceStatus = ({ isOpen }) => {
             onClose={() => setShowFilter(false)}
             onSubmit={onSubmit}
             onClear={onClear}
-            cityOptions={cityOptions}
             companyOptions={companyOptions}
           />
         </FormProvider>

@@ -1,26 +1,27 @@
-import React from "react";
+import { useEffect, useRef, useState } from "react";
 import AsyncSelect from "react-select/async";
+import { default as StaticSelect } from "react-select";
 import ReactSlider from "react-slider";
 import instance from "../../api/api";
 import { Controller, useFormContext } from "react-hook-form";
+import AutoCompletionMultiSelectStyles from "../AutoCompletionMultiSelectStyles";
+import AutoCompletionCustomStyles from "../AutoCompletionCustomStyles";
 
 const MIN_QUERY_LEN = 2;
 
 const normalizeCities = (data) => {
   const list = Array.isArray(data) ? data : data?.results || data?.data || [];
-  // map {id, district} -> { value, label, id }
   const mapped = list
     .map((item) => {
       if (!item?.district) return null;
       return {
-        value: String(item.district).toLowerCase(), // used later as ?city=
-        label: item.district, // shown to user
-        id: item.id, // keep original id if you need it
+        value: String(item.district).toLowerCase(),
+        label: item.district,
+        id: item.id,
       };
     })
     .filter(Boolean);
 
-  // de-dupe by district (case-insensitive), just in case
   const seen = new Set();
   return mapped.filter((o) => {
     const key = o.value;
@@ -37,7 +38,6 @@ const loadCityOptions = async (inputValue) => {
     const { data } = await instance.get("/api/v1/companies/city-search/", {
       params: { city: q },
     });
-    console.log(data);
     return normalizeCities(data);
   } catch (e) {
     console.error("City search failed:", e?.message || e);
@@ -57,7 +57,57 @@ const FilterDrawer = ({
     register,
     handleSubmit,
     formState: { isSubmitting },
+    watch,
+    setValue,
   } = useFormContext();
+
+  const [postcodeOptions, setPostcodeOptions] = useState([]);
+  const [loadingPostcodes, setLoadingPostcodes] = useState(false);
+  const postcodeCache = useRef(new Map());
+
+  const city = watch("city");
+
+  useEffect(() => {
+    setValue("postcode", null);
+
+    if (!city) {
+      setPostcodeOptions([]);
+      return;
+    }
+
+    const cityKey = city.label || city.value;
+    if (postcodeCache.current.has(cityKey)) {
+      setPostcodeOptions(postcodeCache.current.get(cityKey));
+      return;
+    }
+
+    const fetchPostcodes = async () => {
+      setLoadingPostcodes(true);
+      try {
+        const { data } = await instance.get(
+          "/api/v1/companies/postcode-search/",
+          { params: { district: cityKey } }
+        );
+
+        const pcs = (
+          Array.isArray(data) ? data : data?.results || data?.data || []
+        )
+          .map((item) => item?.postcode_area)
+          .filter(Boolean);
+
+        const opts = pcs.map((pc) => ({ value: pc, label: pc }));
+        postcodeCache.current.set(cityKey, opts);
+        setPostcodeOptions(opts);
+      } catch (err) {
+        console.error("Postcode fetch failed:", err?.message || err);
+        setPostcodeOptions([]);
+      } finally {
+        setLoadingPostcodes(false);
+      }
+    };
+
+    fetchPostcodes();
+  }, [city, setValue]);
 
   if (!isOpen) return null;
 
@@ -91,7 +141,7 @@ const FilterDrawer = ({
                 <AsyncSelect
                   {...field}
                   cacheOptions
-                  defaultOptions={false} // user must type to see results
+                  defaultOptions={false}
                   loadOptions={loadCityOptions}
                   placeholder="Type to search a city…"
                   noOptionsMessage={({ inputValue }) =>
@@ -105,6 +155,39 @@ const FilterDrawer = ({
                   value={field.value || null}
                   getOptionLabel={(opt) => opt.label}
                   getOptionValue={(opt) => opt.value}
+                  styles={AutoCompletionMultiSelectStyles}
+                />
+              )}
+            />
+          </div>
+
+          {/* Postcode (depends on city) */}
+          <div className="border-b pb-4">
+            <label className="block text-sm mb-1">Select Postcode</label>
+            <Controller
+              name="postcode"
+              control={control}
+              render={({ field }) => (
+                <StaticSelect
+                  {...field}
+                  options={postcodeOptions}
+                  isClearable
+                  isDisabled={!city}
+                  placeholder={
+                    city ? "Choose a postcode…" : "Select a city first…"
+                  }
+                  noOptionsMessage={() =>
+                    loadingPostcodes
+                      ? "Loading postcodes…"
+                      : city
+                        ? "No postcodes found."
+                        : "Select a city first."
+                  }
+                  onChange={(opt) => field.onChange(opt)}
+                  value={field.value || null}
+                  getOptionLabel={(opt) => opt.label}
+                  getOptionValue={(opt) => opt.value}
+                  styles={AutoCompletionMultiSelectStyles}
                 />
               )}
             />
@@ -115,6 +198,7 @@ const FilterDrawer = ({
             <label className="block text-sm mb-1">Select Companies</label>
             <Controller
               name="companies"
+              rules={{ required: "required" }}
               control={control}
               render={({ field }) => (
                 <AsyncSelect
@@ -134,6 +218,7 @@ const FilterDrawer = ({
                   value={field.value || []}
                   getOptionLabel={(opt) => opt.label}
                   getOptionValue={(opt) => opt.value}
+                  styles={AutoCompletionMultiSelectStyles}
                 />
               )}
             />

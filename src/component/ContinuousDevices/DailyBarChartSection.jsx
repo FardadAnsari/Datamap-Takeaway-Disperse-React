@@ -9,6 +9,8 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
+import { default as StaticSelect } from "react-select";
+import AutoCompletionMultiSelectStyles from "../AutoCompletionMultiSelectStyles";
 
 const monthOpts = [
   { value: 1, label: "January" },
@@ -24,16 +26,17 @@ const monthOpts = [
   { value: 11, label: "November" },
   { value: 12, label: "December" },
 ];
+
 const DailyBarChartSection = ({
   data,
   companyLabels = [],
   month,
   setMonth,
   headerRightExtra,
+  emptyText = "No daily data available",
 }) => {
   const [active, setActive] = useState(companyLabels[0] || "");
 
-  // keep active tab valid if company list changes
   useEffect(() => {
     if (!companyLabels.length) {
       setActive("");
@@ -44,7 +47,6 @@ const DailyBarChartSection = ({
     }
   }, [companyLabels, active]);
 
-  // Shape data for the active company only -> keys "open"/"closed"
   const filtered = useMemo(() => {
     if (!active) return [];
     const ok = `${active}_open`;
@@ -55,6 +57,12 @@ const DailyBarChartSection = ({
       closed: Number(row[ck] || 0),
     }));
   }, [data, active]);
+
+  const hasAnyData =
+    filtered.length > 0 &&
+    filtered.some((r) => (r.open || 0) !== 0 || (r.closed || 0) !== 0);
+
+  const monthValue = monthOpts.find((m) => m.value === Number(month)) || null;
 
   return (
     <div className="p-4 border rounded-xl shadow-lg relative bg-white">
@@ -67,7 +75,7 @@ const DailyBarChartSection = ({
               key={lbl}
               type="button"
               onClick={() => setActive(lbl)}
-              className={`text-sm font-medium pb-1 border-b-2 -mb-px transition
+              className={`text-md font-medium pb-1 border-b-2 -mb-px transition
                 ${
                   active === lbl
                     ? "text-orange-600 border-orange-600"
@@ -84,48 +92,57 @@ const DailyBarChartSection = ({
 
         {/* Month selector + optional extra */}
         <div className="flex items-center gap-2">
-          <label className="text-sm text-gray-600">Select Month</label>
-          <select
-            className="border rounded px-2 py-1 text-sm"
-            value={month}
-            onChange={(e) => setMonth(Number(e.target.value))}
-          >
-            {monthOpts.map((m) => (
-              <option key={m.value} value={m.value}>
-                {m.label}
-              </option>
-            ))}
-          </select>
+          <div className="w-36">
+            <StaticSelect
+              instanceId="daily-month"
+              options={monthOpts}
+              value={monthValue}
+              onChange={(opt) => setMonth(opt?.value ?? null)} // still a number
+              isClearable={false}
+              placeholder="Select month…"
+              styles={AutoCompletionMultiSelectStyles}
+            />
+          </div>
           {headerRightExtra}
         </div>
       </div>
 
-      {/* Chart */}
-      <ResponsiveContainer width="100%" height={360}>
-        <BarChart
-          data={filtered}
-          margin={{ top: 10, right: 16, left: 0, bottom: 0 }}
+      {/* Empty state */}
+      {!active || filtered.length === 0 || !hasAnyData ? (
+        <div
+          className="mt-2 w-full h-[360px] flex flex-col items-center justify-center border border-dashed border-gray-300 rounded-lg"
+          aria-live="polite"
+          role="status"
         >
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="name" tickMargin={6} />
-          <YAxis allowDecimals={false} />
-          <Tooltip />
-          <Legend />
-          {/* Green = ON/OPEN, Red = OFF/CLOSED; stacked per day */}
-          <Bar
-            dataKey="open"
-            name="On / Open"
-            stackId="status"
-            fill="#aee34cff"
-          />
-          <Bar
-            dataKey="closed"
-            name="Off / Closed"
-            stackId="status"
-            fill="#f66464ff"
-          />
-        </BarChart>
-      </ResponsiveContainer>
+          <div className="w-44 h-44 bg-cover bg-empty-state-chart"></div>
+          <p className="text-gray-400 text-sm">{emptyText}</p>
+        </div>
+      ) : (
+        <ResponsiveContainer width="100%" height={360}>
+          <BarChart
+            data={filtered}
+            margin={{ top: 10, right: 16, left: 0, bottom: 0 }}
+          >
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="name" tickMargin={6} />
+            <YAxis allowDecimals={false} />
+            <Tooltip />
+            <Legend />
+            <Bar
+              dataKey="open"
+              name="On / Open"
+              stackId="status"
+              fill="#aee34cff"
+            />
+            <Bar
+              dataKey="closed"
+              name="Off / Closed"
+              stackId="status"
+              fill="#f66464ff"
+            />
+          </BarChart>
+        </ResponsiveContainer>
+      )}
     </div>
   );
 };
