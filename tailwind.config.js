@@ -33,6 +33,11 @@ export default {
         devices: "url('/sidebar/devices.svg')",
         "devices-active": "url('/sidebar/devices-focus.svg')",
         "devices-no-access": "url('/sidebar/devices-no-access.svg')",
+        "continuous-devices": "url('/sidebar/continuous-devices.svg')",
+        "continuous-devices-active":
+          "url('/sidebar/continuous-devices-focus.svg')",
+        "continuous-devices-no-access":
+          "url('/sidebar/continuous-devices-no-access.svg')",
         "justeat-devices": "url('/devices/justeat-devices.svg')",
         "ubereats-devices": "url('/devices/ubereats-devices.svg')",
         "foodhub-devices": "url('/devices/foodhub-devices.svg')",
@@ -44,16 +49,13 @@ export default {
         "no-result": "url('/no-result-matching.svg')",
         "no-access": "url('/no-access-permission.svg')",
         "refresh-button": "url('/button/refresh-button.svg')",
-        "empty-state-chart":
-          "url('/google-business-empty-states/empty-state-chart.svg')",
-        "empty-state-hours":
-          "url('/google-business-empty-states/empty-state-hours.svg')",
+        "filter-button": "url('/button/filter-btn.svg')",
+        "empty-state-chart": "url('/empty-states/empty-state-chart.svg')",
+        "empty-state-hours": "url('/empty-states/empty-state-hours.svg')",
         "empty-state-interaction":
-          "url('/google-business-empty-states/empty-state-interaction.svg')",
-        "empty-state-table":
-          "url('/google-business-empty-states/empty-state-table.svg')",
-        "empty-state-photo":
-          "url('/facebook-empty-states/empty-state-photo.svg')",
+          "url('/empty-states/empty-state-interaction.svg')",
+        "empty-state-table": "url('/empty-states/empty-state-table.svg')",
+        "empty-state-photo": "url('/empty-states/empty-state-photo.svg')",
         "not-found": "url('/not-found.svg')",
       },
     },

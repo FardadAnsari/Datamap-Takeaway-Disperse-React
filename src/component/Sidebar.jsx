@@ -56,6 +56,14 @@ const Sidebar = ({ activePanel, setActivePanel }) => {
       iconNoAccess: "bg-devices-no-access",
       access: user?.access?.devices,
     },
+    {
+      key: "continuousDevices",
+      label: "Continuous",
+      icon: "bg-continuous-devices",
+      iconActive: "bg-continuous-devices-active",
+      iconNoAccess: "bg-continuous-devices-no-access",
+      access: user?.access?.devices,
+    },
   ];
 
   return (
