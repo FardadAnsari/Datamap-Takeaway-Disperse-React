@@ -50,16 +50,12 @@ export default {
         "no-access": "url('/no-access-permission.svg')",
         "refresh-button": "url('/button/refresh-button.svg')",
         "filter-button": "url('/button/filter-btn.svg')",
-        "empty-state-chart":
-          "url('/google-business-empty-states/empty-state-chart.svg')",
-        "empty-state-hours":
-          "url('/google-business-empty-states/empty-state-hours.svg')",
+        "empty-state-chart": "url('/empty-states/empty-state-chart.svg')",
+        "empty-state-hours": "url('/empty-states/empty-state-hours.svg')",
         "empty-state-interaction":
-          "url('/google-business-empty-states/empty-state-interaction.svg')",
-        "empty-state-table":
-          "url('/google-business-empty-states/empty-state-table.svg')",
-        "empty-state-photo":
-          "url('/facebook-empty-states/empty-state-photo.svg')",
+          "url('/empty-states/empty-state-interaction.svg')",
+        "empty-state-table": "url('/empty-states/empty-state-table.svg')",
+        "empty-state-photo": "url('/empty-states/empty-state-photo.svg')",
         "not-found": "url('/not-found.svg')",
       },
     },
