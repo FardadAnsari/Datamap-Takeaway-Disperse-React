@@ -332,7 +332,7 @@ const toMonthlyAvgPerCompany = (groupedRows, year = YEAR) => {
     labels.forEach((lbl) => {
       const arr = bucketsByLabel.get(lbl)?.get(key) || [];
       const avg = arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : 0;
-      row[lbl] = Number(avg.toFixed(2));
+      row[lbl] = Math.round(avg);
     });
 
     return row;
