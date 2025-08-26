@@ -228,6 +228,11 @@ const Filterbar = ({
             {error}
           </div>
         )}
+        {reqRemainder <= 0 && (
+          <div className="text-center text-red-600 bg-red-100 p-2 gap-2 rounded my-2">
+            Your request limit has expired.
+          </div>
+        )}
 
         <div className="flex py-2 gap-2 border-t-2">
           <button
