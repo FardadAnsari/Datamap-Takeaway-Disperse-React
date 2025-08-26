@@ -1381,7 +1381,7 @@ const DataMap = () => {
           }`}
         >
           <MapContainer
-            whenCreated={(map) => (mapRef.current = map)}
+            ref={mapRef}
             center={mapCenter}
             zoom={zoom}
             minZoom={5}
