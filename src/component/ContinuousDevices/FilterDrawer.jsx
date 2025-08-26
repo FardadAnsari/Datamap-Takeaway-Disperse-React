@@ -5,7 +5,6 @@ import ReactSlider from "react-slider";
 import instance from "../../api/api";
 import { Controller, useFormContext } from "react-hook-form";
 import AutoCompletionMultiSelectStyles from "../AutoCompletionMultiSelectStyles";
-import AutoCompletionCustomStyles from "../AutoCompletionCustomStyles";
 
 const MIN_QUERY_LEN = 2;
 
@@ -38,9 +37,10 @@ const loadCityOptions = async (inputValue) => {
     const { data } = await instance.get("/api/v1/companies/city-search/", {
       params: { city: q },
     });
+    console.log(data);
     return normalizeCities(data);
-  } catch (e) {
-    console.error("City search failed:", e?.message || e);
+  } catch (err) {
+    console.error("City search failed:", err?.message || err);
     return [];
   }
 };
@@ -56,7 +56,7 @@ const FilterDrawer = ({
     control,
     register,
     handleSubmit,
-    formState: { isSubmitting },
+    formState: { isSubmitting, errors },
     watch,
     setValue,
   } = useFormContext();
@@ -131,12 +131,48 @@ const FilterDrawer = ({
         </div>
 
         <div className="flex-1 overflow-y-auto p-4 space-y-6">
+          {/* Companies */}
+          <div className="border-b pb-4">
+            <label className="block text-sm mb-1">Select Companies</label>
+            <Controller
+              name="companies"
+              rules={{ required: "Please select at least one company." }}
+              control={control}
+              render={({ field }) => (
+                <AsyncSelect
+                  {...field}
+                  defaultOptions={companyOptions}
+                  loadOptions={async (input) =>
+                    companyOptions.filter((o) =>
+                      o.label
+                        .toLowerCase()
+                        .includes((input || "").toLowerCase())
+                    )
+                  }
+                  isMulti
+                  placeholder="Choose companies…"
+                  closeMenuOnSelect={false}
+                  onChange={(opt) => field.onChange(opt)}
+                  value={field.value || []}
+                  getOptionLabel={(opt) => opt.label}
+                  getOptionValue={(opt) => opt.value}
+                  styles={AutoCompletionMultiSelectStyles}
+                />
+              )}
+            />
+            {errors.companies && (
+              <p id="companies-error" className="mt-1 text-sm text-red-600">
+                {errors.companies.message}
+              </p>
+            )}
+          </div>
           {/* City (async search) */}
           <div className="border-b pb-4">
             <label className="block text-sm mb-1">Search City</label>
             <Controller
               name="city"
               control={control}
+              rules={{ required: "City is required." }}
               render={({ field }) => (
                 <AsyncSelect
                   {...field}
@@ -159,8 +195,12 @@ const FilterDrawer = ({
                 />
               )}
             />
+            {errors.city && (
+              <p id="city-error" className="mt-1 text-sm text-red-600">
+                {errors.city.message}
+              </p>
+            )}
           </div>
-
           {/* Postcode (depends on city) */}
           <div className="border-b pb-4">
             <label className="block text-sm mb-1">Select Postcode</label>
@@ -192,41 +232,9 @@ const FilterDrawer = ({
               )}
             />
           </div>
-
-          {/* Companies */}
-          <div className="border-b pb-4">
-            <label className="block text-sm mb-1">Select Companies</label>
-            <Controller
-              name="companies"
-              rules={{ required: "required" }}
-              control={control}
-              render={({ field }) => (
-                <AsyncSelect
-                  {...field}
-                  defaultOptions={companyOptions}
-                  loadOptions={async (input) =>
-                    companyOptions.filter((o) =>
-                      o.label
-                        .toLowerCase()
-                        .includes((input || "").toLowerCase())
-                    )
-                  }
-                  isMulti
-                  placeholder="Choose companies…"
-                  closeMenuOnSelect={false}
-                  onChange={(opt) => field.onChange(opt)}
-                  value={field.value || []}
-                  getOptionLabel={(opt) => opt.label}
-                  getOptionValue={(opt) => opt.value}
-                  styles={AutoCompletionMultiSelectStyles}
-                />
-              )}
-            />
-          </div>
-
           {/* Rating */}
           <div className="border-b pb-4">
-            <p className="text-lg font-normal mb-2">Filter by Rating</p>
+            <p className="text-sm font-normal mb-2">Filter by Rating</p>
             <div className="flex justify-between text-sm text-gray-600">
               <span>Minimum</span>
               <span>Maximum</span>
@@ -260,10 +268,9 @@ const FilterDrawer = ({
               )}
             />
           </div>
-
           {/* Reviews */}
           <div>
-            <p className="text-lg font-normal mb-2">Set Review Range</p>
+            <p className="text-sm font-normal mb-2">Set Review Range</p>
             <div className="flex justify-between gap-4">
               <div className="flex-1">
                 <label className="text-sm mb-1 block">Minimum</label>
@@ -292,7 +299,6 @@ const FilterDrawer = ({
             </div>
           </div>
         </div>
-
         <div className="px-4 py-3 border-t flex gap-2">
           <button
             type="button"

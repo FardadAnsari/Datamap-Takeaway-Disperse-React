@@ -65,7 +65,7 @@ const DailyBarChartSection = ({
   const monthValue = monthOpts.find((m) => m.value === Number(month)) || null;
 
   return (
-    <div className="p-4 border rounded-xl shadow-lg relative bg-white">
+    <div>
       {/* Header */}
       <div className="mx-2 mb-2 flex items-center justify-between">
         {/* Tabs */}
@@ -110,7 +110,7 @@ const DailyBarChartSection = ({
       {/* Empty state */}
       {!active || filtered.length === 0 || !hasAnyData ? (
         <div
-          className="mt-2 w-full h-[360px] flex flex-col items-center justify-center border border-dashed border-gray-300 rounded-lg"
+          className="mt-2 w-full h-[350px] flex flex-col items-center justify-center border border-dashed border-gray-300 rounded-lg"
           aria-live="polite"
           role="status"
         >
@@ -118,7 +118,7 @@ const DailyBarChartSection = ({
           <p className="text-gray-400 text-sm">{emptyText}</p>
         </div>
       ) : (
-        <ResponsiveContainer width="100%" height={360}>
+        <ResponsiveContainer width="100%" height={350}>
           <BarChart
             data={filtered}
             margin={{ top: 10, right: 16, left: 0, bottom: 0 }}
