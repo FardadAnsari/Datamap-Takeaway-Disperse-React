@@ -22,8 +22,8 @@ import {
   clearOldCaches,
   getCachedCuisineData,
   setCachedCuisineData,
-  getCachedFacebookCategoryData,
-  setCachedFacebookCategoryData,
+  // getCachedFacebookCategoryData, -- deactive facebook temporary
+  // setCachedFacebookCategoryData, -- deactive facebook temporary
   getCachedPostcodeData,
   setCachedPostcodeData,
   getCachedRegionData,
@@ -37,7 +37,7 @@ import { useUser } from "../api/userPermission";
 import Profilebar from "../component/Profile/Profilebar";
 import { companies } from "../component/Companies/companies";
 import { googlebusiness } from "../component/GoogleBusiness/googlebusiness";
-import { facebook } from "../component/Facebook/facebook";
+// import { facebook } from "../component/Facebook/facebook"; -- deactive facebook temporary
 import { transformData } from "../component/parsers";
 import LogoutModal from "../component/Profile/LogoutModal";
 import ChangePasswordModal from "../component/Profile/ChangePasswordModal";
@@ -48,9 +48,9 @@ import GBDashboard from "../component/GoogleBusiness/GBDashboard";
 
 import ShopPopup from "../component/ShopPopup";
 import Sidebar from "../component/Sidebar";
-import FacebookResultbar from "../component/Facebook/FacebookResultbar";
-import instanceF from "../api/facebookApi";
-import FBReport from "../component/Facebook/FBReport";
+// import FacebookResultbar from "../component/Facebook/FacebookResultbar"; -- deactive facebook temporary
+// import instanceF from "../api/facebookApi"; -- deactive facebook temporary
+// import FBReport from "../component/Facebook/FBReport"; -- deactive facebook temporary
 import Filterbar from "../component/Filterbar";
 import companyIcons from "../assets/checkbox-icon/checkboxIcons";
 import ContinuousDeviceStatus from "../component/ContinuousDevices/ContinuousDeviceStatus";
@@ -173,7 +173,7 @@ const DataMap = () => {
     reset: resetGoogleBusiness,
   } = useForm({
     defaultValues: {
-      selectedCompanies: googlebusiness,
+      selectedCompanies: [],
       region: [],
       cuisine: [],
       postcode: "",
@@ -181,28 +181,30 @@ const DataMap = () => {
     },
   });
 
-  const {
-    register: registerFacebook,
-    handleSubmit: handleSubmitFacebook,
-    control: controlFacebook,
-    reset: resetFacebook,
-  } = useForm({
-    defaultValues: {
-      selectedCompanies: facebook,
-      region: [],
-      categories: [],
-      postcode: "",
-      searchTerm: "",
-    },
-  });
+  //-- deactive facebook temporary
+
+  // const {
+  //   register: registerFacebook,
+  //   handleSubmit: handleSubmitFacebook,
+  //   control: controlFacebook,
+  //   reset: resetFacebook,
+  // } = useForm({
+  //   defaultValues: {
+  //     selectedCompanies: facebook,
+  //     region: [],
+  //     categories: [],
+  //     postcode: "",
+  //     searchTerm: "",
+  //   },
+  // });
 
   // Separate loading and error states for companies and Google Business data
   const [loadingCompanies, setLoadingCompanies] = useState(false);
   const [loadingGoogleBusiness, setLoadingGoogleBusiness] = useState(false);
-  const [loadingFacebook, setLoadingFacebook] = useState(false);
+  // const [loadingFacebook, setLoadingFacebook] = useState(false); -- deactive facebook temporary
   const [errorCompanies, setErrorCompanies] = useState(null);
   const [errorGoogleBusiness, setErrorGoogleBusiness] = useState(null);
-  const [errorFacebook, setErrorFacebook] = useState(null);
+  // const [errorFacebook, setErrorFacebook] = useState(null); -- deactive facebook temporary
 
   // Reset handlers for the forms
   const handleResetCompanies = () => {
@@ -215,10 +217,11 @@ const DataMap = () => {
     setApiData([]);
   };
 
-  const handleResetFacebook = () => {
-    resetFacebook();
-    setApiData([]);
-  };
+  // -- deactive facebook temporary
+  // const handleResetFacebook = () => {
+  //   resetFacebook();
+  //   setApiData([]);
+  // };
 
   // State for region, cuisine, and region boundary data
   const [region, setRegion] = useState([]);
@@ -311,27 +314,28 @@ const DataMap = () => {
     fetchCuisine();
   }, []);
 
-  // Fetch categories data on component mount
-  const [categories, setCategories] = useState([]);
+  // Fetch categories data on component mount -- -- deactive facebook temporary
 
-  useEffect(() => {
-    const fetchFacebookCategory = async () => {
-      try {
-        const cachedData = await getCachedFacebookCategoryData("categories");
-        if (cachedData) {
-          setCategories(cachedData);
-        } else {
-          const response = await instanceF.get("/fb-geo-data-category/");
-          // console.log("categories", response.data);
-          setCategories(response.data);
-          await setCachedFacebookCategoryData("categories", response.data);
-        }
-      } catch (error) {
-        console.log(error);
-      }
-    };
-    fetchFacebookCategory();
-  }, []);
+  // const [categories, setCategories] = useState([]);
+
+  // useEffect(() => {
+  //   const fetchFacebookCategory = async () => {
+  //     try {
+  //       const cachedData = await getCachedFacebookCategoryData("categories");
+  //       if (cachedData) {
+  //         setCategories(cachedData);
+  //       } else {
+  //         const response = await instanceF.get("/fb-geo-data-category/");
+  //         // console.log("categories", response.data);
+  //         setCategories(response.data);
+  //         await setCachedFacebookCategoryData("categories", response.data);
+  //       }
+  //     } catch (error) {
+  //       console.log(error);
+  //     }
+  //   };
+  //   fetchFacebookCategory();
+  // }, []);
 
   // Fetch postcode data on component mount
   useEffect(() => {
@@ -552,141 +556,141 @@ const DataMap = () => {
     }
   };
 
-  // Function to handle Facebook form submission
-  const onSubmitFacebook = async (data) => {
-    // console.log("form submitted:", data);
-    setLoadingFacebook(true);
-    setErrorFacebook(null);
+  // Function to handle Facebook form submission -- deactive facebook temporary
+  // const onSubmitFacebook = async (data) => {
+  //   // console.log("form submitted:", data);
+  //   setLoadingFacebook(true);
+  //   setErrorFacebook(null);
 
-    try {
-      await clearOldCaches(24 * 60 * 60 * 1000);
+  //   try {
+  //     await clearOldCaches(24 * 60 * 60 * 1000);
 
-      setRegionBoundaryData(null);
-      setApiData([]);
+  //     setRegionBoundaryData(null);
+  //     setApiData([]);
 
-      let combinedRegionData = null;
+  //     let combinedRegionData = null;
 
-      if (data.region && data.region.length > 0) {
-        const regionDataPromises = data.region.map((selectedRegion) =>
-          getRegionData(selectedRegion.value)
-        );
+  //     if (data.region && data.region.length > 0) {
+  //       const regionDataPromises = data.region.map((selectedRegion) =>
+  //         getRegionData(selectedRegion.value)
+  //       );
 
-        const regionsData = await Promise.all(regionDataPromises);
-        const validRegionsData = regionsData.filter(
-          (region) => region !== null
-        );
+  //       const regionsData = await Promise.all(regionDataPromises);
+  //       const validRegionsData = regionsData.filter(
+  //         (region) => region !== null
+  //       );
 
-        if (validRegionsData.length > 0) {
-          combinedRegionData = {
-            type: "FeatureCollection",
-            features: validRegionsData.flatMap((region) => region.features),
-          };
-          setRegionBoundaryData(combinedRegionData);
-        }
-      }
+  //       if (validRegionsData.length > 0) {
+  //         combinedRegionData = {
+  //           type: "FeatureCollection",
+  //           features: validRegionsData.flatMap((region) => region.features),
+  //         };
+  //         setRegionBoundaryData(combinedRegionData);
+  //       }
+  //     }
 
-      // Directly use the Facebook object (no need to filter)
-      const facebookCompany = facebook[0];
+  //     // Directly use the Facebook object (no need to filter)
+  //     const facebookCompany = facebook[0];
 
-      const fetchCompanyData = async (company) => {
-        const cachedData = await getCachedCompanyData(company.id);
-        if (cachedData) {
-          // console.log(`using cached data for ${company.name}`);
-          return cachedData;
-        } else {
-          try {
-            const response = await instanceF.get(company.apiUrl, {
-              headers: {
-                Authorization: `Bearer ${accessToken}`,
-              },
-            });
-            await setCachedCompanyData(company.id, response.data);
-            // console.log(`received and cached data for ${company.name}`);
-            return response.data;
-          } catch (error) {
-            console.error(`error in fetching data ${company.name}:`, error);
-            throw error;
-          }
-        }
-      };
+  //     const fetchCompanyData = async (company) => {
+  //       const cachedData = await getCachedCompanyData(company.id);
+  //       if (cachedData) {
+  //         // console.log(`using cached data for ${company.name}`);
+  //         return cachedData;
+  //       } else {
+  //         try {
+  //           const response = await instanceF.get(company.apiUrl, {
+  //             headers: {
+  //               Authorization: `Bearer ${accessToken}`,
+  //             },
+  //           });
+  //           await setCachedCompanyData(company.id, response.data);
+  //           // console.log(`received and cached data for ${company.name}`);
+  //           return response.data;
+  //         } catch (error) {
+  //           console.error(`error in fetching data ${company.name}:`, error);
+  //           throw error;
+  //         }
+  //       }
+  //     };
 
-      const response = await fetchCompanyData(facebookCompany);
-      // console.log("Response from Face book:", response);
+  //     const response = await fetchCompanyData(facebookCompany);
+  //     // console.log("Response from Face book:", response);
 
-      let points = transformData(response, facebookCompany).filter((point) => {
-        const [lon, lat] = point.geometry.coordinates;
-        return (
-          !isNaN(lon) &&
-          !isNaN(lat) &&
-          lon >= -180 &&
-          lon <= 180 &&
-          lat >= -90 &&
-          lat <= 90
-        );
-      });
+  //     let points = transformData(response, facebookCompany).filter((point) => {
+  //       const [lon, lat] = point.geometry.coordinates;
+  //       return (
+  //         !isNaN(lon) &&
+  //         !isNaN(lat) &&
+  //         lon >= -180 &&
+  //         lon <= 180 &&
+  //         lat >= -90 &&
+  //         lat <= 90
+  //       );
+  //     });
 
-      // console.log("Points after first filter:", points);
+  //     // console.log("Points after first filter:", points);
 
-      const { searchTerm, categories } = data;
+  //     const { searchTerm, categories } = data;
 
-      const lowerCaseSearchTerm = searchTerm?.trim().toLowerCase() || "";
+  //     const lowerCaseSearchTerm = searchTerm?.trim().toLowerCase() || "";
 
-      const selectedCategory = categories.map((c) => c.value.toLowerCase());
+  //     const selectedCategory = categories.map((c) => c.value.toLowerCase());
 
-      const combinedFilter = (point) => {
-        const shopName = point.properties.shopName?.toLowerCase() || "";
+  //     const combinedFilter = (point) => {
+  //       const shopName = point.properties.shopName?.toLowerCase() || "";
 
-        const [lon, lat] = point.geometry.coordinates;
-        const pt = [lon, lat];
+  //       const [lon, lat] = point.geometry.coordinates;
+  //       const pt = [lon, lat];
 
-        // Filter by search term
-        if (lowerCaseSearchTerm && !shopName.includes(lowerCaseSearchTerm)) {
-          return false;
-        }
+  //       // Filter by search term
+  //       if (lowerCaseSearchTerm && !shopName.includes(lowerCaseSearchTerm)) {
+  //         return false;
+  //       }
 
-        // Filter by region
-        if (combinedRegionData && combinedRegionData.features.length > 0) {
-          const isInAnyRegion = combinedRegionData.features.some((feature) => {
-            const geometry = feature.geometry;
-            if (geometry.type === "Polygon") {
-              const polygonRings = geometry.coordinates[0];
-              return pointInPolygon(pt, polygonRings);
-            } else if (geometry.type === "MultiPolygon") {
-              return geometry.coordinates.some((polygon) =>
-                pointInPolygon(pt, polygon[0])
-              );
-            }
-            return false;
-          });
-          if (!isInAnyRegion) return false;
-        }
+  //       // Filter by region
+  //       if (combinedRegionData && combinedRegionData.features.length > 0) {
+  //         const isInAnyRegion = combinedRegionData.features.some((feature) => {
+  //           const geometry = feature.geometry;
+  //           if (geometry.type === "Polygon") {
+  //             const polygonRings = geometry.coordinates[0];
+  //             return pointInPolygon(pt, polygonRings);
+  //           } else if (geometry.type === "MultiPolygon") {
+  //             return geometry.coordinates.some((polygon) =>
+  //               pointInPolygon(pt, polygon[0])
+  //             );
+  //           }
+  //           return false;
+  //         });
+  //         if (!isInAnyRegion) return false;
+  //       }
 
-        // Filter by category
-        if (selectedCategory.length > 0) {
-          const shopCategory = point.properties.categories || "";
-          const shopCategoryLower = shopCategory.toLowerCase();
+  //       // Filter by category
+  //       if (selectedCategory.length > 0) {
+  //         const shopCategory = point.properties.categories || "";
+  //         const shopCategoryLower = shopCategory.toLowerCase();
 
-          const hasCategory = selectedCategory.some((category) =>
-            shopCategoryLower.includes(category)
-          );
+  //         const hasCategory = selectedCategory.some((category) =>
+  //           shopCategoryLower.includes(category)
+  //         );
 
-          if (!hasCategory) return false;
-        }
+  //         if (!hasCategory) return false;
+  //       }
 
-        return true;
-      };
+  //       return true;
+  //     };
 
-      points = points.filter(combinedFilter);
-      // console.log("Points after combined filter:", points);
+  //     points = points.filter(combinedFilter);
+  //     // console.log("Points after combined filter:", points);
 
-      setApiData(points);
-    } catch (error) {
-      console.error(error.message);
-      setErrorFacebook("error in fetching data");
-    } finally {
-      setLoadingFacebook(false);
-    }
-  };
+  //     setApiData(points);
+  //   } catch (error) {
+  //     console.error(error.message);
+  //     setErrorFacebook("error in fetching data");
+  //   } finally {
+  //     setLoadingFacebook(false);
+  //   }
+  // };
 
   // Function to limit of request
   const [reqRemainder, setReqRemainder] = useState(
@@ -987,7 +991,7 @@ const DataMap = () => {
   const regularCompanyResults = useMemo(() => {
     const regularData = { ...groupedResults };
     delete regularData["Google Business"];
-    delete regularData["Facebook"];
+    // delete regularData["Facebook"]; -- deactive facebook temporary
     return regularData;
   }, [groupedResults]);
 
@@ -1000,14 +1004,14 @@ const DataMap = () => {
     return googleBusinessData;
   }, [groupedResults]);
 
-  // Separate Google Business results
-  const facebookResults = useMemo(() => {
-    const facebookData = {};
-    if (groupedResults["Facebook"]) {
-      facebookData["Facebook"] = groupedResults["Facebook"];
-    }
-    return facebookData;
-  }, [groupedResults]);
+  // Separate Facebook results -- deactive facebook temporary
+  // const facebookResults = useMemo(() => {
+  //   const facebookData = {};
+  //   if (groupedResults["Facebook"]) {
+  //     facebookData["Facebook"] = groupedResults["Facebook"];
+  //   }
+  //   return facebookData;
+  // }, [groupedResults]);
 
   // Memoized list of regular companies
   const regularCompanyList = useMemo(
@@ -1021,11 +1025,11 @@ const DataMap = () => {
     [googleBusinessResults]
   );
 
-  // Memoized list of Google Business companies
-  const facebookList = useMemo(
-    () => Object.keys(facebookResults),
-    [facebookResults]
-  );
+  // Memoized list of Google Business companies -- deactive facebook temporary
+  // const facebookList = useMemo(
+  //   () => Object.keys(facebookResults),
+  //   [facebookResults]
+  // );
 
   // State to manage expanded companies in the result bar
   const [expandedCompanies, setExpandedCompanies] = useState({});
@@ -1151,6 +1155,7 @@ const DataMap = () => {
               value: company.apiUrl,
               label: company.name,
               iconKey: company.name.replace(/\s+/g, "").toLowerCase(),
+              tooltip: company.tooltip,
             })),
           },
           {
@@ -1246,9 +1251,8 @@ const DataMap = () => {
         }
       />
 
-      {/* FacebookFilterbar component */}
-
-      <Filterbar
+      {/* FacebookFilterbar component -- deactive facebook temporary*/}
+      {/* <Filterbar
         title="Facebook Filter"
         isOpen={activePanel === "facebookFilterbar"}
         control={controlFacebook}
@@ -1276,13 +1280,13 @@ const DataMap = () => {
             })),
           },
         ]}
-      />
+      /> */}
 
-      {/* Facebook Report component */}
-      <FBReport
+      {/* Facebook Report component -- deactive facebook temporary */}
+      {/* <FBReport
         isOpen={activePanel === "facebookReport"}
         setIsOpen={(state) => setActivePanel(state ? "facebookReport" : null)}
-      />
+      /> */}
 
       {/* DeviceStatus component */}
       <DeviceStatus
@@ -1358,27 +1362,26 @@ const DataMap = () => {
         />
       )}
 
-      {/* FacebookResultBar component */}
-      {activePanel === "facebookFilterbar" && isResultOpen && (
+      {/* FacebookResultBar component -- deactive facebook temporary*/}
+      {/* {activePanel === "facebookFilterbar" && isResultOpen && (
         <FacebookResultbar
           groupedResults={facebookResults}
           companyList={facebookList}
           onMarkerFocus={focusOnMarker}
           activeMarker={activeMarker}
         />
-      )}
+      )} */}
 
       {/* Map container */}
       <div className="relative z-0 h-full w-full">
         <div
           className={`relative h-full w-full transition-all duration-300 ${
-            loadingFacebook || loadingGoogleBusiness || loadingCompanies
-              ? "blur-sm"
-              : ""
+            // loadingFacebook || -- deactive facebook temporary
+            loadingGoogleBusiness || loadingCompanies ? "blur-sm" : ""
           }`}
         >
           <MapContainer
-            ref={mapRef}
+            whenCreated={(map) => (mapRef.current = map)}
             center={mapCenter}
             zoom={zoom}
             minZoom={5}
@@ -1448,19 +1451,22 @@ const DataMap = () => {
         </div>
 
         {/* Loading spinner */}
-        {(loadingFacebook || loadingGoogleBusiness || loadingCompanies) && (
-          <div className="absolute inset-0 flex justify-center items-center bg-white bg-opacity-5 z-50">
-            <ColorRing
-              visible={true}
-              height="80"
-              width="80"
-              ariaLabel="color-ring-loading"
-              wrapperStyle={{}}
-              wrapperClass="color-ring-wrapper"
-              colors={["#e15b64", "#f47e60", "#f8b26a", "#abbd81", "#849b87"]}
-            />
-          </div>
-        )}
+        {
+          // loadingFacebook || -- deactive facebook temporary
+          (loadingGoogleBusiness || loadingCompanies) && (
+            <div className="absolute inset-0 flex justify-center items-center bg-white bg-opacity-5 z-50">
+              <ColorRing
+                visible={true}
+                height="80"
+                width="80"
+                ariaLabel="color-ring-loading"
+                wrapperStyle={{}}
+                wrapperClass="color-ring-wrapper"
+                colors={["#e15b64", "#f47e60", "#f8b26a", "#abbd81", "#849b87"]}
+              />
+            </div>
+          )
+        }
       </div>
     </div>
   );

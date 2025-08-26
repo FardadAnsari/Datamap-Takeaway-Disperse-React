@@ -60,7 +60,7 @@ const Filterbar = ({
         className="p-4 flex flex-col"
         style={{ height: "90%" }}
       >
-        <div className="px-2 flex-1 overflow-y-auto">
+        <div className="px-2 flex-1 overflow-y-auto overflow-x-hidden">
           {fields.map((field, index) => {
             switch (field.type) {
               case "text":
@@ -120,8 +120,30 @@ const Filterbar = ({
                               value={option.value}
                               className="h-4 w-4 text-orange-600 border-gray-500 rounded focus:ring-orange-500 accent-orange-400"
                             />
-                            <label htmlFor={option.value} className="text-sm">
+                            <label
+                              htmlFor={option.value}
+                              className="relative group text-sm flex items-center gap-2"
+                            >
                               {option.label}
+
+                              {/* {option.tooltip && (
+                                <span
+                                  role="tooltip"
+                                  className="absolute left-full ml-3 top-1/2 -translate-y-1/2
+                 whitespace-normal rounded px-3 py-1 text-sm text-white
+                 bg-gray-800 opacity-0 group-hover:opacity-100
+                 transition-opacity duration-200 z-50
+                 before:content-[''] before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2
+                 before:-ml-1.5 before:border-y-8 before:border-y-transparent 
+                 before:border-r-8 before:border-r-gray-800"
+                                >
+                                  Unavailable filter by {option.tooltip} in{" "}
+                                  <span className="text-orange-400 font-semibold">
+                                    {option.label}
+                                  </span>{" "}
+                                  company
+                                </span>
+                              )} */}
                             </label>
                           </div>
                           {Icon && <Icon width={24} height={24} />}

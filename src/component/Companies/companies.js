@@ -5,6 +5,7 @@ export const companies = [
     apiUrl: "/api/v1/zoho/mealzo/",
     requiresAuth: true,
     type: "type2",
+    tooltip: "",
   },
   {
     id: "bgf",
@@ -12,6 +13,7 @@ export const companies = [
     apiUrl: "/api/v1/companies/bigfoodie/",
     requiresAuth: true,
     type: "type1",
+    tooltip: "category",
   },
   {
     id: "dlv",
@@ -19,6 +21,7 @@ export const companies = [
     apiUrl: "/api/v1/companies/deliveroo/",
     requiresAuth: true,
     type: "type1",
+    tooltip: "category, rating, review",
   },
   {
     id: "ear",
@@ -26,6 +29,7 @@ export const companies = [
     apiUrl: "/api/v1/companies/eatandrepeat/",
     requiresAuth: true,
     type: "type1",
+    tooltip: "category",
   },
   {
     id: "etz",
@@ -33,6 +37,7 @@ export const companies = [
     apiUrl: "/api/v1/companies/eatzy/",
     requiresAuth: true,
     type: "type1",
+    tooltip: "postcode, category, rating, review",
   },
   {
     id: "fdo",
@@ -40,6 +45,7 @@ export const companies = [
     apiUrl: "/api/v1/companies/feedmeonline/",
     requiresAuth: true,
     type: "type1",
+    tooltip: "",
   },
   {
     id: "fdz",
@@ -47,6 +53,7 @@ export const companies = [
     apiUrl: "/api/v1/companies/foodzi/",
     requiresAuth: true,
     type: "type1",
+    tooltip: "postcode, category, rating, review",
   },
   {
     id: "fhs",
@@ -54,6 +61,7 @@ export const companies = [
     apiUrl: "/api/v1/companies/foodhouse/",
     requiresAuth: true,
     type: "type1",
+    tooltip: "category, rating, review",
   },
   {
     id: "fhb",
@@ -61,6 +69,7 @@ export const companies = [
     apiUrl: "/api/v1/companies/foodhub/",
     requiresAuth: true,
     type: "type1",
+    tooltip: "category",
   },
   {
     id: "grb",
@@ -68,6 +77,7 @@ export const companies = [
     apiUrl: "/api/v1/companies/grub24/",
     requiresAuth: true,
     type: "type1",
+    tooltip: "",
   },
   {
     id: "jet",
@@ -75,6 +85,7 @@ export const companies = [
     apiUrl: "/api/v1/companies/justeat/",
     requiresAuth: true,
     type: "type1",
+    tooltip: "",
   },
   {
     id: "kck",
@@ -82,6 +93,7 @@ export const companies = [
     apiUrl: "/api/v1/companies/kuick/",
     requiresAuth: true,
     type: "type1",
+    tooltip: "category",
   },
   {
     id: "ldd",
@@ -89,6 +101,7 @@ export const companies = [
     apiUrl: "/api/v1/companies/leedsdelivery/",
     requiresAuth: true,
     type: "type1",
+    tooltip: "category, rating, review",
   },
   {
     id: "ord",
@@ -96,6 +109,7 @@ export const companies = [
     apiUrl: "/api/v1/companies/ordara/",
     requiresAuth: true,
     type: "type1",
+    tooltip: "category, rating, review",
   },
   {
     id: "oyo",
@@ -103,6 +117,7 @@ export const companies = [
     apiUrl: "/api/v1/companies/orderyoyo/",
     requiresAuth: true,
     type: "type1",
+    tooltip: "category, rating, review",
   },
   {
     id: "scf",
@@ -110,6 +125,7 @@ export const companies = [
     apiUrl: "/api/v1/companies/scoffable/",
     requiresAuth: false,
     type: "type1",
+    tooltip: "",
   },
   {
     id: "stf",
@@ -117,6 +133,7 @@ export const companies = [
     apiUrl: "/api/v1/companies/straightfrom/",
     requiresAuth: true,
     type: "type1",
+    tooltip: "",
   },
   {
     id: "uet",
@@ -124,6 +141,7 @@ export const companies = [
     apiUrl: "/api/v1/companies/ubereats/",
     requiresAuth: true,
     type: "type1",
+    tooltip: "",
   },
   {
     id: "ujc",
@@ -131,6 +149,7 @@ export const companies = [
     apiUrl: "/api/v1/companies/ujustcook/",
     requiresAuth: true,
     type: "type1",
+    tooltip: "postcode, rating, review",
   },
   {
     id: "wtf",
@@ -138,6 +157,7 @@ export const companies = [
     apiUrl: "/api/v1/companies/whatthefork/",
     requiresAuth: true,
     type: "type1",
+    tooltip: "",
   },
   {
     id: "zps",
@@ -145,5 +165,6 @@ export const companies = [
     apiUrl: "/api/v1/companies/zpos/",
     requiresAuth: true,
     type: "type1",
+    tooltip: "category, rating, review",
   },
 ];
