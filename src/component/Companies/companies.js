@@ -120,6 +120,14 @@ export const companies = [
     tooltip: "category, rating, review",
   },
   {
+    id: "odg",
+    name: "Ordugh",
+    apiUrl: "/api/v1/companies/ordugh/",
+    requiresAuth: true,
+    type: "type1",
+    tooltip: "category, rating, review",
+  },
+  {
     id: "scf",
     name: "Scoffable",
     apiUrl: "/api/v1/companies/scoffable/",

@@ -14,6 +14,7 @@ import { ReactComponent as KuickIcon } from "./kuick-checkbox.svg";
 import { ReactComponent as LeedsDeliveryIcon } from "./leedsdelivery-checkbox.svg";
 import { ReactComponent as OrdaraIcon } from "./ordara-checkbox.svg";
 import { ReactComponent as OrderYoYoIcon } from "./orderyoyo-checkbox.svg";
+import { ReactComponent as OrdughIcon } from "./ordugh-checkbox.svg";
 import { ReactComponent as ScoffableIcon } from "./scoffable-checkbox.svg";
 import { ReactComponent as StraightFromIcon } from "./straightfrom-checkbox.svg";
 import { ReactComponent as UberEatsIcon } from "./ubereats-checkbox.svg";
@@ -38,6 +39,7 @@ const companyIcons = {
   leedsdelivery: LeedsDeliveryIcon,
   ordara: OrdaraIcon,
   orderyoyo: OrderYoYoIcon,
+  ordugh: OrdughIcon,
   scoffable: ScoffableIcon,
   straightfrom: StraightFromIcon,
   ubereats: UberEatsIcon,
