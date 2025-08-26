@@ -40,6 +40,7 @@ export default {
           "url('/sidebar/continuous-devices-no-access.svg')",
         "justeat-devices": "url('/devices/justeat-devices.svg')",
         "ubereats-devices": "url('/devices/ubereats-devices.svg')",
+        "feedmeonline-devices": "url('/devices/feedmeonline-devices.svg')",
         "foodhub-devices": "url('/devices/foodhub-devices.svg')",
         "total-on-devices": "url('/devices/total-on-device.svg')",
         "total-off-devices": "url('/devices/total-off-device.svg')",

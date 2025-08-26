@@ -7,7 +7,7 @@ import "leaflet/dist/leaflet.css";
 import "./index.css";
 import DataMap from "./pages/DataMap";
 import NotFound from "./pages/NotFound";
-import FBDashboard from "./pages/FBDashboard";
+// import FBDashboard from "./pages/FBDashboard"; -- deactive facebook temporary
 
 const App = () => {
   return (
@@ -31,14 +31,15 @@ const App = () => {
             </PrivateRoute>
           }
         />
-        <Route
+        {/* -- deactive facebook temporary */}
+        {/* <Route
           path="/facebook/:Id"
           element={
             <PrivateRoute>
               <FBDashboard />
             </PrivateRoute>
           }
-        />
+        /> */}
       </Routes>
     </Router>
   );

@@ -3,6 +3,7 @@ import { MdKeyboardDoubleArrowLeft } from "react-icons/md";
 import { IoIosArrowRoundBack, IoIosArrowRoundForward } from "react-icons/io";
 import { default as StaticSelect } from "react-select";
 import AutoCompletionMultiSelectStyles from "../AutoCompletionMultiSelectStyles";
+import { ThreeDots } from "react-loader-spinner";
 
 const MONTHS = [
   "January",
@@ -142,7 +143,16 @@ const ShopSummaryTable = ({
             <tr>
               <td colSpan={3} className="h-80">
                 <div className="flex flex-col items-center justify-center h-full text-gray-500 gap-4">
-                  <p className="text-gray-400 text-sm">Loading shop summary…</p>
+                  <ThreeDots
+                    visible={true}
+                    height="50"
+                    width="50"
+                    color="#ffa500"
+                    radius="9"
+                    ariaLabel="three-dots-loading"
+                    wrapperStyle={{}}
+                    wrapperClass=""
+                  />
                 </div>
               </td>
             </tr>

@@ -5,6 +5,7 @@ import instance from "../../api/continuousApi";
 import DailyBarChartSection from "./DailyBarChartSection";
 import ShopSummaryTable from "./ShopSummaryTable";
 import FilterDrawer from "./FilterDrawer";
+import { ThreeDots } from "react-loader-spinner";
 
 const companyOptions = [
   { value: "foodhub", label: "FoodHub" },
@@ -527,7 +528,7 @@ const ContinuousDeviceStatus = ({ isOpen }) => {
     };
 
     fetchSummary();
-  }, [shopMonth, lastFilters, shopPages]); // <-- add shopPages
+  }, [shopMonth, lastFilters, shopPages]);
 
   const handleShopPageChange = (label, nextPage) => {
     setShopPages((prev) => ({ ...prev, [label]: nextPage }));
@@ -702,51 +703,73 @@ const ContinuousDeviceStatus = ({ isOpen }) => {
               {error}
             </div>
           )}
-          <LineChartSection data={chartData} />
-          {loading && (
-            <div className="absolute inset-0 bg-white/40 backdrop-blur-[1px] rounded-xl flex items-center justify-center text-gray-600">
-              Loading…
+
+          {loading ? (
+            <div className="mt-5 w-full h-[350px] flex flex-col items-center justify-center border border-dashed border-gray-300 rounded-lg">
+              <ThreeDots
+                visible={true}
+                height="50"
+                width="50"
+                color="#ffa500"
+                radius="9"
+                ariaLabel="three-dots-loading"
+                wrapperStyle={{}}
+                wrapperClass=""
+              />
             </div>
+          ) : (
+            <LineChartSection data={chartData} />
           )}
         </div>
 
         {/* DAILY (Bar) */}
-        <div className="relative">
+        <div className="p-4 border rounded-xl shadow-lg relative">
           {errorDaily && (
             <div className="my-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded p-2">
               {errorDaily}
             </div>
           )}
-          <DailyBarChartSection
-            data={dailyData}
-            companyLabels={dailyCompanyLabels}
-            activeCompany={selectedCompany}
-            setActiveCompany={setSelectedCompany}
-            month={dailyMonth}
-            setMonth={setDailyMonth}
-            openColor="#22c55e"
-            closedColor="#ef4444"
-          />
-          {loadingDaily && (
-            <div className="absolute inset-0 bg-white/40 backdrop-blur-[1px] rounded-xl flex items-center justify-center text-gray-600">
-              Loading daily…
+
+          {loadingDaily || loading ? (
+            <div className="mt-2 w-full h-[350px] flex flex-col items-center justify-center border border-dashed border-gray-300 rounded-lg">
+              <ThreeDots
+                visible={true}
+                height="50"
+                width="50"
+                color="#ffa500"
+                radius="9"
+                ariaLabel="three-dots-loading"
+                wrapperStyle={{}}
+                wrapperClass=""
+              />
             </div>
+          ) : (
+            <DailyBarChartSection
+              data={dailyData}
+              companyLabels={dailyCompanyLabels}
+              activeCompany={selectedCompany}
+              setActiveCompany={setSelectedCompany}
+              month={dailyMonth}
+              setMonth={setDailyMonth}
+              openColor="#22c55e"
+              closedColor="#ef4444"
+            />
           )}
         </div>
-      </div>
 
-      {/* SHOP SUMMARY */}
-      <ShopSummaryTable
-        labels={shopCompanyLabels}
-        activeLabel={shopActiveCompany}
-        onChangeActive={setShopActiveCompany}
-        month={shopMonth}
-        onChangeMonth={setShopMonth}
-        dataByLabel={shopSummaryData} // { label: { rows, meta } }
-        loading={loadingShopSummary}
-        error={errorShopSummary}
-        onChangePage={(page) => handleShopPageChange(shopActiveCompany, page)} // NEW
-      />
+        {/* SHOP SUMMARY */}
+        <ShopSummaryTable
+          labels={shopCompanyLabels}
+          activeLabel={shopActiveCompany}
+          onChangeActive={setShopActiveCompany}
+          month={shopMonth}
+          onChangeMonth={setShopMonth}
+          dataByLabel={shopSummaryData}
+          loading={loadingShopSummary}
+          error={errorShopSummary}
+          onChangePage={(page) => handleShopPageChange(shopActiveCompany, page)}
+        />
+      </div>
 
       {showFilter && (
         <FormProvider {...methods}>

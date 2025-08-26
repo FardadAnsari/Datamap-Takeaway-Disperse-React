@@ -172,38 +172,11 @@ const DeviceStatus = ({ isOpen }) => {
         isOpen ? "translate-x-0" : "-translate-x-full"
       }`}
     >
-      <div className="mx-4 flex p justify-between items-center">
+      <div className="mx-4 flex justify-between items-center">
         <span className="text-2xl font-bold">Devices Status</span>
       </div>
       <div className="grid grid-cols-6 gap-4 py-6">
         <div className="col-span-2 row-span-3 p-4 border rounded-xl shadow-lg">
-          <div className="flex items-center gap-4">
-            <div className="my-2 bg-cover bg-total-shops w-12 h-12"></div>
-            <span className="text-xl font-normal">Total Shops</span>
-          </div>
-          <div className="text-4xl font-normal">
-            <CountUp start={0} end={totalStatus.all_count} duration={5} />
-          </div>
-        </div>
-        <div className="col-span-2 row-span-3 col-start-3 p-4 border rounded-xl shadow-lg">
-          <div className="flex items-center gap-4">
-            <div className="my-2 bg-cover bg-total-on-devices w-12 h-12"></div>
-            <span className="text-xl font-normal">Total On Devices</span>
-          </div>
-          <div className="text-4xl font-normal">
-            <CountUp start={0} end={totalStatus.all_on} duration={5} />
-          </div>
-        </div>
-        <div className="col-span-2 row-span-3 col-start-5 p-4 border rounded-xl shadow-lg">
-          <div className="flex items-center gap-4">
-            <div className="my-2 bg-cover bg-total-off-devices w-12 h-12"></div>
-            <span className="text-xl font-normal">Total Off Devices</span>
-          </div>
-          <div className="text-4xl font-normal">
-            <CountUp start={0} end={totalStatus.all_off} duration={5} />
-          </div>
-        </div>
-        <div className="col-span-2 row-span-3 row-start-4 p-4 border rounded-xl shadow-lg">
           <div className="flex items-center gap-4">
             <div className="my-2 bg-cover bg-justeat-devices w-12 h-12"></div>
             <div className="flex flex-col justify-between">
@@ -251,13 +224,15 @@ const DeviceStatus = ({ isOpen }) => {
             </div>
           </div>
         </div>
-        <div className="col-span-2 row-span-3 col-start-3 row-start-4 p-4 border rounded-xl shadow-lg">
+        <div className="col-span-2 row-span-3 col-start-3 p-4 border rounded-xl shadow-lg">
           <div className="flex items-center gap-4">
-            <div className="my-2 bg-cover bg-ubereats-devices w-12 h-12"></div>
+            <div className="my-2 bg-cover bg-feedmeonline-devices w-12 h-12"></div>
             <div className="flex flex-col justify-between">
-              <span className="text-xl font-normal">Uber Eats Devices</span>
+              <span className="text-xl font-normal">
+                Feed Me Online Devices
+              </span>
               <span className="text-sm text-gray-400 font-normal">
-                {totalStatus.ubereats?.last_time}
+                {totalStatus.feedmeonline?.last_time}
               </span>
             </div>
           </div>
@@ -265,7 +240,7 @@ const DeviceStatus = ({ isOpen }) => {
             <div className="w-2/3 text-4xl font-normal">
               <CountUp
                 start={0}
-                end={totalStatus.ubereats?.total}
+                end={totalStatus.feedmeonline?.total}
                 duration={5}
               />
             </div>
@@ -277,7 +252,7 @@ const DeviceStatus = ({ isOpen }) => {
                   (
                   <CountUp
                     start={0}
-                    end={totalStatus.ubereats?.on}
+                    end={totalStatus.feedmeonline?.on}
                     duration={5}
                   />
                   )
@@ -290,7 +265,7 @@ const DeviceStatus = ({ isOpen }) => {
                   (
                   <CountUp
                     start={0}
-                    end={totalStatus.ubereats?.off}
+                    end={totalStatus.feedmeonline?.off}
                     duration={5}
                   />
                   )
@@ -299,7 +274,7 @@ const DeviceStatus = ({ isOpen }) => {
             </div>
           </div>
         </div>
-        <div className="col-span-2 row-span-3 col-start-5 row-start-4 p-4 border rounded-xl shadow-lg">
+        <div className="col-span-2 row-span-3 col-start-5 p-4 border rounded-xl shadow-lg">
           <div className="flex items-center gap-4">
             <div className="my-2 bg-cover bg-foodhub-devices w-12 h-12"></div>
             <div className="flex flex-col justify-between">
@@ -347,7 +322,7 @@ const DeviceStatus = ({ isOpen }) => {
             </div>
           </div>
         </div>
-        <div className="col-span-2 row-span-2 row-start-7">
+        <div className="col-span-2 row-span-2 row-start-4">
           <div className="mb-2 flex space-x-4">
             <label className="flex items-center">
               <input
@@ -404,7 +379,7 @@ const DeviceStatus = ({ isOpen }) => {
             </div>
           )}
         </div>
-        <div className="col-span-6 row-span-5 row-start-9 flex flex-col items-center gap-4">
+        <div className="col-span-6 row-span-5 row-start-6 flex flex-col items-center gap-4">
           <table className="min-w-full bg-white rounded-lg shadow-md">
             <thead className="bg-gray-100">
               <tr>
@@ -418,7 +393,7 @@ const DeviceStatus = ({ isOpen }) => {
                   Just Eat
                 </th>
                 <th className="w-40 px-6 py-3 text-left text-sm font-semibold text-gray-700 tracking-wider text-center">
-                  Uber Eats
+                  Feed Me Online
                 </th>
                 <th className="w-40 px-6 py-3 text-left text-sm font-semibold text-gray-700 tracking-wider text-center rounded-tr-lg">
                   Food Hub
@@ -482,8 +457,9 @@ const DeviceStatus = ({ isOpen }) => {
                       )}
                     </td>
                     <td className="w-20 text-sm text-gray-900">
-                      {item.companies.ubereats.deviceAvailability === true ? (
-                        item.companies.ubereats.data.isOpen === true ? (
+                      {item.companies.feedmeonline.deviceAvailability ===
+                      true ? (
+                        item.companies.feedmeonline.data.isOpen === true ? (
                           <div className="flex bg-green-100 text-green-700 p-1 rounded-full items-center justify-center">
                             <GoDotFill />
                             <span>On</span>
