@@ -26,6 +26,7 @@ export const parseCompanies = (item, company) => {
       color: company.color,
       lastUpdate: item.last_update,
       companyPage: item.shop_url_company,
+      website: item.website,
     },
   };
 };
