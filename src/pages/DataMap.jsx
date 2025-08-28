@@ -53,7 +53,6 @@ import Sidebar from "../component/Sidebar";
 // import FBReport from "../component/Facebook/FBReport"; -- deactive facebook temporary
 import Filterbar from "../component/Filterbar";
 import companyIcons from "../assets/checkbox-icon/checkboxIcons";
-import ContinuousDeviceStatus from "../component/ContinuousDevices/ContinuousDevicesStatus";
 import ContinuousDevicesCount from "../component/ContinuousDevices/ContinuousDevicesCount";
 import ContinuousDevicesStatus from "../component/ContinuousDevices/ContinuousDevicesStatus";
 
