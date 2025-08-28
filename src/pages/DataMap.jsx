@@ -53,7 +53,9 @@ import Sidebar from "../component/Sidebar";
 // import FBReport from "../component/Facebook/FBReport"; -- deactive facebook temporary
 import Filterbar from "../component/Filterbar";
 import companyIcons from "../assets/checkbox-icon/checkboxIcons";
-import ContinuousDeviceStatus from "../component/ContinuousDevices/ContinuousDeviceStatus";
+import ContinuousDeviceStatus from "../component/ContinuousDevices/ContinuousDevicesStatus";
+import ContinuousDevicesCount from "../component/ContinuousDevices/ContinuousDevicesCount";
+import ContinuousDevicesStatus from "../component/ContinuousDevices/ContinuousDevicesStatus";
 
 // Function to create a custom icon using a React component
 const createCustomIcon = (PinComponent, options = {}) => {
@@ -1294,11 +1296,19 @@ const DataMap = () => {
         setIsOpen={(state) => setActivePanel(state ? "devices" : null)}
       />
 
-      {/* ContinuousDeviceStatus component */}
-      <ContinuousDeviceStatus
-        isOpen={activePanel === "continuousDevices"}
+      {/* ContinuousDeviceCount component */}
+      <ContinuousDevicesCount
+        isOpen={activePanel === "continuousDevicesCount"}
         setIsOpen={(state) =>
-          setActivePanel(state ? "continuousDevices" : null)
+          setActivePanel(state ? "continuousDevicesCount" : null)
+        }
+      />
+
+      {/* ContinuousDeviceCount component */}
+      <ContinuousDevicesStatus
+        isOpen={activePanel === "continuousDevicesStatus"}
+        setIsOpen={(state) =>
+          setActivePanel(state ? "continuousDevicesStatus" : null)
         }
       />
 

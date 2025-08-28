@@ -384,7 +384,7 @@ const makeDailySkeleton = (labels = [], year = YEAR, month = 1) => {
 };
 
 /* ---------------- component ---------------- */
-const ContinuousDeviceStatus = ({ isOpen }) => {
+const ContinuousDevices = ({ isOpen }) => {
   const [showFilter, setShowFilter] = useState(false);
   const [shopSummaryData, setShopSummaryData] = useState({});
   const [shopPages, setShopPages] = useState({});
@@ -786,4 +786,4 @@ const ContinuousDeviceStatus = ({ isOpen }) => {
   );
 };
 
-export default ContinuousDeviceStatus;
+export default ContinuousDevices;
