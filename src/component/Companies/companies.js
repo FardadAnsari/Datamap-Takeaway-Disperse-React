@@ -48,12 +48,12 @@ export const companies = [
     tooltip: "",
   },
   {
-    id: "fdz",
-    name: "Foodzi",
-    apiUrl: "/api/v1/companies/foodzi/",
+    id: "fpd",
+    name: "Flip Dish",
+    apiUrl: "/api/v1/companies/flipdish/",
     requiresAuth: true,
     type: "type1",
-    tooltip: "postcode, category, rating, review",
+    tooltip: "category, rating, review",
   },
   {
     id: "fhs",
@@ -70,6 +70,14 @@ export const companies = [
     requiresAuth: true,
     type: "type1",
     tooltip: "category",
+  },
+  {
+    id: "fdz",
+    name: "Foodzi",
+    apiUrl: "/api/v1/companies/foodzi/",
+    requiresAuth: true,
+    type: "type1",
+    tooltip: "postcode, category, rating, review",
   },
   {
     id: "grb",

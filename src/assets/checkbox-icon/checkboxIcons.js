@@ -4,9 +4,10 @@ import { ReactComponent as DeliverooIcon } from "./deliveroo-checkbox.svg";
 import { ReactComponent as EatAndRepeatIcon } from "./eatandrepeat-checkbox.svg";
 import { ReactComponent as EatzyIcon } from "./eatzy-checkbox.svg";
 import { ReactComponent as FeedMeOnlineIcon } from "./feedmeonline-checkbox.svg";
-import { ReactComponent as FoodziIcon } from "./foodzi-checkbox.svg";
+import { ReactComponent as FlipDishIcon } from "./flipdish-checkbox.svg";
 import { ReactComponent as FoodHouseIcon } from "./foodhouse-checkbox.svg";
 import { ReactComponent as FoodHubIcon } from "./foodhub-checkbox.svg";
+import { ReactComponent as FoodziIcon } from "./foodzi-checkbox.svg";
 import { ReactComponent as GoogleBusinessIcon } from "./googleb-checkbox.svg";
 import { ReactComponent as grub24Icon } from "./grub24-checkbox.svg";
 import { ReactComponent as JustEatIcon } from "./justeat-checkbox.svg";
@@ -29,9 +30,10 @@ const companyIcons = {
   eatandrepeat: EatAndRepeatIcon,
   eatzy: EatzyIcon,
   feedmeonline: FeedMeOnlineIcon,
-  foodzi: FoodziIcon,
+  flipdish: FlipDishIcon,
   foodhub: FoodHubIcon,
   foodhouse: FoodHouseIcon,
+  foodzi: FoodziIcon,
   googlebusiness: GoogleBusinessIcon,
   grub24: grub24Icon,
   justeat: JustEatIcon,
