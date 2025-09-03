@@ -51,6 +51,7 @@ const FilterDrawer = ({
   onSubmit,
   onClear,
   companyOptions = [],
+  containerStyle = {},
 }) => {
   const {
     control,
@@ -113,9 +114,10 @@ const FilterDrawer = ({
 
   return (
     <div
-      className="fixed right-6 top-6 w-96 max-w-[95vw] bg-white border shadow-xl rounded-xl z-50"
+      className="fixed w-96 max-w-[95vw] bg-white border shadow-xl rounded-xl z-50"
       role="dialog"
       aria-label="Companies Filter"
+      style={containerStyle}
     >
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col h-full">
         <div className="px-4 py-3 border-b flex items-center justify-between">

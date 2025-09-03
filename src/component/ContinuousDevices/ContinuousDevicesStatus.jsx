@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useForm, FormProvider } from "react-hook-form";
-import instance from "../../api/continuousApi";
+import instanceTracker from "../../api/continuousApi";
 import DailyBarChartSection from "./DailyBarChartSection";
 import ShopSummaryTable from "./ShopSummaryTable";
 import FilterDrawer from "./FilterDrawer";
@@ -103,7 +103,7 @@ const fetchDailyStatsPerCompany = async (companies, params) => {
   const tasks = companies.map((c) => ({
     label: c.label,
     endpoint: companyToDailyStatsPath(c.value),
-    req: instance.get(
+    req: instanceTracker.get(
       companyToDailyStatsPath(c.value),
       // {
       //   headers: {
@@ -152,7 +152,7 @@ const fetchShopSummary = async (companies, params, pagesByLabel = {}) => {
     return {
       label,
       endpoint,
-      req: instance.get(
+      req: instanceTracker.get(
         endpoint,
         // {
         //   headers: {
@@ -591,6 +591,7 @@ const ContinuousDevicesStatus = ({ isOpen }) => {
             onSubmit={onSubmit}
             onClear={onClear}
             companyOptions={companyOptions}
+            containerStyle={{ top: 75, right: 25 }}
           />
         </FormProvider>
       )}
