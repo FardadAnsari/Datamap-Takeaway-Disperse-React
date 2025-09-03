@@ -33,11 +33,15 @@ export default {
         devices: "url('/sidebar/devices.svg')",
         "devices-active": "url('/sidebar/devices-focus.svg')",
         "devices-no-access": "url('/sidebar/devices-no-access.svg')",
-        "continuous-devices": "url('/sidebar/continuous-devices.svg')",
-        "continuous-devices-active":
-          "url('/sidebar/continuous-devices-focus.svg')",
-        "continuous-devices-no-access":
-          "url('/sidebar/continuous-devices-no-access.svg')",
+        "continuous-status": "url('/sidebar/continuous-status.svg')",
+        "continuous-status-active":
+          "url('/sidebar/continuous-status-focus.svg')",
+        "continuous-status-no-access":
+          "url('/sidebar/continuous-status-no-access.svg')",
+        "continuous-count": "url('/sidebar/continuous-count.svg')",
+        "continuous-count-active": "url('/sidebar/continuous-count-focus.svg')",
+        "continuous-count-no-access":
+          "url('/sidebar/continuous-count-no-access.svg')",
         "justeat-devices": "url('/devices/justeat-devices.svg')",
         "ubereats-devices": "url('/devices/ubereats-devices.svg')",
         "feedmeonline-devices": "url('/devices/feedmeonline-devices.svg')",
