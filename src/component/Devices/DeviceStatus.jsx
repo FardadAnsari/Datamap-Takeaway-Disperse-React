@@ -6,17 +6,22 @@ import CountUp from "react-countup";
 import { ThreeDots } from "react-loader-spinner";
 import { MdKeyboardDoubleArrowLeft } from "react-icons/md";
 
+const companyBg = {
+  mealzo: "bg-mealzo-check-devices",
+  justeat: "bg-justeat-check-devices",
+  feedmeonline: "bg-feedmeonline-check-devices",
+  foodhub: "bg-foodhub-check-devices",
+};
+
 const DeviceStatus = ({ isOpen }) => {
   const [totalStatus, setTotalStatus] = useState([]);
+
   useEffect(() => {
-    isOpen &&
-      instance
-        .get("/count")
-        .then((response) => {
-          // console.log(response.data);
-          setTotalStatus(response.data);
-        })
-        .catch();
+    if (!isOpen) return;
+    instance
+      .get("/count")
+      .then((response) => setTotalStatus(response.data))
+      .catch(() => {});
   }, [isOpen]);
 
   const [data, setData] = useState([]);
@@ -29,18 +34,83 @@ const DeviceStatus = ({ isOpen }) => {
   const [loading, setLoading] = useState(false);
   const [isSearchActive, setIsSearchActive] = useState(false);
 
+  const [filters, setFilters] = useState({
+    mealzo: null,
+    justeat: null,
+    feedmeonline: null,
+    foodhub: null,
+  });
+
+  const companyOrder = ["mealzo", "justeat", "feedmeonline", "foodhub"];
+  const companyLabel = {
+    mealzo: "Mealzo",
+    justeat: "Just Eat",
+    feedmeonline: "Feed Me Online",
+    foodhub: "Food Hub",
+  };
+
+  const isFilterActive = Object.values(filters).some((v) => v !== null);
+  const visibleCompanies = isFilterActive
+    ? companyOrder.filter((k) => filters[k] !== null)
+    : companyOrder;
+
+  // (existing) direct setter – now unused after toggling, safe to delete if you like
+  const setCompanyFilter = (company, value /* null | true | false */) => {
+    setFilters((prev) => ({ ...prev, [company]: value }));
+  };
+
+  // NEW: toggle helper — clicking the active button again sets it to null
+  const toggleFilter = (company, nextValue /* true | false */) => {
+    setFilters((prev) => ({
+      ...prev,
+      [company]: prev[company] === nextValue ? null : nextValue,
+    }));
+  };
+
+  const clearAllFilters = () => {
+    setFilters({
+      mealzo: null,
+      justeat: null,
+      feedmeonline: null,
+      foodhub: null,
+    });
+  };
+
+  const buildStatusUrl = ({ page, term, type, activeSearch, filtersObj }) => {
+    const params = new URLSearchParams();
+    params.set("page", String(page ?? 1));
+
+    if (activeSearch && term) {
+      if (type === "name") params.set("mealzoName", term);
+      else if (type === "id") params.set("mealzoId", term);
+    }
+
+    Object.entries(filtersObj || {}).forEach(([k, v]) => {
+      if (v !== null) params.set(k, v ? "true" : "false");
+    });
+
+    return `/status?${params.toString()}`;
+  };
+
   useEffect(() => {
     if (!isSearchActive) {
       fetchData(currentPage);
+    } else {
+      fetchSearchData(searchTerm, searchType, currentPage);
     }
-  }, [currentPage, isSearchActive]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage, isSearchActive, filters]);
 
   const fetchData = async (page) => {
     setLoading(true);
     try {
-      const response = await instance.get(`/status?page=${page}`);
-      // console.log("pageData", response.data);
-
+      const url = buildStatusUrl({
+        page,
+        activeSearch: false,
+        filtersObj: filters,
+      });
+      const response = await instance.get(url);
+      console.log("pageData", response.data);
       setData(response.data.results);
       setTotalPages(response.data.totalPages);
     } catch (error) {
@@ -68,15 +138,6 @@ const DeviceStatus = ({ isOpen }) => {
     setPageInput(e.target.value);
   };
 
-  // const handlePageSubmit = () => {
-  //   const page = parseInt(pageInput, 10);
-  //   if (!isNaN(page) && page >= 1 && page <= totalPages) {
-  //     setCurrentPage(page);
-  //   } else {
-  //     setPageInput(currentPage.toString());
-  //   }
-  // };
-
   const handlePageSubmit = () => {
     const page = parseInt(pageInput, 10);
     if (!isNaN(page) && page >= 1 && page <= totalPages) {
@@ -94,15 +155,14 @@ const DeviceStatus = ({ isOpen }) => {
   const fetchSearchData = async (term = "", type = "name", page = 1) => {
     setLoading(true);
     try {
-      let url = "";
-      if (type === "name") {
-        url = `/status?mealzoName=${term}&page=${page}`;
-      } else if (type === "id") {
-        url = `/status?mealzoId=${term}&page=${page}`;
-      }
-
+      const url = buildStatusUrl({
+        page,
+        term,
+        type,
+        activeSearch: true,
+        filtersObj: filters,
+      });
       const response = await instance.get(url);
-      // console.log(response.data);
       setSearchData(response.data.results);
       setTotalPages(response.data.totalPages);
       setCurrentPage(response.data.currentPage);
@@ -114,13 +174,8 @@ const DeviceStatus = ({ isOpen }) => {
     }
   };
 
-  const handleSearchTermChange = (e) => {
-    setSearchTerm(e.target.value);
-  };
-
-  const handleSearchTypeChange = (e) => {
-    setSearchType(e.target.value);
-  };
+  const handleSearchTermChange = (e) => setSearchTerm(e.target.value);
+  const handleSearchTypeChange = (e) => setSearchType(e.target.value);
 
   const handleSearchClick = () => {
     if (searchTerm) {
@@ -175,19 +230,66 @@ const DeviceStatus = ({ isOpen }) => {
       <div className="mx-4 flex justify-between items-center">
         <span className="text-2xl font-bold">Devices Status</span>
       </div>
-      <div className="grid grid-cols-6 gap-4 py-6">
+
+      <div className="grid grid-cols-8 gap-4 py-6">
+        {/* Top four summary cards (unchanged) */}
         <div className="col-span-2 row-span-3 p-4 border rounded-xl shadow-lg">
           <div className="flex items-center gap-4">
-            <div className="my-2 bg-cover bg-justeat-devices w-12 h-12"></div>
+            <div className="bg-cover bg-mealzo-devices w-20 h-20"></div>
             <div className="flex flex-col justify-between">
-              <span className="text-xl font-normal">Just Eat Devices</span>
+              <span className="text-xl font-normal">Mealzo</span>
+              <span className="text-sm text-gray-400 font-normal">
+                {totalStatus.mealzo?.last_time}
+              </span>
+            </div>
+          </div>
+          <div className="flex items-center">
+            <div className="w-2/3 text-2xl font-normal">
+              <CountUp start={0} end={totalStatus.mealzo?.total} duration={5} />
+            </div>
+            <div className="w-1/3 flex gap-2 justify-end">
+              <div className="flex bg-green-100 text-green-700 px-4 py-1 rounded-full items-center gap-1">
+                <GoDotFill />
+                <span className="text-sm">On</span>
+                <div className="text-xs">
+                  (
+                  <CountUp
+                    start={0}
+                    end={totalStatus.mealzo?.on}
+                    duration={5}
+                  />
+                  )
+                </div>
+              </div>
+              <div className="flex bg-red-100 text-red-700 px-4 py-1 rounded-full items-center gap-1">
+                <GoDotFill />
+                <span className="text-sm">Off</span>
+                <div className="text-xs">
+                  (
+                  <CountUp
+                    start={0}
+                    end={totalStatus.mealzo?.off}
+                    duration={5}
+                  />
+                  )
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="col-span-2 row-span-3 col-start-3 p-4 border rounded-xl shadow-lg">
+          <div className="flex items-center gap-4">
+            <div className="bg-cover bg-justeat-devices w-20 h-20"></div>
+            <div className="flex flex-col justify-between">
+              <span className="text-xl font-normal">Just Eat</span>
               <span className="text-sm text-gray-400 font-normal">
                 {totalStatus.justeat?.last_time}
               </span>
             </div>
           </div>
           <div className="flex items-center">
-            <div className="w-2/3 text-4xl font-normal">
+            <div className="w-2/3 text-2xl font-normal">
               <CountUp
                 start={0}
                 end={totalStatus.justeat?.total}
@@ -197,8 +299,8 @@ const DeviceStatus = ({ isOpen }) => {
             <div className="w-1/3 flex gap-2 justify-end">
               <div className="flex bg-green-100 text-green-700 px-4 py-1 rounded-full items-center gap-1">
                 <GoDotFill />
-                <span>On</span>
-                <div>
+                <span className="text-sm">On</span>
+                <div className="text-xs">
                   (
                   <CountUp
                     start={0}
@@ -210,8 +312,8 @@ const DeviceStatus = ({ isOpen }) => {
               </div>
               <div className="flex bg-red-100 text-red-700 px-4 py-1 rounded-full items-center gap-1">
                 <GoDotFill />
-                <span>Off</span>
-                <div>
+                <span className="text-sm">Off</span>
+                <div className="text-xs">
                   (
                   <CountUp
                     start={0}
@@ -224,20 +326,19 @@ const DeviceStatus = ({ isOpen }) => {
             </div>
           </div>
         </div>
-        <div className="col-span-2 row-span-3 col-start-3 p-4 border rounded-xl shadow-lg">
+
+        <div className="col-span-2 row-span-3 col-start-5 p-4 border rounded-xl shadow-lg">
           <div className="flex items-center gap-4">
-            <div className="my-2 bg-cover bg-feedmeonline-devices w-12 h-12"></div>
+            <div className="bg-cover bg-feedmeonline-devices w-20 h-20"></div>
             <div className="flex flex-col justify-between">
-              <span className="text-xl font-normal">
-                Feed Me Online Devices
-              </span>
+              <span className="text-xl font-normal">Feed Me Online</span>
               <span className="text-sm text-gray-400 font-normal">
                 {totalStatus.feedmeonline?.last_time}
               </span>
             </div>
           </div>
           <div className="flex items-center">
-            <div className="w-2/3 text-4xl font-normal">
+            <div className="w-2/3 text-2xl font-normal">
               <CountUp
                 start={0}
                 end={totalStatus.feedmeonline?.total}
@@ -247,8 +348,8 @@ const DeviceStatus = ({ isOpen }) => {
             <div className="w-1/3 flex gap-2 justify-end">
               <div className="flex bg-green-100 text-green-700 px-4 py-1 rounded-full items-center gap-1">
                 <GoDotFill />
-                <span>On</span>
-                <div>
+                <span className="text-sm">On</span>
+                <div className="text-xs">
                   (
                   <CountUp
                     start={0}
@@ -260,8 +361,8 @@ const DeviceStatus = ({ isOpen }) => {
               </div>
               <div className="flex bg-red-100 text-red-700 px-4 py-1 rounded-full items-center gap-1">
                 <GoDotFill />
-                <span>Off</span>
-                <div>
+                <span className="text-sm">Off</span>
+                <div className="text-xs">
                   (
                   <CountUp
                     start={0}
@@ -274,18 +375,19 @@ const DeviceStatus = ({ isOpen }) => {
             </div>
           </div>
         </div>
-        <div className="col-span-2 row-span-3 col-start-5 p-4 border rounded-xl shadow-lg">
+
+        <div className="col-span-2 row-span-3 col-start-7 p-4 border rounded-xl shadow-lg">
           <div className="flex items-center gap-4">
-            <div className="my-2 bg-cover bg-foodhub-devices w-12 h-12"></div>
+            <div className="bg-cover bg-foodhub-devices w-20 h-20"></div>
             <div className="flex flex-col justify-between">
-              <span className="text-xl font-normal">FoodHub Devices</span>
+              <span className="text-xl font-normal">FoodHub</span>
               <span className="text-sm text-gray-400 font-normal">
                 {totalStatus.foodhub?.last_time}
               </span>
             </div>
           </div>
           <div className="flex items-center">
-            <div className="w-2/3 text-4xl font-normal">
+            <div className="w-2/3 text-2xl font-normal">
               <CountUp
                 start={0}
                 end={totalStatus.foodhub?.total}
@@ -295,8 +397,8 @@ const DeviceStatus = ({ isOpen }) => {
             <div className="w-1/3 flex gap-2 justify-end">
               <div className="flex bg-green-100 text-green-700 px-4 py-1 rounded-full items-center gap-1">
                 <GoDotFill />
-                <span>On</span>
-                <div>
+                <span className="text-sm">On</span>
+                <div className="text-xs">
                   (
                   <CountUp
                     start={0}
@@ -308,8 +410,8 @@ const DeviceStatus = ({ isOpen }) => {
               </div>
               <div className="flex bg-red-100 text-red-700 px-4 py-1 rounded-full items-center gap-1">
                 <GoDotFill />
-                <span>Off</span>
-                <div>
+                <span className="text-sm">Off</span>
+                <div className="text-xs">
                   (
                   <CountUp
                     start={0}
@@ -322,7 +424,9 @@ const DeviceStatus = ({ isOpen }) => {
             </div>
           </div>
         </div>
-        <div className="col-span-2 row-span-2 row-start-4">
+
+        {/* Search */}
+        <div className="col-span-3 row-span-2 row-start-4">
           <div className="mb-2 flex space-x-4">
             <label className="flex items-center">
               <input
@@ -347,15 +451,15 @@ const DeviceStatus = ({ isOpen }) => {
           </div>
           <div className="mb-4 flex">
             <input
-              placeholder={`Search by ${searchType === "name" ? "Shop Name" : "Shop ID"}...`}
+              placeholder={`Search by ${
+                searchType === "name" ? "Shop Name" : "Shop ID"
+              }...`}
               value={searchTerm}
               type={searchType === "name" ? "text" : "number"}
               onChange={handleSearchTermChange}
               className="w-full p-2 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
               onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  handleSearchClick();
-                }
+                if (e.key === "Enter") handleSearchClick();
               }}
             />
             <button
@@ -379,7 +483,64 @@ const DeviceStatus = ({ isOpen }) => {
             </div>
           )}
         </div>
-        <div className="col-span-6 row-span-5 row-start-6 flex flex-col items-center gap-4">
+
+        {/* Company Filters UI */}
+        <div className="col-span-8 row-start-6 flex items-start">
+          <div className="mt-2 flex items-center gap-3">
+            {[
+              { key: "mealzo", label: "Mealzo" },
+              { key: "justeat", label: "Just Eat" },
+              { key: "feedmeonline", label: "Feed Me Online" },
+              { key: "foodhub", label: "FoodHub" },
+            ].map(({ key, label }) => (
+              <div
+                key={key}
+                className="flex items-center gap-2 bg-white border rounded-lg px-2 py-1 shadow-sm"
+              >
+                <div className={`bg-cover ${companyBg[key]} w-8 h-8`} />
+                <span className="text-sm">{label}</span>
+
+                <button
+                  className={`text-xs px-2 py-1 rounded-md border ${
+                    filters[key] === true
+                      ? "bg-green-600 text-white border-green-600"
+                      : "border-gray-300 text-gray-700"
+                  }`}
+                  onClick={() => toggleFilter(key, true)}
+                  title="On"
+                  aria-pressed={filters[key] === true}
+                >
+                  On
+                </button>
+
+                <button
+                  className={`text-xs px-2 py-1 rounded-md border ${
+                    filters[key] === false
+                      ? "bg-red-600 text-white border-red-600"
+                      : "border-gray-300 text-gray-700"
+                  }`}
+                  onClick={() => toggleFilter(key, false)}
+                  title="Off"
+                  aria-pressed={filters[key] === false}
+                >
+                  Off
+                </button>
+              </div>
+            ))}
+
+            {isFilterActive && (
+              <button
+                onClick={clearAllFilters}
+                className="flex gap-2 items-center p-2 rounded-lg border text-sm text-gray-600 border-gray-300 hover:bg-gray-50"
+              >
+                Clear Filters
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Table */}
+        <div className="col-span-8 row-span-5 row-start-7 flex flex-col items-center gap-4">
           <table className="min-w-full bg-white rounded-lg shadow-md">
             <thead className="bg-gray-100">
               <tr>
@@ -389,21 +550,23 @@ const DeviceStatus = ({ isOpen }) => {
                 <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 tracking-wider">
                   Mealzo Name
                 </th>
-                <th className="w-40 px-6 py-3 text-left text-sm font-semibold text-gray-700 tracking-wider text-center">
-                  Just Eat
-                </th>
-                <th className="w-40 px-6 py-3 text-left text-sm font-semibold text-gray-700 tracking-wider text-center">
-                  Feed Me Online
-                </th>
-                <th className="w-40 px-6 py-3 text-left text-sm font-semibold text-gray-700 tracking-wider text-center rounded-tr-lg">
-                  Food Hub
-                </th>
+
+                {visibleCompanies.map((key, idx) => (
+                  <th
+                    key={key}
+                    className={`w-40 px-6 py-3 text-left text-sm font-semibold text-gray-700 tracking-wider text-center ${
+                      idx === visibleCompanies.length - 1 ? "rounded-tr-lg" : ""
+                    }`}
+                  >
+                    {companyLabel[key]}
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody className="relative divide-y divide-gray-200 min-h-[200px]">
-              {loading === true ? (
+              {loading ? (
                 <tr>
-                  <td colSpan="5" className="h-80">
+                  <td colSpan="6" className="h-80">
                     <div className="flex items-center justify-center h-full">
                       <ThreeDots
                         visible={true}
@@ -412,15 +575,13 @@ const DeviceStatus = ({ isOpen }) => {
                         color="#ffa500"
                         radius="9"
                         ariaLabel="three-dots-loading"
-                        wrapperStyle={{}}
-                        wrapperClass=""
                       />
                     </div>
                   </td>
                 </tr>
               ) : tableData.length === 0 ? (
                 <tr>
-                  <td colSpan="5" className="h-80">
+                  <td colSpan="6" className="h-80">
                     <div className="flex flex-col items-center justify-center h-full text-gray-500 gap-4">
                       <div className="w-44 h-44 bg-cover bg-no-result"></div>
                       <p>No Results Matching</p>
@@ -436,73 +597,110 @@ const DeviceStatus = ({ isOpen }) => {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {item.mealzoName}
                     </td>
-                    <td className="w-20 text-sm text-gray-900">
-                      {item.companies.justeat.deviceAvailability === true ? (
-                        item.companies.justeat.data.isOpen === true ? (
-                          <div className="flex bg-green-100 text-green-700 p-1 rounded-full items-center justify-center">
-                            <GoDotFill />
-                            <span>On</span>
-                          </div>
+
+                    {/* Mealzo */}
+                    {item.companies.mealzo && (
+                      <td className="w-20 text-sm text-gray-900">
+                        {item.companies.mealzo?.deviceAvailability === true ? (
+                          item.companies.mealzo.data.isOpen === true ? (
+                            <div className="flex bg-green-100 text-green-700 p-1 rounded-full items-center justify-center">
+                              <GoDotFill />
+                              <span>On</span>
+                            </div>
+                          ) : (
+                            <div className="flex bg-red-100 text-red-700 p-1 rounded-full items-center justify-center">
+                              <GoDotFill />
+                              <span>Off</span>
+                            </div>
+                          )
                         ) : (
-                          <div className="flex bg-red-100 text-red-700 p-1 rounded-full items-center justify-center">
+                          <div className="flex bg-gray-100 text-gray-700 p-1 rounded-full items-center justify-center">
                             <GoDotFill />
-                            <span>Off</span>
+                            <span>No device</span>
                           </div>
-                        )
-                      ) : (
-                        <div className="flex bg-gray-100 text-gray-700 p-1 rounded-full items-center justify-center">
-                          <GoDotFill />
-                          <span>No device</span>
-                        </div>
-                      )}
-                    </td>
-                    <td className="w-20 text-sm text-gray-900">
-                      {item.companies.feedmeonline.deviceAvailability ===
-                      true ? (
-                        item.companies.feedmeonline.data.isOpen === true ? (
-                          <div className="flex bg-green-100 text-green-700 p-1 rounded-full items-center justify-center">
-                            <GoDotFill />
-                            <span>On</span>
-                          </div>
+                        )}
+                      </td>
+                    )}
+
+                    {/* Just Eat */}
+                    {item.companies.justeat && (
+                      <td className="w-20 text-sm text-gray-900">
+                        {item.companies.justeat.deviceAvailability === true ? (
+                          item.companies.justeat.data.isOpen === true ? (
+                            <div className="flex bg-green-100 text-green-700 p-1 rounded-full items-center justify-center">
+                              <GoDotFill />
+                              <span>On</span>
+                            </div>
+                          ) : (
+                            <div className="flex bg-red-100 text-red-700 p-1 rounded-full items-center justify-center">
+                              <GoDotFill />
+                              <span>Off</span>
+                            </div>
+                          )
                         ) : (
-                          <div className="flex bg-red-100 text-red-700 p-1 rounded-full items-center justify-center">
+                          <div className="flex bg-gray-100 text-gray-700 p-1 rounded-full items-center justify-center">
                             <GoDotFill />
-                            <span>Off</span>
+                            <span>No device</span>
                           </div>
-                        )
-                      ) : (
-                        <div className="flex bg-gray-100 text-gray-700 p-1 rounded-full items-center justify-center">
-                          <GoDotFill />
-                          <span>No device</span>
-                        </div>
-                      )}
-                    </td>
-                    <td className="w-20 text-sm text-gray-900">
-                      {item.companies.foodhub.deviceAvailability === true ? (
-                        item.companies.foodhub.data.isOpen === true ? (
-                          <div className="flex bg-green-100 text-green-700 p-1 rounded-full items-center justify-center">
-                            <GoDotFill />
-                            <span>On</span>
-                          </div>
+                        )}
+                      </td>
+                    )}
+
+                    {/* Feed Me Online */}
+                    {item.companies.feedmeonline && (
+                      <td className="w-20 text-sm text-gray-900">
+                        {item.companies.feedmeonline.deviceAvailability ===
+                        true ? (
+                          item.companies.feedmeonline.data.isOpen === true ? (
+                            <div className="flex bg-green-100 text-green-700 p-1 rounded-full items-center justify-center">
+                              <GoDotFill />
+                              <span>On</span>
+                            </div>
+                          ) : (
+                            <div className="flex bg-red-100 text-red-700 p-1 rounded-full items-center justify-center">
+                              <GoDotFill />
+                              <span>Off</span>
+                            </div>
+                          )
                         ) : (
-                          <div className="flex bg-red-100 text-red-700 p-1 rounded-full items-center justify-center">
+                          <div className="flex bg-gray-100 text-gray-700 p-1 rounded-full items-center justify-center">
                             <GoDotFill />
-                            <span>Off</span>
+                            <span>No device</span>
                           </div>
-                        )
-                      ) : (
-                        <div className="flex bg-gray-100 text-gray-700 p-1 rounded-full items-center justify-center">
-                          <GoDotFill />
-                          <span>No device</span>
-                        </div>
-                      )}
-                    </td>
+                        )}
+                      </td>
+                    )}
+
+                    {/* FoodHub */}
+                    {item.companies.foodhub && (
+                      <td className="w-20 text-sm text-gray-900">
+                        {item.companies.foodhub.deviceAvailability === true ? (
+                          item.companies.foodhub.data.isOpen === true ? (
+                            <div className="flex bg-green-100 text-green-700 p-1 rounded-full items-center justify-center">
+                              <GoDotFill />
+                              <span>On</span>
+                            </div>
+                          ) : (
+                            <div className="flex bg-red-100 text-red-700 p-1 rounded-full items-center justify-center">
+                              <GoDotFill />
+                              <span>Off</span>
+                            </div>
+                          )
+                        ) : (
+                          <div className="flex bg-gray-100 text-gray-700 p-1 rounded-full items-center justify-center">
+                            <GoDotFill />
+                            <span>No device</span>
+                          </div>
+                        )}
+                      </td>
+                    )}
                   </tr>
                 ))
               )}
             </tbody>
           </table>
 
+          {/* Pagination */}
           <div className="w-full flex items-center justify-between">
             {currentPage > 2 ? (
               <button
