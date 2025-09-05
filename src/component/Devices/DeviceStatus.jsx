@@ -767,7 +767,7 @@ const DeviceStatus = ({ isOpen }) => {
                 onChange={handleInputChange}
                 onBlur={handlePageSubmit}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter") {
+                  if (e.key === "Enter" || e.key === "NumpadEnter") {
                     e.target.blur();
                     handlePageSubmit();
                   }
