@@ -13,6 +13,8 @@ const companyBg = {
   foodhub: "bg-foodhub-check-devices",
 };
 
+const DEBOUNCE_MS = 1000; // typing pause before auto search
+
 const DeviceStatus = ({ isOpen }) => {
   const [totalStatus, setTotalStatus] = useState([]);
 
@@ -54,12 +56,7 @@ const DeviceStatus = ({ isOpen }) => {
     ? companyOrder.filter((k) => filters[k] !== null)
     : companyOrder;
 
-  // (existing) direct setter – now unused after toggling, safe to delete if you like
-  const setCompanyFilter = (company, value /* null | true | false */) => {
-    setFilters((prev) => ({ ...prev, [company]: value }));
-  };
-
-  // NEW: toggle helper — clicking the active button again sets it to null
+  // toggle helper — clicking the active button again sets it to null
   const toggleFilter = (company, nextValue /* true | false */) => {
     setFilters((prev) => ({
       ...prev,
@@ -92,15 +89,6 @@ const DeviceStatus = ({ isOpen }) => {
     return `/status?${params.toString()}`;
   };
 
-  useEffect(() => {
-    if (!isSearchActive) {
-      fetchData(currentPage);
-    } else {
-      fetchSearchData(searchTerm, searchType, currentPage);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentPage, isSearchActive, filters]);
-
   const fetchData = async (page) => {
     setLoading(true);
     try {
@@ -110,7 +98,6 @@ const DeviceStatus = ({ isOpen }) => {
         filtersObj: filters,
       });
       const response = await instance.get(url);
-      console.log("pageData", response.data);
       setData(response.data.results);
       setTotalPages(response.data.totalPages);
     } catch (error) {
@@ -119,6 +106,62 @@ const DeviceStatus = ({ isOpen }) => {
       setLoading(false);
     }
   };
+
+  const fetchSearchData = async (term = "", type = "name", page = 1) => {
+    setLoading(true);
+    try {
+      const url = buildStatusUrl({
+        page,
+        term,
+        type,
+        activeSearch: true,
+        filtersObj: filters,
+      });
+      const response = await instance.get(url);
+      setSearchData(response.data.results);
+      setTotalPages(response.data.totalPages);
+      setCurrentPage(response.data.currentPage);
+      setIsSearchActive(true);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // main data loader when page/filters/search-mode changes
+  useEffect(() => {
+    if (!isSearchActive) {
+      fetchData(currentPage);
+    } else {
+      fetchSearchData(searchTerm, searchType, currentPage);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage, isSearchActive, filters]);
+
+  // ★ NEW: automatic (debounced) search when typing or switching ID/Name
+  useEffect(() => {
+    const term = (searchTerm ?? "").toString().trim();
+
+    // If input cleared: exit search mode and refresh normal list
+    if (!term) {
+      setIsSearchActive(false);
+      setSearchData([]);
+      fetchData(1);
+      setCurrentPage(1);
+      setPageInput("1");
+      return;
+    }
+
+    const t = setTimeout(() => {
+      setCurrentPage(1);
+      setPageInput("1");
+      fetchSearchData(term, searchType, 1);
+    }, DEBOUNCE_MS);
+
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchTerm, searchType]);
 
   const handlePageChange = (newPage) => {
     if (newPage >= 1 && newPage <= totalPages) {
@@ -152,45 +195,28 @@ const DeviceStatus = ({ isOpen }) => {
     }
   };
 
-  const fetchSearchData = async (term = "", type = "name", page = 1) => {
-    setLoading(true);
-    try {
-      const url = buildStatusUrl({
-        page,
-        term,
-        type,
-        activeSearch: true,
-        filtersObj: filters,
-      });
-      const response = await instance.get(url);
-      setSearchData(response.data.results);
-      setTotalPages(response.data.totalPages);
-      setCurrentPage(response.data.currentPage);
-      setIsSearchActive(true);
-    } catch (error) {
-      console.error("Error fetching data:", error);
-    } finally {
-      setLoading(false);
-    }
+  // keep handlers but we no longer need a button press
+  const handleSearchTermChange = (e) => {
+    setSearchTerm(e.target.value);
+    setCurrentPage(1);
+    setPageInput("1");
+  };
+  const handleSearchTypeChange = (e) => {
+    setSearchType(e.target.value);
+    setCurrentPage(1);
+    setPageInput("1");
   };
 
-  const handleSearchTermChange = (e) => setSearchTerm(e.target.value);
-  const handleSearchTypeChange = (e) => setSearchType(e.target.value);
-
-  const handleSearchClick = () => {
-    if (searchTerm) {
-      fetchSearchData(searchTerm, searchType, 1);
-    } else {
-      setSearchData([]);
-      setIsSearchActive(false);
-    }
-  };
+  const showSearchResult =
+    isSearchActive && String(searchTerm).trim().length > 0;
 
   const handleClearSearch = () => {
     setSearchTerm("");
     setSearchData([]);
     setIsSearchActive(false);
-    fetchData(currentPage);
+    setCurrentPage(1);
+    setPageInput("1");
+    fetchData(1);
   };
 
   const handleNextPage = () => {
@@ -232,7 +258,7 @@ const DeviceStatus = ({ isOpen }) => {
       </div>
 
       <div className="grid grid-cols-8 gap-4 py-6">
-        {/* Top four summary cards (unchanged) */}
+        {/* Top four summary cards */}
         <div className="col-span-2 row-span-3 p-4 border rounded-xl shadow-lg">
           <div className="flex items-center gap-4">
             <div className="bg-cover bg-mealzo-devices w-20 h-20"></div>
@@ -426,7 +452,7 @@ const DeviceStatus = ({ isOpen }) => {
         </div>
 
         {/* Search */}
-        <div className="col-span-3 row-span-2 row-start-4">
+        <div className="col-span-2 row-span-2 row-start-4">
           <div className="mb-2 flex space-x-4">
             <label className="flex items-center">
               <input
@@ -457,22 +483,13 @@ const DeviceStatus = ({ isOpen }) => {
               value={searchTerm}
               type={searchType === "name" ? "text" : "number"}
               onChange={handleSearchTermChange}
-              className="w-full p-2 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-              onKeyDown={(e) => {
-                if (e.key === "Enter") handleSearchClick();
-              }}
+              className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
             />
-            <button
-              onClick={handleSearchClick}
-              className="px-6 bg-orange-600 text-white rounded-r-lg hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500"
-            >
-              Search
-            </button>
           </div>
-          {isSearchActive && (
+          {showSearchResult && (
             <div className="flex space-x-4">
               <p>
-                {searchData.length} Results found for "{searchTerm}"
+                {searchData.length} Results found for " {searchTerm} "
               </p>
               <button
                 onClick={handleClearSearch}
@@ -583,7 +600,7 @@ const DeviceStatus = ({ isOpen }) => {
                 <tr>
                   <td colSpan="6" className="h-80">
                     <div className="flex flex-col items-center justify-center h-full text-gray-500 gap-4">
-                      <div className="w-44 h-44 bg-cover bg-no-result"></div>
+                      <div className="w-44 h-44 bg-cover bg-empty-state-table"></div>
                       <p>No Results Matching</p>
                     </div>
                   </td>
