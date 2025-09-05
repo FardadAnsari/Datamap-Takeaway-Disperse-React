@@ -43,9 +43,17 @@ export default {
         "continuous-count-no-access":
           "url('/sidebar/continuous-count-no-access.svg')",
         "justeat-devices": "url('/devices/justeat-devices.svg')",
+        "justeat-check-devices":
+          "url('/devices/checkbox/justeat-checkbox.svg')",
+        "mealzo-devices": "url('/devices/mealzo-devices.svg')",
+        "mealzo-check-devices": "url('/devices/checkbox/mealzo-checkbox.svg')",
         "ubereats-devices": "url('/devices/ubereats-devices.svg')",
         "feedmeonline-devices": "url('/devices/feedmeonline-devices.svg')",
+        "feedmeonline-check-devices":
+          "url('/devices/checkbox/feedmeonline-checkbox.svg')",
         "foodhub-devices": "url('/devices/foodhub-devices.svg')",
+        "foodhub-check-devices":
+          "url('/devices/checkbox/foodhub-checkbox.svg')",
         "total-on-devices": "url('/devices/total-on-device.svg')",
         "total-off-devices": "url('/devices/total-off-device.svg')",
         "total-shops": "url('/devices/total-shops-icon.svg')",
