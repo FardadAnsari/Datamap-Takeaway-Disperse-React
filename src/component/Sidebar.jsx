@@ -49,6 +49,14 @@ const Sidebar = ({ activePanel, setActivePanel }) => {
     //   access: user?.access?.facebook,
     // },
     {
+      key: "analyzer",
+      label: "Analyzer",
+      icon: "bg-analyzer",
+      iconActive: "bg-analyzer-active",
+      iconNoAccess: "bg-analyzer-no-access",
+      access: user?.access?.devices,
+    },
+    {
       key: "devices",
       label: "Devices",
       icon: "bg-devices",
