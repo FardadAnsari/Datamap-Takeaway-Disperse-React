@@ -30,6 +30,8 @@ export default {
         "facebook-active": "url('/sidebar/facebook-focus.svg')",
         "facebook-no-access": "url('/sidebar/facebook-no-access.svg')",
         "facebook-resultbar-icon": "url('/resultbar/facebook-button.svg')",
+        analyzer: "url('/sidebar/analyzer.svg')",
+        "analyzer-active": "url('/sidebar/analyzer-focus.svg')",
         devices: "url('/sidebar/devices.svg')",
         "devices-active": "url('/sidebar/devices-focus.svg')",
         "devices-no-access": "url('/sidebar/devices-no-access.svg')",
