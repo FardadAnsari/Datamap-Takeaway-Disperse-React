@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import axios from "axios";
 import L from "leaflet";
 import { renderToString } from "react-dom/server";
@@ -35,17 +35,43 @@ function FitToPoints({ points }) {
   return null;
 }
 
+// Smoothly fly to the selected city
+function FlyToCity({ rows, selectedCity, zoom = 9 }) {
+  const map = useMap();
+  useEffect(() => {
+    if (!selectedCity) return;
+    const row = rows.find((r) => r.city === selectedCity);
+    if (!row || typeof row.lat !== "number" || typeof row.lng !== "number")
+      return;
+    map.flyTo([row.lat, row.lng], zoom, { duration: 0.7 });
+  }, [selectedCity, rows, map, zoom]);
+  return null;
+}
+
 const ProductAnalysis = ({ isOpen }) => {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
 
-  const [selectedCity, setSelectedCity] = useState(null);
+  const [selectedCity, setSelectedCity] = useState(null); // slug (r.city)
   const [hoverCity, setHoverCity] = useState(null);
 
   const [cityData, setCityData] = useState(null);
   const [cityLoading, setCityLoading] = useState(false);
   const [cityErr, setCityErr] = useState("");
+
+  // --- Search state ---
+  const [query, setQuery] = useState("");
+  const searchInputRef = useRef(null);
+
+  // Keep refs to markers to open popup when selected via search
+  const markersRef = useRef({});
+  useEffect(() => {
+    if (!selectedCity) return;
+    const m = markersRef.current[selectedCity];
+    // react-leaflet Marker has openPopup method on the underlying Leaflet instance
+    m?.openPopup?.();
+  }, [selectedCity]);
 
   // Load cities/points
   useEffect(() => {
@@ -100,6 +126,37 @@ const ProductAnalysis = ({ isOpen }) => {
     [rows]
   );
 
+  // Pretty label for selected city
+  const displayCity = useMemo(() => {
+    if (!selectedCity) return null;
+    const row = rows.find((r) => r.city === selectedCity);
+    return row?.resolved_city_used || selectedCity;
+  }, [rows, selectedCity]);
+
+  // Search suggestions (only cities that have coordinates/pins)
+  const suggestions = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return [];
+    const name = (r) => (r.resolved_city_used || r.city || "").toLowerCase();
+    return points
+      .filter((r) => name(r).includes(q))
+      .sort((a, b) => {
+        const na = name(a);
+        const nb = name(b);
+        const as = na.startsWith(q) ? 0 : 1;
+        const bs = nb.startsWith(q) ? 0 : 1;
+        return as - bs || na.localeCompare(nb);
+      })
+      .slice(0, 8);
+  }, [query, points]);
+
+  const handleSelectCity = (row) => {
+    setSelectedCity(row.city); // slug
+    setHoverCity(null);
+    setQuery(""); // close dropdown
+    searchInputRef.current?.blur();
+  };
+
   // selected postcode
   const [selectedPostcode, setSelectedPostcode] = useState(null);
 
@@ -126,12 +183,62 @@ const ProductAnalysis = ({ isOpen }) => {
 
   return (
     <div
-      className={`max-w-screen w-[calc(100%-80px)] p-6 absolute top-0 left-20 flex flex-col h-full overflow-y-auto bg-stone-50 z-40 transition-transform duration-700 ease-in-out ${
+      className={`max-w-screen w-[calc(100%-80px)] p-6 absolute top-0 left-20 flex flex-col h-full overflow-y-auto bg-white z-40 transition-transform duration-700 ease-in-out ${
         isOpen ? "translate-x-0" : "-translate-x-full"
       }`}
     >
-      <div className="mx-4 flex justify-between items-center">
+      {/* Header with search */}
+      <div className="mx-4 flex justify-between items-center gap-4">
         <span className="text-2xl font-bold">Product Analysis</span>
+
+        <div className="relative w-full max-w-md">
+          <input
+            ref={searchInputRef}
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && suggestions[0]) {
+                handleSelectCity(suggestions[0]);
+              }
+              if (e.key === "Escape") setQuery("");
+            }}
+            placeholder="Search city…"
+            className="w-full rounded-xl border border-stone-300 bg-white px-3 py-2 pr-8 shadow-sm outline-none focus:ring-2 focus:ring-orange-400"
+            aria-label="Search city"
+            autoComplete="off"
+          />
+          {query && (
+            <button
+              type="button"
+              aria-label="Clear search"
+              onClick={() => setQuery("")}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600"
+            >
+              ×
+            </button>
+          )}
+
+          {query && (
+            <ul className="absolute z-50 mt-1 w-full max-h-64 overflow-auto rounded-xl border border-stone-200 bg-white shadow-lg">
+              {suggestions.length ? (
+                suggestions.map((r) => (
+                  <li key={r.city}>
+                    <button
+                      type="button"
+                      onClick={() => handleSelectCity(r)}
+                      className="block w-full text-left px-3 py-2 hover:bg-stone-100"
+                    >
+                      {r.resolved_city_used || r.city}
+                    </button>
+                  </li>
+                ))
+              ) : (
+                <li className="px-3 py-2 text-stone-500">No matches</li>
+              )}
+            </ul>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-8 gap-4 py-6 auto-rows-min">
@@ -143,7 +250,6 @@ const ProductAnalysis = ({ isOpen }) => {
             minZoom={5}
             scrollWheelZoom
             className="h-full w-full"
-            maxBoundsViscosity={0.8}
           >
             <TileLayer
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -151,6 +257,7 @@ const ProductAnalysis = ({ isOpen }) => {
             />
 
             <FitToPoints points={points} />
+            <FlyToCity rows={rows} selectedCity={selectedCity} zoom={9} />
 
             {points.map((p) => {
               const isActive = selectedCity === p.city || hoverCity === p.city;
@@ -160,6 +267,9 @@ const ProductAnalysis = ({ isOpen }) => {
                   position={[p.lat, p.lng]}
                   icon={isActive ? ICONS.active : ICONS.simple}
                   zIndexOffset={isActive ? 1000 : 0}
+                  ref={(m) => {
+                    if (m) markersRef.current[p.city] = m;
+                  }}
                   eventHandlers={{
                     click: () => setSelectedCity(p.city),
                     mouseover: () => setHoverCity(p.city),
@@ -169,7 +279,9 @@ const ProductAnalysis = ({ isOpen }) => {
                 >
                   <Popup direction="top">
                     <div className="text-sm">
-                      <div className="font-semibold">{p.city}</div>
+                      <div className="font-semibold">
+                        {p.resolved_city_used}
+                      </div>
                     </div>
                   </Popup>
                 </Marker>
@@ -180,12 +292,34 @@ const ProductAnalysis = ({ isOpen }) => {
 
         {/* City chart (top-right) */}
         <div className="col-span-3 row-span-1 col-start-6 p-4 border rounded-xl shadow-lg">
+          <div className="flex items-center justify-between mb-2">
+            <div className="font-semibold text-lg">
+              <span>Products breakdown for </span>
+              {displayCity ? (
+                <span className="text-orange-600">{displayCity}</span>
+              ) : null}
+            </div>
+          </div>
+
           {loading ? (
             "Loading cities…"
           ) : err ? (
             <>Error: {err}</>
+          ) : !selectedCity ? (
+            <div className="h-[260px] grid place-items-center text-stone-500">
+              Select a city on the map
+            </div>
+          ) : cityLoading ? (
+            "Loading city data…"
+          ) : cityErr ? (
+            <>Error: {cityErr}</>
+          ) : !cityData ? (
+            <div className="h-[260px] grid place-items-center text-stone-500">
+              No data
+            </div>
           ) : (
             <PiechartSection
+              key={selectedCity} // force re-render when city changes
               data={cityData?.areas?.products_in_city?.products}
               topN={8}
               innerRadius={70}
@@ -198,25 +332,15 @@ const ProductAnalysis = ({ isOpen }) => {
         {/* Locations list (card design, same grid position) */}
         <div className="col-span-5 row-span-2 p-4 border rounded-xl shadow-lg">
           <div className="flex items-center justify-between mb-3">
-            <div className="text-lg font-semibold">
-              {selectedCity ? `Popularity: ${selectedCity}` : "Popularity"}
-            </div>
             {selectedCity && (
-              <button
-                className="text-xs underline"
-                onClick={() => {
-                  setSelectedCity(null);
-                  setSelectedPostcode(null); // reset for next city
-                  setCityData(null);
-                  setCityErr("");
-                }}
-              >
-                Clear selection
-              </button>
+              <div className="text-lg font-semibold">
+                <span>Popularity analysis in </span>
+                <span className="text-orange-600">{displayCity}</span>
+              </div>
             )}
           </div>
 
-          <div className="rounded-xl h-[560px] p-2 bg-white">
+          <div className="h-[560px]">
             {!cityData ? (
               <div className="h-full grid place-items-center text-stone-500">
                 Select a city first
@@ -239,15 +363,17 @@ const ProductAnalysis = ({ isOpen }) => {
                         type="button"
                         onClick={() => setSelectedPostcode(postcode)}
                         onKeyDown={(e) => {
-                          if (e.key === "Enter" || e.key === " ")
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault(); // avoid page scroll on Space
                             setSelectedPostcode(postcode);
+                          }
                         }}
                         aria-pressed={isActive}
                         className={`text-left rounded-xl border p-3 bg-white transition
-                          hover:shadow-md focus:outline-none focus:ring-2 focus:ring-orange-400
+                          hover:shadow-md focus:outline-none
                           ${
                             isActive
-                              ? "ring-2 ring-orange-500 border-orange-300 bg-orange-50/60"
+                              ? "border-2 border-orange-500"
                               : "border-stone-200"
                           }`}
                       >
@@ -280,13 +406,14 @@ const ProductAnalysis = ({ isOpen }) => {
           </div>
         </div>
 
-        {/* Results for selected postcode (bottom-right, unchanged position) */}
+        {/* Results for selected postcode (bottom-right) */}
         <div className="col-span-3 row-span-2 col-start-6 p-4 border rounded-xl shadow-lg">
-          <div className="text-lg font-semibold mb-2">
-            {selectedPostcode
-              ? `Results for ${selectedPostcode}`
-              : "Results for postcode"}
-          </div>
+          {selectedPostcode && (
+            <div className="text-lg font-semibold mb-2">
+              <span>Results for </span>
+              <span className="text-orange-600">{selectedPostcode}</span>
+            </div>
+          )}
 
           {!selectedPostcode ? (
             <div className="h-[520px] grid place-items-center text-stone-500">
