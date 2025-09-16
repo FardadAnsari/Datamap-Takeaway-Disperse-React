@@ -1,4 +1,3 @@
-// PiechartSection.jsx — supports "Least products" grouping on hover
 import { useMemo, useState } from "react";
 import {
   Pie,
@@ -75,7 +74,7 @@ const renderActiveShape = ({
         stroke={fill}
         fill="none"
       />
-      <circle cx={ex} cy={ey} r={2} fill={fill} stroke="none" />
+      <circle cx={ex} cy={ey} r={3} fill={fill} stroke="none" />
       <text
         x={ex + (cos >= 0 ? 1 : -1) * 12}
         y={ey}
@@ -132,13 +131,13 @@ export default function PiechartSection({
   data,
   nameKey = "name",
   valueKey = "value",
-  height = 320,
-  innerRadius = 60,
-  outerRadius = 90,
+  height = 480,
+  innerRadius = 100,
+  outerRadius = 140,
   topN, // optional: apply after grouping to majors
   minValue = 0, // optional absolute-value filter
   groupUnderPercent = 1, // NEW: group all items < X% into one slice
-  groupLabel = "Least products",
+  groupLabel = "Least interactions",
   colors = DEFAULT_COLORS,
   onSliceClick,
 }) {

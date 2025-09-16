@@ -66,6 +66,8 @@ export default {
         "refresh-button": "url('/button/refresh-button.svg')",
         "filter-button": "url('/button/filter-btn.svg')",
         "empty-state-chart": "url('/empty-states/empty-state-chart.svg')",
+        "empty-state-piechart": "url('/empty-states/empty-state-piechart.svg')",
+        "empty-state-card": "url('/empty-states/empty-state-card.svg')",
         "empty-state-hours": "url('/empty-states/empty-state-hours.svg')",
         "empty-state-interaction":
           "url('/empty-states/empty-state-interaction.svg')",
