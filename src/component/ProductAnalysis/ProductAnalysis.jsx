@@ -558,7 +558,7 @@ const ProductAnalysis = ({ isOpen }) => {
         <div className="col-span-3 row-span-2 col-start-6 p-4 border rounded-xl shadow-lg relative">
           {selectedPostcode && (
             <div className="text-lg font-semibold mb-2">
-              <span>Results for </span>
+              <span>Products breakdown for </span>
               <span className="text-orange-600">{selectedPostcode}</span>
             </div>
           )}
