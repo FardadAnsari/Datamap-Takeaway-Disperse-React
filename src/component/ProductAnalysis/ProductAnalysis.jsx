@@ -1,15 +1,41 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import axios from "axios";
 import L from "leaflet";
 import { renderToString } from "react-dom/server";
-import { MapContainer, TileLayer, Marker, useMap, Popup } from "react-leaflet";
+import {
+  MapContainer,
+  TileLayer,
+  Marker,
+  useMap,
+  Popup,
+  Tooltip,
+} from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import analyzerPins from "../../assets/analyzer-pin/analyzer-pin";
 import PiechartSection from "./PiechartSection";
 import { BiLike, BiDislike } from "react-icons/bi";
 import { ThreeDots } from "react-loader-spinner";
 
-// ---------- Small UI helpers ----------
+/* ----------------------- UI / MAP CONSTANTS ----------------------- */
+const UI = {
+  tooltipRadius: 12, // change tooltip border radius here
+  tooltipPadding: "6px 12px",
+  tooltipShadow: "0 10px 20px rgba(0,0,0,0.18)",
+  popupBorder: "2px solid #ef4444",
+  suggestionsMax: 8,
+};
+
+const MAP = {
+  defaultCenter: [54.5, -3.5],
+  defaultZoom: 6,
+  minZoom: 5,
+  flyToZoom: 9,
+  popupOffsetY: -15, // closer than -20
+  tooltipOffsetY: -30, // closer than -35
+  iconSize: 33,
+};
+
+/* ----------------------- Small Helpers ----------------------- */
 const CenteredSpinner = ({ size = 50, className = "" }) => (
   <div className={`absolute inset-0 grid place-items-center ${className}`}>
     <ThreeDots
@@ -29,14 +55,31 @@ const EmptyState = ({
   iconSize = "w-44 h-44",
   state = "bg-empty-state-piechart",
 }) => (
-  <div className={`grid place-items-center text-stone-500 ${className}`}>
-    <div className={`${state} bg-no-repeat bg-center bg-contain ${iconSize}`} />
-    <div className="mt-2">{message}</div>
+  <div className={`h-full grid place-items-center text-stone-500 ${className}`}>
+    <div className="flex flex-col items-center">
+      <div
+        className={`${state} bg-no-repeat bg-center bg-contain ${iconSize}`}
+      />
+      <div className="mt-2">{message}</div>
+    </div>
   </div>
 );
 
-// Build Leaflet divIcons from your React SVG components
-const makeSvgIcon = (SvgComp, { w = 44, h = 44, className = "" } = {}) =>
+// Debounce hook to keep UI snappy with fewer renders
+const useDebounced = (value, delay = 200) => {
+  const [v, setV] = useState(value);
+  useEffect(() => {
+    const t = setTimeout(() => setV(value), delay);
+    return () => clearTimeout(t);
+  }, [value, delay]);
+  return v;
+};
+
+/* ----------------------- Icons ----------------------- */
+const makeSvgIcon = (
+  SvgComp,
+  { w = 44, h = 44, className = "", popupY = -20, tooltipY = -35 } = {}
+) =>
   L.divIcon({
     html: renderToString(
       <SvgComp width={w} height={h} className={className} />
@@ -44,15 +87,26 @@ const makeSvgIcon = (SvgComp, { w = 44, h = 44, className = "" } = {}) =>
     className: "leaflet-div-icon pin-icon",
     iconSize: [w, h],
     iconAnchor: [w / 2, h],
-    popupAnchor: [0, -h + 4],
-    tooltipAnchor: [0, -h + 6],
+    popupAnchor: [0, popupY],
+    tooltipAnchor: [0, tooltipY],
   });
 
 const ICONS = {
-  active: makeSvgIcon(analyzerPins.active, { w: 33, h: 33 }),
-  simple: makeSvgIcon(analyzerPins.simple, { w: 33, h: 33 }),
+  active: makeSvgIcon(analyzerPins.active, {
+    w: MAP.iconSize,
+    h: MAP.iconSize,
+    popupY: MAP.popupOffsetY,
+    tooltipY: MAP.tooltipOffsetY,
+  }),
+  simple: makeSvgIcon(analyzerPins.simple, {
+    w: MAP.iconSize,
+    h: MAP.iconSize,
+    popupY: MAP.popupOffsetY,
+    tooltipY: MAP.tooltipOffsetY,
+  }),
 };
 
+/* ----------------------- Map utils ----------------------- */
 function FitToPoints({ points }) {
   const map = useMap();
   useEffect(() => {
@@ -63,7 +117,7 @@ function FitToPoints({ points }) {
   return null;
 }
 
-function FlyToCity({ rows, selectedCity, zoom = 9 }) {
+function FlyToCity({ rows, selectedCity, zoom = MAP.flyToZoom }) {
   const map = useMap();
   useEffect(() => {
     if (!selectedCity) return;
@@ -75,6 +129,7 @@ function FlyToCity({ rows, selectedCity, zoom = 9 }) {
   return null;
 }
 
+/* ----------------------- Main Component ----------------------- */
 const ProductAnalysis = ({ isOpen }) => {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -89,6 +144,7 @@ const ProductAnalysis = ({ isOpen }) => {
 
   // Search
   const [query, setQuery] = useState("");
+  const q = useDebounced(query, 150);
   const searchInputRef = useRef(null);
 
   const markersRef = useRef({});
@@ -156,27 +212,27 @@ const ProductAnalysis = ({ isOpen }) => {
   }, [rows, selectedCity]);
 
   const suggestions = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return [];
+    const s = q.trim().toLowerCase();
+    if (!s) return [];
     const name = (r) => (r.resolved_city_used || r.city || "").toLowerCase();
     return points
-      .filter((r) => name(r).includes(q))
+      .filter((r) => name(r).includes(s))
       .sort((a, b) => {
         const na = name(a);
         const nb = name(b);
-        const as = na.startsWith(q) ? 0 : 1;
-        const bs = nb.startsWith(q) ? 0 : 1;
+        const as = na.startsWith(s) ? 0 : 1;
+        const bs = nb.startsWith(s) ? 0 : 1;
         return as - bs || na.localeCompare(nb);
       })
-      .slice(0, 8);
-  }, [query, points]);
+      .slice(0, UI.suggestionsMax);
+  }, [q, points]);
 
-  const handleSelectCity = (row) => {
+  const handleSelectCity = useCallback((row) => {
     setSelectedCity(row.city);
     setHoverCity(null);
     setQuery("");
     searchInputRef.current?.blur();
-  };
+  }, []);
 
   // selected postcode
   const [selectedPostcode, setSelectedPostcode] = useState(null);
@@ -207,6 +263,50 @@ const ProductAnalysis = ({ isOpen }) => {
         isOpen ? "translate-x-0" : "-translate-x-full"
       }`}
     >
+      {/* ---- scoped styles only for this component ---- */}
+      <style>{`
+        .product-analysis-map .leaflet-tooltip.city-tip:before {
+          display: none !important;
+        }
+        .product-analysis-map .leaflet-tooltip.city-tip {
+          padding: 0;
+          background: transparent;
+          border: none;
+          box-shadow: none;
+        }
+        .product-analysis-map .leaflet-tooltip.city-tip .city-tip-inner {
+          padding: ${UI.tooltipPadding};
+          background: #ffffff;
+          border: 1px solid #e5e7eb;
+          border-radius: ${UI.tooltipRadius}px;
+          font-weight: 700;
+          font-size: 0.95rem;
+          color: #111827;
+          box-shadow: ${UI.tooltipShadow};
+        }
+
+        .product-analysis-map .leaflet-popup.city-pop .leaflet-popup-content-wrapper {
+          display: inline-block;
+          max-width: none;
+          width: fit-content;         
+          border: ${UI.popupBorder};
+        }
+        .product-analysis-map .leaflet-popup.city-pop .leaflet-popup-content {
+          margin: 0;
+          width: auto;
+          white-space: nowrap;
+        }
+        .product-analysis-map .leaflet-popup.city-pop .city-pop-badge {
+          padding: 8px 14px;
+          font-weight: 700;
+          color: #ef4444;
+          font-size: 1rem;
+        }
+        .product-analysis-map .leaflet-popup.city-pop .leaflet-popup-tip {
+          display: none !important;
+        }
+      `}</style>
+
       {/* Header */}
       <div className="mx-4 flex justify-between items-center gap-4">
         <span className="text-2xl font-bold">Product Analysis</span>
@@ -215,7 +315,7 @@ const ProductAnalysis = ({ isOpen }) => {
       <div className="grid grid-cols-8 gap-4 py-6 auto-rows-min">
         {/* Map card */}
         <div className="col-span-5 row-span-1 p-0 border rounded-xl shadow-lg h-[560px] overflow-hidden relative">
-          {/* Search overlay on map (top-right) */}
+          {/* Search overlay (top-right) */}
           <div className="absolute z-[1000] top-3 right-3 sm:w-[360px] pointer-events-none">
             <div className="pointer-events-auto">
               <div className="relative">
@@ -235,7 +335,10 @@ const ProductAnalysis = ({ isOpen }) => {
                   autoComplete="off"
                 />
                 {query && (
-                  <ul className="absolute z-50 mt-1 w-full max-h-64 overflow-auto rounded-xl border border-stone-200 bg-white shadow-lg">
+                  <ul
+                    className="absolute z-50 mt-1 w-full max-h-64 overflow-auto rounded-xl border border-stone-200 bg-white shadow-lg"
+                    role="listbox"
+                  >
                     {suggestions.length ? (
                       suggestions.map((r) => (
                         <li key={r.city}>
@@ -243,6 +346,8 @@ const ProductAnalysis = ({ isOpen }) => {
                             type="button"
                             onClick={() => handleSelectCity(r)}
                             className="block w-full text-left px-3 py-2 hover:bg-stone-100"
+                            role="option"
+                            aria-selected={false}
                           >
                             {r.resolved_city_used || r.city}
                           </button>
@@ -258,11 +363,11 @@ const ProductAnalysis = ({ isOpen }) => {
           </div>
 
           {/* Map */}
-          <div className="relative h-full w-full">
+          <div className="relative h-full w-full product-analysis-map">
             <MapContainer
-              center={[54.5, -3.5]}
-              zoom={6}
-              minZoom={5}
+              center={MAP.defaultCenter}
+              zoom={MAP.defaultZoom}
+              minZoom={MAP.minZoom}
               scrollWheelZoom
               className="h-full w-full"
             >
@@ -271,7 +376,12 @@ const ProductAnalysis = ({ isOpen }) => {
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
               />
               <FitToPoints points={points} />
-              <FlyToCity rows={rows} selectedCity={selectedCity} zoom={9} />
+              <FlyToCity
+                rows={rows}
+                selectedCity={selectedCity}
+                zoom={MAP.flyToZoom}
+              />
+
               {points.map((p) => {
                 const isActive =
                   selectedCity === p.city || hoverCity === p.city;
@@ -291,11 +401,28 @@ const ProductAnalysis = ({ isOpen }) => {
                         setHoverCity((c) => (c === p.city ? null : c)),
                     }}
                   >
-                    <Popup direction="top">
-                      <div className="text-sm">
-                        <div className="font-semibold">
-                          {p.resolved_city_used}
-                        </div>
+                    {/* Hover tooltip */}
+                    <Tooltip
+                      className="city-tip"
+                      direction="top"
+                      offset={[0, -2]}
+                      opacity={1}
+                      sticky={false}
+                    >
+                      <div className="city-tip-inner">
+                        {p.resolved_city_used || p.city}
+                      </div>
+                    </Tooltip>
+
+                    {/* Click popup */}
+                    <Popup
+                      className="city-pop"
+                      closeButton={false}
+                      keepInView
+                      offset={[0, 0]}
+                    >
+                      <div className="city-pop-badge">
+                        {p.resolved_city_used || p.city}
                       </div>
                     </Popup>
                   </Marker>
@@ -306,24 +433,13 @@ const ProductAnalysis = ({ isOpen }) => {
             {/* Map loading / error overlays */}
             {loading && <CenteredSpinner />}
             {!!err && !loading && (
-              <div className="absolute inset-0 grid place-items-center">
-                <EmptyState message={`Error: ${err}`} iconSize="w-44 h-44" />
-              </div>
+              <EmptyState message={`Error: ${err}`} iconSize="w-44 h-44" />
             )}
           </div>
         </div>
 
         {/* City chart (top-right) */}
         <div className="col-span-3 row-span-1 col-start-6 p-4 border rounded-xl shadow-lg relative">
-          <div className="flex items-center justify-between mb-2">
-            <div className="font-semibold text-lg">
-              <span>Products breakdown for </span>
-              {displayCity ? (
-                <span className="text-orange-600">{displayCity}</span>
-              ) : null}
-            </div>
-          </div>
-
           {!selectedCity ? (
             <EmptyState message="Select a city on the map" />
           ) : cityLoading ? (
@@ -333,14 +449,24 @@ const ProductAnalysis = ({ isOpen }) => {
           ) : !cityData || !cityData?.areas?.products_in_city?.products ? (
             <EmptyState className="h-[260px]" message="No data" />
           ) : (
-            <PiechartSection
-              key={selectedCity}
-              data={cityData.areas.products_in_city.products}
-              topN={8}
-              innerRadius={100}
-              outerRadius={140}
-              onSliceClick={(item) => console.log("clicked:", item)}
-            />
+            <>
+              <div className="flex items-center justify-between mb-2">
+                <div className="font-semibold text-lg">
+                  <span>Products breakdown for </span>
+                  {displayCity ? (
+                    <span className="text-orange-600">{displayCity}</span>
+                  ) : null}
+                </div>
+              </div>
+              <PiechartSection
+                key={selectedCity}
+                data={cityData.areas.products_in_city.products}
+                topN={8}
+                innerRadius={100}
+                outerRadius={140}
+                onSliceClick={(item) => console.log("clicked:", item)}
+              />
+            </>
           )}
         </div>
 
@@ -355,11 +481,11 @@ const ProductAnalysis = ({ isOpen }) => {
             )}
           </div>
 
-          <div className="h-[560px] relative">
+          <div className="h-[560px]">
             {!selectedCity ? (
               <EmptyState
                 state="bg-empty-state-card"
-                message="Select a city first"
+                message="Select a city on the map"
               />
             ) : cityLoading ? (
               <CenteredSpinner />
@@ -437,7 +563,7 @@ const ProductAnalysis = ({ isOpen }) => {
             </div>
           )}
 
-          <div className="h-[520px] relative">
+          <div className="h-full">
             {!selectedPostcode ? (
               <EmptyState message="Click a postcode card to see its breakdown" />
             ) : cityLoading ? (

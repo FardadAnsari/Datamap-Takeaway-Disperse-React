@@ -137,7 +137,7 @@ export default function PiechartSection({
   topN, // optional: apply after grouping to majors
   minValue = 0, // optional absolute-value filter
   groupUnderPercent = 1, // NEW: group all items < X% into one slice
-  groupLabel = "Least interactions",
+  groupLabel = "least interactions",
   colors = DEFAULT_COLORS,
   onSliceClick,
 }) {
