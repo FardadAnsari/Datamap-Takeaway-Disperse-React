@@ -90,17 +90,17 @@ const buildFilterSummary = (values) => {
 };
 
 /* ---------------- logging helper ---------------- */
-const logFetch = (label, endpoint, params, status, extra = {}) => {
-  const ts = new Date().toISOString();
-  console.log(
-    `[${ts}] [${label}] endpoint=${endpoint}`,
-    "params:",
-    params,
-    "status:",
-    status,
-    extra
-  );
-};
+// const logFetch = (label, endpoint, params, status, extra = {}) => {
+//   const ts = new Date().toISOString();
+//   console.log(
+//     `[${ts}] [${label}] endpoint=${endpoint}`,
+//     "params:",
+//     params,
+//     "status:",
+//     status,
+//     extra
+//   );
+// };
 
 /* ---------------- helpers ---------------- */
 const makeSkeleton = (companyLabels = []) =>
@@ -123,17 +123,20 @@ const fetchPerCompany = async (companies, params) => {
   const settled = await Promise.allSettled(tasks.map((t) => t.req));
   const grouped = {};
   settled.forEach((res, idx) => {
-    const { label, endpoint } = tasks[idx];
+    const {
+      label,
+      // endpoint
+    } = tasks[idx];
     if (res.status === "fulfilled" && Array.isArray(res.value?.data)) {
       grouped[label] = res.value.data;
-      logFetch(label, endpoint, params, "success", {
-        rows: grouped[label].length,
-      });
+      // logFetch(label, endpoint, params, "success", {
+      //   rows: grouped[label].length,
+      // });
     } else {
       grouped[label] = [];
-      logFetch(label, endpoint, params, "error", {
-        error: res.reason?.message,
-      });
+      // logFetch(label, endpoint, params, "error", {
+      //   error: res.reason?.message,
+      // });
     }
   });
 
@@ -253,10 +256,10 @@ const fetchUKArchivePerCompany = async (companies) => {
     const { label, endpoint } = tasks[idx];
     if (res.status === "fulfilled" && Array.isArray(res.value?.data)) {
       grouped[label] = res.value.data;
-      logFetch(label, endpoint, {}, "success", { rows: grouped[label].length });
+      // logFetch(label, endpoint, {}, "success", { rows: grouped[label].length });
     } else {
       grouped[label] = [];
-      logFetch(label, endpoint, {}, "error", { error: res.reason?.message });
+      // logFetch(label, endpoint, {}, "error", { error: res.reason?.message });
     }
   });
 
@@ -429,7 +432,7 @@ const ContinuousDevicesCount = ({ isOpen }) => {
 
   return (
     <div
-      className={`max-w-screen w-[calc(100%-80px)] p-6 absolute top-0 left-20 flex flex-col h-full overflow-y-auto bg-stone-50 z-40 transition-transform duration-700 ease-in-out ${
+      className={`max-w-screen w-[calc(100%-80px)] p-6 absolute top-0 left-20 flex flex-col h-full overflow-y-auto bg-white z-40 transition-transform duration-700 ease-in-out ${
         isOpen ? "translate-x-0" : "-translate-x-full"
       }`}
     >

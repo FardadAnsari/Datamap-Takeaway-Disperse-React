@@ -1,12 +1,16 @@
 import { RiAccountCircleFill } from "react-icons/ri";
 import { useUser } from "../api/userPermission";
-
-// Sidebar navigation component for the DataMap app.
+import { useEffect } from "react";
 
 const Sidebar = ({ activePanel, setActivePanel }) => {
   const { user } = useUser();
+  const analyzerAccess = user?.access?.analysis;
+  useEffect(() => {
+    if (activePanel === "analyzer" && analyzerAccess === false) {
+      setActivePanel(null);
+    }
+  }, [activePanel, analyzerAccess]);
 
-  // Define each sidebar item: its key, label, icon classes, and access permission
   const items = [
     {
       key: "companiesFilterbar",
@@ -49,6 +53,14 @@ const Sidebar = ({ activePanel, setActivePanel }) => {
     //   access: user?.access?.facebook,
     // },
     {
+      key: "analyzer",
+      label: "Analyzer",
+      icon: "bg-analyzer",
+      iconActive: "bg-analyzer-active",
+      iconNoAccess: "",
+      access: analyzerAccess,
+    },
+    {
       key: "devices",
       label: "Devices",
       icon: "bg-devices",
@@ -62,7 +74,7 @@ const Sidebar = ({ activePanel, setActivePanel }) => {
       icon: "bg-continuous-count",
       iconActive: "bg-continuous-count-active",
       iconNoAccess: "bg-continuous-count-no-access",
-      access: user?.access?.devices,
+      access: user?.access?.gorate,
     },
     {
       key: "continuousDevicesStatus",
@@ -70,60 +82,58 @@ const Sidebar = ({ activePanel, setActivePanel }) => {
       icon: "bg-continuous-status",
       iconActive: "bg-continuous-status-active",
       iconNoAccess: "bg-continuous-status-no-access",
-      access: user?.access?.devices,
+      access: user?.access?.gorate,
     },
   ];
 
   return (
     <div className="bg-white w-20 h-screen absolute left-0 z-50 flex flex-col items-center border-r">
-      {/* Logo or App Icon at the top */}
       <div className="my-2 bg-cover bg-mealzo w-12 h-12" />
 
-      {/* Navigation Items (top) and Profile (bottom) */}
       <div className="w-full h-full flex flex-col items-center justify-between">
-        {/* Top buttons (Companies, G-Business, etc) */}
         <div className="w-full flex flex-col">
           {items.map(
-            ({ key, label, icon, iconActive, iconNoAccess, access }) => (
-              <button
-                key={key}
-                className={`py-2 text-center flex flex-col items-center ${
-                  activePanel === key ? "bg-orange-100" : ""
-                }`}
-                onClick={() =>
-                  setActivePanel((prev) => (prev === key ? null : key))
-                }
-                disabled={access === false}
-              >
-                {/* Dynamic icon: focus or default */}
-                <div
-                  className={`my-1 bg-cover w-7 h-7 ${
-                    access === false
-                      ? iconNoAccess
-                      : activePanel === key
-                        ? iconActive
-                        : icon
+            ({ key, label, icon, iconActive, iconNoAccess, access }) => {
+              // HIDE analyzer entirely if no access
+              if (key === "analyzer" && access === false) return null;
+
+              return (
+                <button
+                  key={key}
+                  className={`py-2 text-center flex flex-col items-center ${
+                    activePanel === key ? "bg-orange-100" : ""
                   }`}
-                />
-                <p
-                  className={`2xl:text-sm text-xs 
-                    ${
+                  onClick={() =>
+                    setActivePanel((prev) => (prev === key ? null : key))
+                  }
+                  disabled={access === false}
+                >
+                  <div
+                    className={`my-1 bg-cover w-7 h-7 ${
+                      access === false
+                        ? iconNoAccess
+                        : activePanel === key
+                          ? iconActive
+                          : icon
+                    }`}
+                  />
+                  <p
+                    className={`2xl:text-sm text-xs ${
                       access === false
                         ? "text-gray-400"
                         : activePanel === key
                           ? "text-orange-600"
                           : "text-gray-900"
-                    }
-                  `}
-                >
-                  {label}
-                </p>
-              </button>
-            )
+                    }`}
+                  >
+                    {label}
+                  </p>
+                </button>
+              );
+            }
           )}
         </div>
 
-        {/* Bottom profile icon */}
         <button
           className={`py-6 px-1 bg-white hover:text-orange-600 text-center flex flex-col items-center ${
             activePanel === "profile" && "text-orange-600"

@@ -55,6 +55,7 @@ import Filterbar from "../component/Filterbar";
 import companyIcons from "../assets/checkbox-icon/checkboxIcons";
 import ContinuousDevicesCount from "../component/ContinuousDevices/ContinuousDevicesCount";
 import ContinuousDevicesStatus from "../component/ContinuousDevices/ContinuousDevicesStatus";
+import ProductAnalysis from "../component/ProductAnalysis/ProductAnalysis";
 
 // Function to create a custom icon using a React component
 const createCustomIcon = (PinComponent, options = {}) => {
@@ -1131,8 +1132,6 @@ const DataMap = () => {
       {/* Sidebar with navigation buttons */}
       <Sidebar activePanel={activePanel} setActivePanel={setActivePanel} />
 
-      {/* CompaniesFilterbar component */}
-
       <Filterbar
         title="Companies Filter"
         isOpen={activePanel === "companiesFilterbar"}
@@ -1288,6 +1287,12 @@ const DataMap = () => {
         isOpen={activePanel === "facebookReport"}
         setIsOpen={(state) => setActivePanel(state ? "facebookReport" : null)}
       /> */}
+
+      {/* ProductAnalysis component */}
+      <ProductAnalysis
+        isOpen={activePanel === "analyzer"}
+        setIsOpen={(state) => setActivePanel(state ? "analyzer" : null)}
+      />
 
       {/* DeviceStatus component */}
       <DeviceStatus

@@ -30,6 +30,8 @@ export default {
         "facebook-active": "url('/sidebar/facebook-focus.svg')",
         "facebook-no-access": "url('/sidebar/facebook-no-access.svg')",
         "facebook-resultbar-icon": "url('/resultbar/facebook-button.svg')",
+        analyzer: "url('/sidebar/analyzer.svg')",
+        "analyzer-active": "url('/sidebar/analyzer-focus.svg')",
         devices: "url('/sidebar/devices.svg')",
         "devices-active": "url('/sidebar/devices-focus.svg')",
         "devices-no-access": "url('/sidebar/devices-no-access.svg')",
@@ -64,6 +66,8 @@ export default {
         "refresh-button": "url('/button/refresh-button.svg')",
         "filter-button": "url('/button/filter-btn.svg')",
         "empty-state-chart": "url('/empty-states/empty-state-chart.svg')",
+        "empty-state-piechart": "url('/empty-states/empty-state-piechart.svg')",
+        "empty-state-card": "url('/empty-states/empty-state-card.svg')",
         "empty-state-hours": "url('/empty-states/empty-state-hours.svg')",
         "empty-state-interaction":
           "url('/empty-states/empty-state-interaction.svg')",
