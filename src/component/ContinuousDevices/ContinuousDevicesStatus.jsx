@@ -82,17 +82,17 @@ const buildFilterSummary = (values) => {
 };
 
 /* ---------------- logging helper ---------------- */
-const logFetch = (label, endpoint, params, status, extra = {}) => {
-  const ts = new Date().toISOString();
-  console.log(
-    `[${ts}] [${label}] endpoint=${endpoint}`,
-    "params:",
-    params,
-    "status:",
-    status,
-    extra
-  );
-};
+// const logFetch = (label, endpoint, params, status, extra = {}) => {
+//   const ts = new Date().toISOString();
+//   console.log(
+//     `[${ts}] [${label}] endpoint=${endpoint}`,
+//     "params:",
+//     params,
+//     "status:",
+//     status,
+//     extra
+//   );
+// };
 
 /* ---------------- helpers ---------------- */
 
@@ -118,19 +118,22 @@ const fetchDailyStatsPerCompany = async (companies, params) => {
 
   const grouped = {};
   settled.forEach((res, idx) => {
-    const { label, endpoint } = tasks[idx];
+    const {
+      label,
+      // endpoint
+    } = tasks[idx];
     if (res.status === "fulfilled") {
       const payload = res.value?.data;
       const arr = Array.isArray(payload) ? payload : payload?.daily_stats;
       grouped[label] = Array.isArray(arr) ? arr : [];
-      logFetch(`${label} (Daily)`, endpoint, params, "success", {
-        rows: grouped[label].length,
-      });
+      // logFetch(`${label} (Daily)`, endpoint, params, "success", {
+      //   rows: grouped[label].length,
+      // });
     } else {
       grouped[label] = [];
-      logFetch(`${label} (Daily)`, endpoint, params, "error", {
-        error: res.reason?.message,
-      });
+      // logFetch(`${label} (Daily)`, endpoint, params, "error", {
+      //   error: res.reason?.message,
+      // });
     }
   });
 
@@ -196,25 +199,25 @@ const fetchShopSummary = async (companies, params, pagesByLabel = {}) => {
       };
 
       grouped[label] = { rows, meta };
-      logFetch(
-        `${label} (Summary)`,
-        endpoint,
-        { ...params, page: pagesByLabel[label] ?? 1 },
-        "success",
-        {
-          rows: rows.length,
-          page: meta.currentPage,
-          totalPages: meta.totalPages,
-        }
-      );
+      // logFetch(
+      //   `${label} (Summary)`,
+      //   endpoint,
+      //   { ...params, page: pagesByLabel[label] ?? 1 },
+      //   "success",
+      //   {
+      //     rows: rows.length,
+      //     page: meta.currentPage,
+      //     totalPages: meta.totalPages,
+      //   }
+      // );
     } else {
       grouped[label] = {
         rows: [],
         meta: { totalPages: 1, currentPage: 1, totalItems: 0 },
       };
-      logFetch(`${label} (Summary)`, endpoint, params, "error", {
-        error: res.reason?.message,
-      });
+      // logFetch(`${label} (Summary)`, endpoint, params, "error", {
+      //   error: res.reason?.message,
+      // });
     }
   });
 
@@ -507,7 +510,7 @@ const ContinuousDevicesStatus = ({ isOpen }) => {
 
   return (
     <div
-      className={`max-w-screen w-[calc(100%-80px)] p-6 absolute top-0 left-20 flex flex-col h-full overflow-y-auto bg-stone-50 z-40 transition-transform duration-700 ease-in-out ${
+      className={`max-w-screen w-[calc(100%-80px)] p-6 absolute top-0 left-20 flex flex-col h-full overflow-y-auto bg-white z-40 transition-transform duration-700 ease-in-out ${
         isOpen ? "translate-x-0" : "-translate-x-full"
       }`}
     >
