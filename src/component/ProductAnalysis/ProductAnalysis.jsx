@@ -15,6 +15,7 @@ import analyzerPins from "../../assets/analyzer-pin/analyzer-pin";
 import PiechartSection from "./PiechartSection";
 import { BiLike, BiDislike } from "react-icons/bi";
 import { ThreeDots } from "react-loader-spinner";
+import EmptyState from "../EmptyState";
 
 /* ----------------------- UI / MAP CONSTANTS ----------------------- */
 const UI = {
@@ -46,22 +47,6 @@ const CenteredSpinner = ({ size = 50, className = "" }) => (
       radius="9"
       ariaLabel="loading"
     />
-  </div>
-);
-
-const EmptyState = ({
-  message = "No data",
-  className = "",
-  iconSize = "w-44 h-44",
-  state = "bg-empty-state-piechart",
-}) => (
-  <div className={`h-full grid place-items-center text-stone-500 ${className}`}>
-    <div className="flex flex-col items-center">
-      <div
-        className={`${state} bg-no-repeat bg-center bg-contain ${iconSize}`}
-      />
-      <div className="mt-2">{message}</div>
-    </div>
   </div>
 );
 
@@ -439,18 +424,26 @@ const ProductAnalysis = ({ isOpen }) => {
         </div>
 
         {/* City chart (top-right) */}
-        <div className="col-span-3 row-span-1 col-start-6 p-4 border rounded-xl shadow-lg relative">
+        <div className="col-span-3 row-span-1 col-start-6 border rounded-xl shadow-lg relative">
           {!selectedCity ? (
-            <EmptyState message="Select a city on the map" />
+            <EmptyState
+              state="bg-empty-state-piechart"
+              message="Select a city on the map"
+              className="py-40"
+            />
           ) : cityLoading ? (
             <CenteredSpinner />
           ) : cityErr ? (
             <EmptyState message={`Error: ${cityErr}`} iconSize="w-44 h-44" />
           ) : !cityData || !cityData?.areas?.products_in_city?.products ? (
-            <EmptyState className="h-[260px]" message="No data" />
+            <EmptyState
+              state="bg-empty-state-piechart"
+              message="No data"
+              className="py-40"
+            />
           ) : (
             <>
-              <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center justify-between p-4">
                 <div className="font-semibold text-lg">
                   <span>Products breakdown for </span>
                   {displayCity ? (
@@ -471,28 +464,33 @@ const ProductAnalysis = ({ isOpen }) => {
         </div>
 
         {/* Locations list */}
-        <div className="col-span-5 row-span-2 p-4 border rounded-xl shadow-lg relative">
-          <div className="flex items-center justify-between mb-3">
+        <div className="col-span-5 row-span-2 border rounded-xl shadow-lg relative">
+          <div className="flex items-center justify-between">
             {selectedCity && (
-              <div className="text-lg font-semibold">
+              <div className="text-lg font-semibold p-4">
                 <span>Popularity analysis in </span>
                 <span className="text-orange-600">{displayCity}</span>
               </div>
             )}
           </div>
 
-          <div className="h-[560px]">
+          <div className="h-[520px]">
             {!selectedCity ? (
               <EmptyState
                 state="bg-empty-state-card"
                 message="Select a city on the map"
+                className="py-40"
               />
             ) : cityLoading ? (
               <CenteredSpinner />
             ) : !cityData ? (
-              <EmptyState state="bg-empty-state-card" message="No data" />
+              <EmptyState
+                state="bg-empty-state-card"
+                message="No data"
+                className="py-40"
+              />
             ) : (
-              <div className="h-full overflow-auto pr-1">
+              <div className="h-full overflow-auto px-4 pb-4">
                 <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-2">
                   {Object.entries(
                     cityData.areas.products_in_postcodes || {}
@@ -555,9 +553,9 @@ const ProductAnalysis = ({ isOpen }) => {
         </div>
 
         {/* Postcode results chart */}
-        <div className="col-span-3 row-span-2 col-start-6 p-4 border rounded-xl shadow-lg relative">
+        <div className="col-span-3 row-span-2 col-start-6 border rounded-xl shadow-lg relative">
           {selectedPostcode && (
-            <div className="text-lg font-semibold mb-2">
+            <div className="text-lg font-semibold p-4">
               <span>Products breakdown for </span>
               <span className="text-orange-600">{selectedPostcode}</span>
             </div>
@@ -565,11 +563,19 @@ const ProductAnalysis = ({ isOpen }) => {
 
           <div className="h-full">
             {!selectedPostcode ? (
-              <EmptyState message="Click a postcode card to see its breakdown" />
+              <EmptyState
+                state="bg-empty-state-piechart"
+                message="Click a postcode card to see its breakdown"
+                className="py-40"
+              />
             ) : cityLoading ? (
               <CenteredSpinner />
             ) : !postcodeProducts ? (
-              <EmptyState message={`No data for ${selectedPostcode}`} />
+              <EmptyState
+                state="bg-empty-state-piechart"
+                message={`No data for ${selectedPostcode}`}
+                className="py-40"
+              />
             ) : (
               <PiechartSection
                 data={postcodeProducts}

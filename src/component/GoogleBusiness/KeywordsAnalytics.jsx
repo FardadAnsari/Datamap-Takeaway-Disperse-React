@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import instance from "../../api/api";
+import EmptyState from "../EmptyState";
 
 const KeywordsAnalytics = ({ locationId }) => {
   const [isLoading, setIsLoading] = useState(false);
@@ -103,62 +104,74 @@ const KeywordsAnalytics = ({ locationId }) => {
   return (
     <>
       {locationId && (
-        <div className="m-8 max-h-96 overflow-auto">
+        <div>
           {!notAllowed ? (
             noData ? (
-              <div className="flex flex-col justify-center items-center py-4">
-                <div className="w-44 h-44 bg-cover bg-empty-state-table"></div>
-                <p className="text-sm text-center">
-                  No data has been received from Google.
-                </p>
-              </div>
+              <EmptyState
+                state="bg-empty-state-chart"
+                message="No data has been received from Google."
+                className="h-96"
+              />
             ) : (
-              <table className="w-full bg-white">
-                <thead>
-                  <tr className="sticky top-0 bg-gray-100 rounded">
-                    <th className="py-2 px-4 text-start border-b">No</th>
-                    <th
-                      onClick={() => handleSort("searchKeyword")}
-                      className="py-2 px-4 text-start cursor-pointer border-b-2"
-                    >
-                      Keyword
-                      <span className="ml-1">
-                        {getSortIndicator("searchKeyword")}
-                      </span>
-                    </th>
-                    <th
-                      onClick={() => handleSort("insightsValue.value")}
-                      className="py-2 px-4 text-center cursor-pointer border-b"
-                    >
-                      Search Volume
-                      <span className="ml-1">
-                        {getSortIndicator("insightsValue.value")}
-                      </span>
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {searchInsights.map((item, index) => (
-                    <tr key={index} className="border-b">
-                      <td className="py-2 px-4 text-start">{index + 1}</td>
-                      <td className="py-2 px-4 text-start">
-                        {item.searchKeyword}
-                      </td>
-                      <td className="py-2 px-4 text-center">
-                        {item.insightsValue.value !== undefined
-                          ? item.insightsValue.value
-                          : item.insightsValue.threshold}
-                      </td>
+              <div className="m-8">
+                {/* Header table (not scrollable) */}
+                <table className="w-full bg-white table-fixed ">
+                  <thead className="bg-gray-100">
+                    <tr className="rounded">
+                      <th className="w-20 px-6 py-3 text-sm font-semibold text-gray-700 text-center rounded-tl-lg">
+                        No
+                      </th>
+                      <th
+                        onClick={() => handleSort("searchKeyword")}
+                        className="px-6 py-3 text-sm font-semibold text-gray-700 text-center"
+                      >
+                        Keyword
+                        <span className="ml-1">
+                          {getSortIndicator("searchKeyword")}
+                        </span>
+                      </th>
+                      <th
+                        onClick={() => handleSort("insightsValue.value")}
+                        className="w-44 px-6 py-3 text-sm font-semibold text-gray-700 text-center rounded-tr-lg"
+                      >
+                        Search Volume
+                        <span className="ml-1">
+                          {getSortIndicator("insightsValue.value")}
+                        </span>
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                </table>
+
+                {/* Scrollable body */}
+                <div className="max-h-96 overflow-y-auto">
+                  <table className="w-full bg-white table-fixed">
+                    <tbody>
+                      {searchInsights.map((item, index) => (
+                        <tr key={index} className="border-b">
+                          <td className="w-20 px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center">
+                            {index + 1}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center">
+                            {item.searchKeyword}
+                          </td>
+                          <td className="w-36 px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center">
+                            {item.insightsValue.value ??
+                              item.insightsValue.threshold}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             )
           ) : (
-            <div className="flex flex-col justify-center items-center py-4">
-              <div className="w-44 h-44 bg-cover bg-center bg-no-access"></div>
-              <p>You don’t have access to this section</p>
-            </div>
+            <EmptyState
+              state="bg-no-access"
+              message="You don’t have access to this section."
+              className="h-96"
+            />
           )}
         </div>
       )}

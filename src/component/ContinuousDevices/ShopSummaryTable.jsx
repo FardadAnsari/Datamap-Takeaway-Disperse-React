@@ -4,6 +4,7 @@ import { IoIosArrowRoundBack, IoIosArrowRoundForward } from "react-icons/io";
 import { default as StaticSelect } from "react-select";
 import AutoCompletionMultiSelectStyles from "../AutoCompletionMultiSelectStyles";
 import { ThreeDots } from "react-loader-spinner";
+import EmptyState from "../EmptyState";
 
 const MONTHS = [
   "January",
@@ -174,24 +175,22 @@ const ShopSummaryTable = ({
             ) : !error ? (
               <tr>
                 <td colSpan={3} className="h-80">
-                  <div className="flex flex-col items-center justify-center h-full text-gray-500 gap-4">
-                    <div className="w-44 h-44 bg-cover bg-empty-state-table"></div>
-                    <p className="text-gray-400 text-sm">
-                      No shop summary data for {activeLabel}.
-                    </p>
-                  </div>
+                  <EmptyState
+                    state="bg-empty-state-table"
+                    message={`No shop summary data for ${activeLabel}.`}
+                    className="h-80"
+                  />
                 </td>
               </tr>
             ) : null
           ) : !error ? (
             <tr>
               <td colSpan={3} className="h-80">
-                <div className="flex flex-col items-center justify-center h-full text-gray-500 gap-4">
-                  <div className="w-44 h-44 bg-cover bg-empty-state-table"></div>
-                  <p className="text-gray-400 text-sm">
-                    Select companies in Filter to see summary.
-                  </p>
-                </div>
+                <EmptyState
+                  state="bg-empty-state-table"
+                  message="Select companies in Filter to see summary."
+                  className="h-80"
+                />
               </td>
             </tr>
           ) : null}

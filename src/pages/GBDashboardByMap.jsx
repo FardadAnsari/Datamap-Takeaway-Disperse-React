@@ -14,6 +14,7 @@ import { useUser } from "../api/userPermission";
 import { LuPencil, LuPencilLine } from "react-icons/lu";
 import { MdOutlinePermMedia, MdPermMedia } from "react-icons/md";
 import GoogleBusinessUploadModal from "../component/GoogleBusiness/GoogleBusinessUploadModal";
+import EmptyState from "../component/EmptyState";
 
 const GBDashboardByMap = () => {
   const selectedAcc = { value: "accounts/103526686887949354169" };
@@ -226,7 +227,7 @@ const GBDashboardByMap = () => {
 
   return (
     <div className="max-w-screen flex flex-col h-full bg-white font-sans bg-stone-50">
-      <div className="flex justify-between px-12 py-6 mb-6 border-solid bg-white shadow">
+      <div className="flex justify-between px-12 py-6 mb-6 border-solid bg-white shadow-md">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 bg-cover bg-center bg-google-business"></div>
           <p className="text-xl md:text-xl lg:text-2xl font-medium m-0">
@@ -234,98 +235,103 @@ const GBDashboardByMap = () => {
           </p>
         </div>
       </div>
-      <div className="flex flex-col md:gap-6 lg:gap-8 mx-4 lg:mx-6 md:grid md:grid-cols-6 md:grid-rows-27 lg:grid lg:grid-cols-6  pb-6">
-        <div className="md:col-span-3 md:row-span-6 md:row-start-2 md:col-start-1 lg:col-span-2 lg:row-span-3 lg:col-start-5 rounded-lg bg-white shadow-md">
-          <div className="flex flex-col px-4 pt-4">
-            <div className="h-10 flex gap-2 justify-between items-center pb-4">
-              <p className="text-xl font-medium">Google Business Details</p>
-              <div className="flex gap-2">
-                {isVerified ? (
-                  <div className="px-2 py-1 bg-green-100 rounded-lg">
-                    <p className="text-green-800">Verified</p>
+      <div className="flex flex-col md:gap-6 lg:gap-8 mx-4 lg:mx-6 md:grid md:grid-cols-6 md:grid-rows-27 lg:grid lg:grid-cols-6 pb-6">
+        <div className="md:col-span-3 md:row-span-6 md:row-start-2 md:col-start-1 lg:col-span-2 lg:row-span-3 lg:col-start-5 rounded-lg bg-white shadow-lg border">
+          <div className="flex flex-col">
+            <div className="p-4">
+              <div className="flex gap-2 justify-between items-center">
+                <p className="text-xl font-medium">Google Business Details</p>
+                <div className="flex gap-2">
+                  {isVerified ? (
+                    <div className="px-2 py-1 bg-green-100 rounded-lg">
+                      <p className="text-green-800">Verified</p>
+                    </div>
+                  ) : null}
+                  {user?.access?.gbDashboardEdit && isVerified && (
+                    <button
+                      onClick={() => handleEditOpen(1)}
+                      className={`flex justify-between items-center p-2 text-lg text-orange-500 text-left transition ease-in delay-190 bg-orange-100 rounded-lg`}
+                    >
+                      {editOpen === 1 ? <LuPencilLine /> : <LuPencil />}
+                    </button>
+                  )}
+                  {user?.access?.gbIsPhotoChange && isVerified && (
+                    <button
+                      onClick={() => handleEditOpen(2)}
+                      className={`flex justify-between items-center py-2 px-2 text-lg text-orange-500 text-left transition ease-in delay-190 bg-orange-100 rounded-lg`}
+                    >
+                      {editOpen === 2 ? (
+                        <MdPermMedia size={20} />
+                      ) : (
+                        <MdOutlinePermMedia size={20} />
+                      )}
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {user?.access?.gbDashboardEdit && (
+                <div className="flex items-center gap-2 border-2 border-orange-300 p-2 rounded-lg my-4">
+                  <IoInformationCircleSharp color="orange" size={26} />
+                  <p className="text-base">
+                    Edits will appear after at least 10 minutes or more.
+                  </p>
+                </div>
+              )}
+
+              {editOpen === 1 && (
+                <GoogleBusinessModal
+                  isOpen={true}
+                  onClose={() => setEditOpen(null)}
+                  locationId={locationId}
+                  shopTitle={shopTitle}
+                  webUrl={weburl}
+                  phoneNumber={shopPhone.primaryPhone}
+                  shopAddress={shopAddress}
+                />
+              )}
+
+              {editOpen === 2 && (
+                <GoogleBusinessUploadModal
+                  isOpen={true}
+                  onClose={() => setEditOpen(null)}
+                  locationId={locationId}
+                  selectedAcc={selectedAcc}
+                />
+              )}
+
+              <div className="bodrer-t-2">
+                <p className="text-lg p-2">Shop Information</p>
+                <div className="flex justify-between items-center p-2">
+                  <div className="flex">
+                    <p className="text-base text-gray-500">Shop Name</p>
                   </div>
-                ) : null}
-                {user?.access?.gbDashboardEdit && (
-                  <button
-                    onClick={() => handleEditOpen(1)}
-                    className={`flex justify-between items-center py-2 px-2 text-lg text-orange-500 text-left transition ease-in delay-190 bg-orange-100 rounded-lg`}
-                  >
-                    {editOpen === 1 ? <LuPencilLine /> : <LuPencil />}
-                  </button>
-                )}
-                {user?.access?.gbIsPhotoChange && isVerified && (
-                  <button
-                    onClick={() => handleEditOpen(2)}
-                    className={`flex justify-between items-center py-2 px-2 text-lg text-orange-500 text-left transition ease-in delay-190 bg-orange-100 rounded-lg`}
-                  >
-                    {editOpen === 2 ? (
-                      <MdPermMedia size={20} />
-                    ) : (
-                      <MdOutlinePermMedia size={20} />
-                    )}
-                  </button>
-                )}
+
+                  <p>{shopTitle}</p>
+                </div>
+                <div className="flex justify-between items-center p-2">
+                  <div className="flex">
+                    <p className="text-base text-gray-500">Phone Number</p>
+                  </div>
+
+                  <p>{shopPhone?.primaryPhone}</p>
+                </div>
+                <div className="flex justify-between items-center p-2">
+                  <div className="flex">
+                    <p className="text-base text-gray-500">Website</p>
+                  </div>
+                  <p>{weburl}</p>
+                </div>
+                <div className="flex justify-between gap-12 items-start p-2">
+                  <div className="flex">
+                    <p className="text-base text-gray-500">Address</p>
+                  </div>
+                  <p>{`${shopAddress?.addressLines || ""} ${shopAddress?.locality || ""} ${shopAddress?.postalCode || ""}`}</p>
+                </div>
               </div>
             </div>
-            {user?.access?.gbDashboardEdit && (
-              <div className="flex items-center gap-2 border-2 border-orange-300 p-2 rounded-lg">
-                <IoInformationCircleSharp color="orange" size={26} />
-                <p className="text-base">
-                  Edits will appear after at least 10 minutes or more.
-                </p>
-              </div>
-            )}
-            {editOpen === 1 && (
-              <GoogleBusinessModal
-                isOpen={true}
-                onClose={() => setEditOpen(null)}
-                locationId={locationId}
-                shopTitle={shopTitle}
-                webUrl={weburl}
-                phoneNumber={shopPhone.primaryPhone}
-                shopAddress={shopAddress}
-              />
-            )}
-            {editOpen === 2 && (
-              <GoogleBusinessUploadModal
-                isOpen={true}
-                onClose={() => setEditOpen(null)}
-                locationId={locationId}
-                selectedAcc={selectedAcc}
-              />
-            )}
-
-            <div className="bodrer-t-2">
-              <p className="text-lg py-2">Shop Information</p>
-              <div className="flex justify-between items-center py-2">
-                <div className="flex">
-                  <p className="text-base text-gray-500">Shop Name</p>
-                </div>
-
-                <p>{shopTitle}</p>
-              </div>
-              <div className="flex justify-between items-center py-2">
-                <div className="flex">
-                  <p className="text-base text-gray-500">Phone Number</p>
-                </div>
-
-                <p>{shopPhone?.primaryPhone}</p>
-              </div>
-              <div className="flex justify-between items-center py-2">
-                <div className="flex">
-                  <p className="text-base text-gray-500">Website</p>
-                </div>
-
-                <p>{weburl}</p>
-              </div>
-              <div className="flex justify-between gap-12 items-start py-2">
-                <div className="flex">
-                  <p className="text-base text-gray-500">Address</p>
-                </div>
-                <p>{`${shopAddress?.addressLines || ""} ${shopAddress?.locality || ""} ${shopAddress?.postalCode || ""}`}</p>
-              </div>
-            </div>
-            <div className="border-t-2">
+            <hr />
+            <div className="p-4">
               <div className="flex justify-between items-center py-2">
                 <span className="text-lg">Opening Hours</span>
                 <div className="flex gap-2 items-center">
@@ -344,7 +350,7 @@ const GBDashboardByMap = () => {
             </div>
           </div>
         </div>
-        <div className="p-4 flex flex-col gap-3 md:col-span-3 md:col-start-1 md:row-span-6 md:row-start-8 lg:row-span-1 lg:col-span-4 lg:row-start-1 rounded-lg bg-white shadow-md">
+        <div className="p-4 flex flex-col gap-3 md:col-span-3 md:col-start-1 md:row-span-6 md:row-start-8 lg:row-span-1 lg:col-span-4 lg:row-start-1 rounded-lg bg-white shadow-lg border">
           <p className="text-xl">{shopTitle}</p>
           <div className="flex gap-6">
             <div className="flex gap-2">
@@ -364,7 +370,7 @@ const GBDashboardByMap = () => {
             </div>
           </div>
         </div>
-        <div className="p-4 flex flex-col md:col-span-3 md:col-start-1 md:row-span-6 md:row-start-8 lg:row-span-2 lg:col-span-2 lg:row-start-2 rounded-lg bg-white shadow-md">
+        <div className="p-4 flex flex-col md:col-span-3 md:col-start-1 md:row-span-6 md:row-start-8 lg:row-span-2 lg:col-span-2 lg:row-start-2 rounded-lg bg-white shadow-lg border">
           {!notAllowedSearchCount ? (
             <>
               <p className="text-xl font-medium">By searching on Google</p>
@@ -375,13 +381,14 @@ const GBDashboardByMap = () => {
               />
             </>
           ) : (
-            <div className="h-full flex flex-col justify-center items-center">
-              <div className="w-44 h-44 bg-cover bg-center bg-no-access"></div>
-              <p>You don’t access for this section</p>
-            </div>
+            <EmptyState
+              state="bg-no-access"
+              message="You don’t have access to this section."
+              className="py-40"
+            />
           )}
         </div>
-        <div className="p-4 flex flex-col md:col-span-3 md:row-span-6 md:row-start-8 md:col-start-4 lg:row-span-2 lg:col-span-2 lg:col-start-3 lg:row-start-2 md:row-start-8 rounded-lg bg-white shadow-md">
+        <div className="p-4 flex flex-col md:col-span-3 md:row-span-6 md:row-start-8 md:col-start-4 lg:row-span-2 lg:col-span-2 lg:col-start-3 lg:row-start-2 md:row-start-8 rounded-lg bg-white shadow-lg border">
           {!notAllowedMapCount ? (
             <>
               <p className="text-xl font-medium">By using Google map service</p>
@@ -392,23 +399,25 @@ const GBDashboardByMap = () => {
               />
             </>
           ) : (
-            <div className="h-full flex flex-col justify-center items-center">
-              <div className="w-44 h-44 bg-cover bg-center bg-no-access"></div>
-              <p>You don’t access for this section</p>
-            </div>
+            <EmptyState
+              state="bg-no-access"
+              message="You don’t have access to this section."
+              className="py-40"
+            />
           )}
         </div>
-        <div className="md:row-start-14 md:row-span-6 md:col-span-6 lg:col-span-4 lg:row-span-2 lg:row-start-4 rounded-lg bg-white shadow-md">
+        <div className="md:row-start-14 md:row-span-6 md:col-span-6 lg:col-span-4 lg:row-span-2 lg:row-start-4 rounded-lg bg-white shadow-lg border">
           <KeywordsAnalytics locationId={locationId} />
         </div>
-        <div className="md:row-start-2 md:col-span-3 md:row-span-6 md:col-start-4 lg:row-start-4 lg:col-span-2 lg:row-span-1 lg:col-start-5 rounded-lg p-2 bg-white shadow-md">
+        <div className="md:row-start-2 md:col-span-3 md:row-span-6 md:col-start-4 lg:row-start-4 lg:col-span-2 lg:row-span-1 lg:col-start-5 rounded-lg bg-white shadow-lg border">
           {!notAllowedWebCallCount ? (
             <TotalInteractions webCallCount={webCallCount} />
           ) : (
-            <div className="flex flex-col justify-center items-center py-4">
-              <div className="w-44 h-44 bg-cover bg-center bg-no-access"></div>
-              <p>You don’t access for this section</p>
-            </div>
+            <EmptyState
+              state="bg-no-access"
+              message="You don’t have access to this section."
+              className="h-96"
+            />
           )}
         </div>
       </div>

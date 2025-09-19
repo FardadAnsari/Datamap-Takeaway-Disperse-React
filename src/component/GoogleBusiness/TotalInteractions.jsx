@@ -5,9 +5,9 @@ import { TbSum } from "react-icons/tb";
 
 const TotalInteractions = ({ webCallCount }) => {
   return (
-    <>
+    <div className="p-4">
       <p className="text-xl font-medium caption-top p-2">Total Interactions</p>
-      <div className="flex flex-col gap-3 mx-4">
+      <div className="flex flex-col gap-3 px-2">
         <div className="flex items-center justify-between">
           <div className="flex gap-2 items-center">
             <PiPhoneCallLight size={22} />
@@ -53,7 +53,7 @@ const TotalInteractions = ({ webCallCount }) => {
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

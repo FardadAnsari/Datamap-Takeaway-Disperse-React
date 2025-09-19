@@ -5,6 +5,7 @@ import instance from "../../api/deviceApi";
 import CountUp from "react-countup";
 import { ThreeDots } from "react-loader-spinner";
 import { MdKeyboardDoubleArrowLeft } from "react-icons/md";
+import EmptyState from "../EmptyState";
 
 const companyBg = {
   mealzo: "bg-mealzo-check-devices",
@@ -598,11 +599,12 @@ const DeviceStatus = ({ isOpen }) => {
                 </tr>
               ) : tableData.length === 0 ? (
                 <tr>
-                  <td colSpan="6" className="h-80">
-                    <div className="flex flex-col items-center justify-center h-full text-gray-500 gap-4">
-                      <div className="w-44 h-44 bg-cover bg-empty-state-table"></div>
-                      <p>No Results Matching</p>
-                    </div>
+                  <td colSpan="6">
+                    <EmptyState
+                      state="bg-empty-state-table"
+                      message="No results matching"
+                      className="h-80"
+                    />
                   </td>
                 </tr>
               ) : (

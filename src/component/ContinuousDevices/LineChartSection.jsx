@@ -8,6 +8,7 @@ import {
   YAxis,
   Tooltip,
 } from "recharts";
+import EmptyState from "../EmptyState";
 
 // Fixed mapping from company label → color
 const COMPANY_COLORS = {
@@ -35,10 +36,11 @@ const LineChartSection = ({
 
   if (!hasAnyData) {
     return (
-      <div className="mt-5 w-full h-[350px] flex flex-col items-center justify-center border border-dashed border-gray-300 rounded-lg">
-        <div className="w-44 h-44 bg-cover bg-empty-state-chart"></div>
-        <p className="text-gray-400 text-sm">No data available</p>
-      </div>
+      <EmptyState
+        state="bg-empty-state-chart"
+        message="No data available"
+        className="h-80"
+      />
     );
   }
 

@@ -16,6 +16,7 @@ import { IoInformationCircleSharp } from "react-icons/io5";
 import { MdOutlinePermMedia } from "react-icons/md";
 import { MdPermMedia } from "react-icons/md";
 import GoogleBusinessUploadModal from "./GoogleBusinessUploadModal";
+import EmptyState from "../EmptyState";
 
 const GBDashboard = ({ isOpen }) => {
   const { user } = useUser();
@@ -325,7 +326,7 @@ const GBDashboard = ({ isOpen }) => {
         isOpen ? "translate-x-0" : "-translate-x-full"
       } font-sans bg-stone-50`}
     >
-      <div className="flex justify-between px-12 py-6 mb-6 border-solid bg-white shadow">
+      <div className="flex justify-between px-12 py-6 mb-6 border-solid bg-white shadow-md">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 bg-cover bg-center bg-google-business"></div>
           <p className="text-xl md:text-xl lg:text-2xl font-bold m-0">
@@ -333,130 +334,133 @@ const GBDashboard = ({ isOpen }) => {
           </p>
         </div>
       </div>
-      <div className="flex flex-col md:gap-6 lg:gap-8 mx-4 lg:mx-6 md:grid md:grid-cols-6 md:grid-rows-27 lg:grid lg:grid-cols-6  pb-6">
-        <div className="md:col-span-3 md:row-span-6 md:row-start-2 md:col-start-1 lg:col-span-2 lg:row-span-3 lg:col-start-5 rounded-lg bg-white shadow-md">
-          <div className="flex flex-col px-4 pt-4">
-            <div className="h-10 flex gap-2 justify-between items-center pb-4">
-              <p className="text-xl font-medium">Google Business Details</p>
-              <div className="flex gap-2">
-                {selectedBusInfo && isVerified ? (
-                  <div className="px-2 py-1 bg-green-100 rounded-lg">
-                    <p className="text-green-800">Verified</p>
-                  </div>
-                ) : null}
-                {user?.access?.gbDashboardEdit &&
-                  selectedBusInfo &&
-                  isVerified && (
-                    <button
-                      onClick={() => handleEditOpen(1)}
-                      className={`flex justify-between items-center py-2 px-2 text-lg text-orange-500 text-left transition ease-in delay-190 bg-orange-100 rounded-lg`}
-                    >
-                      {editOpen === 1 ? <LuPencilLine /> : <LuPencil />}
-                    </button>
-                  )}
-                {user?.access?.gbIsPhotoChange &&
-                  selectedBusInfo &&
-                  isVerified && (
-                    <button
-                      onClick={() => handleEditOpen(2)}
-                      className={`flex justify-between items-center py-2 px-2 text-lg text-orange-500 text-left transition ease-in delay-190 bg-orange-100 rounded-lg`}
-                    >
-                      {editOpen === 2 ? (
-                        <MdPermMedia size={20} />
-                      ) : (
-                        <MdOutlinePermMedia size={20} />
-                      )}
-                    </button>
-                  )}
-              </div>
-            </div>
-
-            {user?.access?.gbDashboardEdit && (
-              <div className="flex items-center gap-2 border-2 border-orange-300 p-2 rounded-lg">
-                <IoInformationCircleSharp color="orange" size={26} />
-                <p className="text-base">
-                  Edits will appear after at least 10 minutes or more.
-                </p>
-              </div>
-            )}
-
-            {editOpen === 1 && (
-              <GoogleBusinessModal
-                isOpen={true}
-                onClose={() => setEditOpen(null)}
-                locationId={locationId}
-                shopTitle={shopTitle}
-                webUrl={weburl}
-                phoneNumber={shopPhone.primaryPhone}
-                shopAddress={shopAddress}
-              />
-            )}
-
-            {editOpen === 2 && (
-              <GoogleBusinessUploadModal
-                isOpen={true}
-                onClose={() => setEditOpen(null)}
-                locationId={locationId}
-                selectedAcc={selectedAcc}
-              />
-            )}
-
-            <div className="bodrer-t-2">
-              <p className="text-lg py-2">Shop Information</p>
-              <div className="flex justify-between items-center py-2">
-                <div className="flex">
-                  <p className="text-base text-gray-500">Shop Name</p>
-                </div>
-
-                <p>{shopTitle}</p>
-              </div>
-              <div className="flex justify-between items-center py-2">
-                <div className="flex">
-                  <p className="text-base text-gray-500">Phone Number</p>
-                </div>
-
-                <p>{shopPhone?.primaryPhone}</p>
-              </div>
-              <div className="flex justify-between items-center py-2">
-                <div className="flex">
-                  <p className="text-base text-gray-500">Website</p>
-                </div>
-                <p>{weburl}</p>
-              </div>
-              <div className="flex justify-between gap-12 items-start py-2">
-                <div className="flex">
-                  <p className="text-base text-gray-500">Address</p>
-                </div>
-                <p>{`${shopAddress?.addressLines || ""} ${shopAddress?.locality || ""} ${shopAddress?.postalCode || ""}`}</p>
-              </div>
-            </div>
-            <div className="border-t-2">
-              <div className="flex justify-between items-center py-2">
-                <span className="text-lg">Opening Hours</span>
-                {selectedBusInfo && (
-                  <div className="flex gap-2 items-center">
-                    {shopActivityStatus === "OPEN" ? (
-                      <p className="text-green-500">Open</p>
-                    ) : shopActivityStatus === "CLOSE" ? (
-                      <p className="text-red-500">Close</p>
-                    ) : shopActivityStatus === "CLOSED_PERMANENTLY" ? (
-                      <p className="text-red-500">Closed Permanently</p>
-                    ) : (
-                      <p></p>
+      <div className="flex flex-col md:gap-6 lg:gap-8 mx-4 lg:mx-6 md:grid md:grid-cols-6 md:grid-rows-27 lg:grid lg:grid-cols-6 pb-6">
+        <div className="md:col-span-3 md:row-span-6 md:row-start-2 md:col-start-1 lg:col-span-2 lg:row-span-3 lg:col-start-5 rounded-lg bg-white shadow-lg border">
+          <div className="flex flex-col">
+            <div className="p-4">
+              <div className="flex gap-2 justify-between items-center">
+                <p className="text-xl font-medium">Google Business Details</p>
+                <div className="flex gap-2">
+                  {selectedBusInfo && isVerified ? (
+                    <div className="px-2 py-1 bg-green-100 rounded-lg">
+                      <p className="text-green-800">Verified</p>
+                    </div>
+                  ) : null}
+                  {user?.access?.gbDashboardEdit &&
+                    selectedBusInfo &&
+                    isVerified && (
+                      <button
+                        onClick={() => handleEditOpen(1)}
+                        className={`flex justify-between items-center py-2 px-2 text-lg text-orange-500 text-left transition ease-in delay-190 bg-orange-100 rounded-lg`}
+                      >
+                        {editOpen === 1 ? <LuPencilLine /> : <LuPencil />}
+                      </button>
                     )}
-                  </div>
-                )}
+                  {user?.access?.gbIsPhotoChange &&
+                    selectedBusInfo &&
+                    isVerified && (
+                      <button
+                        onClick={() => handleEditOpen(2)}
+                        className={`flex justify-between items-center py-2 px-2 text-lg text-orange-500 text-left transition ease-in delay-190 bg-orange-100 rounded-lg`}
+                      >
+                        {editOpen === 2 ? (
+                          <MdPermMedia size={20} />
+                        ) : (
+                          <MdOutlinePermMedia size={20} />
+                        )}
+                      </button>
+                    )}
+                </div>
               </div>
-              {selectedBusInfo ? (
-                <BusinessHoursDisplay locationId={locationId} />
-              ) : (
-                <div className="h-full flex py-12 flex-col justify-center items-center">
-                  <div className="w-44 h-44 bg-cover bg-center bg-empty-state-hours"></div>
-                  <p className="text-sm text-center">
-                    You have not selected an Account name or Business
-                    information.
+
+              {user?.access?.gbDashboardEdit && (
+                <div className="flex items-center gap-2 border-2 border-orange-300 p-2 rounded-lg my-4">
+                  <IoInformationCircleSharp color="orange" size={26} />
+                  <p className="text-base">
+                    Edits will appear after at least 10 minutes or more.
                   </p>
                 </div>
+              )}
+
+              {editOpen === 1 && (
+                <GoogleBusinessModal
+                  isOpen={true}
+                  onClose={() => setEditOpen(null)}
+                  locationId={locationId}
+                  shopTitle={shopTitle}
+                  webUrl={weburl}
+                  phoneNumber={shopPhone.primaryPhone}
+                  shopAddress={shopAddress}
+                />
+              )}
+
+              {editOpen === 2 && (
+                <GoogleBusinessUploadModal
+                  isOpen={true}
+                  onClose={() => setEditOpen(null)}
+                  locationId={locationId}
+                  selectedAcc={selectedAcc}
+                />
+              )}
+
+              <div className="bodrer-t-2">
+                <p className="text-lg p-2">Shop Information</p>
+                <div className="flex justify-between items-center p-2">
+                  <div className="flex">
+                    <p className="text-base text-gray-500">Shop Name</p>
+                  </div>
+
+                  <p>{shopTitle}</p>
+                </div>
+                <div className="flex justify-between items-center p-2">
+                  <div className="flex">
+                    <p className="text-base text-gray-500">Phone Number</p>
+                  </div>
+
+                  <p>{shopPhone?.primaryPhone}</p>
+                </div>
+                <div className="flex justify-between items-center p-2">
+                  <div className="flex">
+                    <p className="text-base text-gray-500">Website</p>
+                  </div>
+                  <p>{weburl}</p>
+                </div>
+                <div className="flex justify-between gap-12 items-start p-2">
+                  <div className="flex">
+                    <p className="text-base text-gray-500">Address</p>
+                  </div>
+                  <p>{`${shopAddress?.addressLines || ""} ${shopAddress?.locality || ""} ${shopAddress?.postalCode || ""}`}</p>
+                </div>
+              </div>
+            </div>
+            <hr />
+            <div>
+              {selectedBusInfo ? (
+                <div className="p-4">
+                  {selectedBusInfo && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-lg">Opening Hours</span>
+                      <div className="flex gap-2 items-center">
+                        {shopActivityStatus === "OPEN" ? (
+                          <p className="text-green-500">Open</p>
+                        ) : shopActivityStatus === "CLOSE" ? (
+                          <p className="text-red-500">Close</p>
+                        ) : shopActivityStatus === "CLOSED_PERMANENTLY" ? (
+                          <p className="text-red-500">Closed Permanently</p>
+                        ) : (
+                          <p></p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  <BusinessHoursDisplay locationId={locationId} />
+                </div>
+              ) : (
+                <EmptyState
+                  state="bg-empty-state-hours"
+                  message="You have not selected an account or business information."
+                  className="py-12"
+                />
               )}
             </div>
           </div>
@@ -515,125 +519,120 @@ const GBDashboard = ({ isOpen }) => {
             />
           </div>
         </div>
-        <div className="p-4 flex flex-col md:col-span-3 md:col-start-1 md:row-span-6 md:row-start-8 lg:row-span-2 lg:col-span-2 lg:row-start-2 rounded-lg bg-white shadow-md">
+        <div className="flex flex-col md:col-span-3 md:col-start-1 md:row-span-6 md:row-start-8 lg:row-span-2 lg:col-span-2 lg:row-start-2 rounded-lg bg-white shadow-lg border">
           {!notAllowedSearchCount ? (
             <>
-              <p className="text-xl font-medium">By searching on Google</p>
               {selectedBusInfo ? (
                 noDataSearchCount ? (
-                  <div className="h-full flex py-40 flex-col justify-center items-center">
-                    <div className="w-44 h-44 bg-cover bg-empty-state-chart"></div>
-                    <p className="text-sm text-center">
-                      No data has been received from Google.
-                    </p>
-                  </div>
-                ) : (
-                  <PieChartSection
-                    activeIndex={activeIndexSearch}
-                    data={googleSearchData}
-                    onPieEnter={onPieEnterSearch}
+                  <EmptyState
+                    state="bg-empty-state-piechart"
+                    message="No data has been received from Google."
+                    className="py-40"
                   />
+                ) : (
+                  <>
+                    <p className="text-xl font-medium p-4">
+                      By searching on Google
+                    </p>
+                    <PieChartSection
+                      activeIndex={activeIndexSearch}
+                      data={googleSearchData}
+                      onPieEnter={onPieEnterSearch}
+                    />
+                  </>
                 )
               ) : (
-                <div className="h-full flex py-40 flex-col justify-center items-center">
-                  <div className="w-44 h-44 bg-cover bg-center bg-empty-state-chart"></div>
-                  <p className="text-sm text-center">
-                    You have not selected an Account name or Business
-                    information.
-                  </p>
-                </div>
+                <EmptyState
+                  state="bg-empty-state-piechart"
+                  message=" You have not selected an account or business information."
+                  className="py-40"
+                />
               )}
             </>
           ) : (
-            <div className="h-full flex py-40 flex-col justify-center items-center">
-              <div className="w-44 h-44 bg-cover bg-center bg-no-access"></div>
-              <p className="text-sm text-center">
-                You don’t have access to this section.
-              </p>
-            </div>
+            <EmptyState
+              state="bg-no-access"
+              message="You don’t have access to this section."
+              className="py-40"
+            />
           )}
         </div>
-        <div className="p-4 flex flex-col md:col-span-3 md:row-span-6 md:row-start-8 md:col-start-4 lg:row-span-2 lg:col-span-2 lg:col-start-3 lg:row-start-2 md:row-start-8 rounded-lg bg-white shadow-md">
+        <div className="flex flex-col md:col-span-3 md:row-span-6 md:row-start-8 md:col-start-4 lg:row-span-2 lg:col-span-2 lg:col-start-3 lg:row-start-2 md:row-start-8 rounded-lg bg-white shadow-lg border">
           {!notAllowedMapCount ? (
             <>
-              <p className="text-xl font-medium">By using Google map service</p>
               {selectedBusInfo ? (
                 noDataMapCount ? (
-                  <div className="h-full flex py-40 flex-col justify-center items-center">
-                    <div className="w-44 h-44 bg-cover bg-empty-state-chart"></div>
-                    <p className="text-sm text-center">
-                      No data has been received from Google.
-                    </p>
-                  </div>
-                ) : (
-                  <PieChartSection
-                    activeIndex={activeIndexMap}
-                    data={googleMapData}
-                    onPieEnter={onPieEnterMap}
+                  <EmptyState
+                    state="bg-empty-state-piechart"
+                    message="No data has been received from Google."
+                    className="py-40"
                   />
+                ) : (
+                  <>
+                    <p className="text-xl font-medium p-4">
+                      By using Google map service
+                    </p>
+                    <PieChartSection
+                      activeIndex={activeIndexMap}
+                      data={googleMapData}
+                      onPieEnter={onPieEnterMap}
+                    />
+                  </>
                 )
               ) : (
-                <div className="h-full flex py-40 flex-col justify-center items-center">
-                  <div className="w-44 h-44 bg-cover bg-center bg-empty-state-chart"></div>
-                  <p className="text-sm text-center">
-                    You have not selected an Account name or Business
-                    information.
-                  </p>
-                </div>
+                <EmptyState
+                  state="bg-empty-state-piechart"
+                  message="You have not selected an account or business information."
+                  className="py-40"
+                />
               )}
             </>
           ) : (
-            <div className="h-full flex py-40 flex-col justify-center items-center">
-              <div className="w-44 h-44 bg-cover bg-center bg-no-access"></div>
-              <p className="text-sm text-center">
-                You don’t have access to this section.
-              </p>
-            </div>
+            <EmptyState
+              state="bg-no-access"
+              message="You don’t have access to this section."
+              className="py-40"
+            />
           )}
         </div>
-        <div className="md:row-start-14 md:row-span-6 md:col-span-6 lg:col-span-4 lg:row-span-2 lg:row-start-4 rounded-lg bg-white shadow-md">
+        <div className="md:row-start-14 md:row-span-6 md:col-span-6 lg:col-span-4 lg:row-span-2 lg:row-start-4 rounded-lg bg-white shadow-lg border">
           {selectedBusInfo ? (
             <KeywordsAnalytics locationId={locationId} />
           ) : (
-            <div className="h-full flex py-12 flex-col justify-center items-center">
-              <div className="w-44 h-44 bg-cover bg-center bg-empty-state-table"></div>
-              <p className="text-sm text-center">
-                You have not selected an Account name or Business information.
-              </p>
-            </div>
+            <EmptyState
+              state="bg-empty-state-table"
+              message="You have not selected an account or business information."
+              className="py-32"
+            />
           )}
         </div>
-        <div className="md:row-start-2 md:col-span-3 md:row-span-6 md:col-start-4 lg:row-start-4 lg:col-span-2 lg:row-span-1 lg:col-start-5 rounded-lg p-2 bg-white shadow-md">
+        <div className="md:row-start-2 md:col-span-3 md:row-span-6 md:col-start-4 lg:row-start-4 lg:col-span-2 lg:row-span-1 lg:col-start-5 rounded-lg bg-white shadow-lg border">
           {!notAllowedWebCallCount ? (
             <>
               {selectedBusInfo ? (
                 noDataWebCallCount ? (
-                  <div className="h-full flex py-12 flex-col justify-center items-center">
-                    <div className="w-44 h-44 bg-cover bg-empty-state-interaction"></div>
-                    <p className="text-sm text-center">
-                      No data has been received from Google.
-                    </p>
-                  </div>
+                  <EmptyState
+                    state="bg-empty-state-interaction"
+                    message="No data has been received from Google."
+                    className="h-96"
+                  />
                 ) : (
                   <TotalInteractions webCallCount={webCallCount} />
                 )
               ) : (
-                <div className="h-full flex py-12 flex-col justify-center items-center">
-                  <div className="w-44 h-44 bg-cover bg-center bg-empty-state-interaction"></div>
-                  <p className="text-sm text-center">
-                    You have not selected an Account name or Business
-                    information.
-                  </p>
-                </div>
+                <EmptyState
+                  state="bg-empty-state-interaction"
+                  message="You have not selected an account or business information."
+                  className="h-96"
+                />
               )}
             </>
           ) : (
-            <div className="h-full flex py-12 flex-col justify-center items-center">
-              <div className="w-44 h-44 bg-cover bg-center bg-no-access"></div>
-              <p className="text-sm text-center">
-                You don’t have access to this section.
-              </p>
-            </div>
+            <EmptyState
+              state="bg-no-access"
+              message="You don’t have access to this section."
+              className="h-96"
+            />
           )}
         </div>
       </div>
