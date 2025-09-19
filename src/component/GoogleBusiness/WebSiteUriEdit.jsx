@@ -65,7 +65,9 @@ const WebSiteUriEdit = ({ locationId, webUrl }) => {
         <input
           type="text"
           {...register("websiteUri", { required: true })}
-          className="border-gray-300 p-2 rounded-lg"
+          className={`border ${
+            errors.websiteUri ? "border-red-500" : "border-gray-300"
+          } p-2 rounded-lg`}
           placeholder="Enter new website URL"
         />
       </div>
