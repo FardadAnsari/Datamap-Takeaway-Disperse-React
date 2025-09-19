@@ -1,11 +1,9 @@
 import { useEffect, useState } from "react";
 import instance from "../api/api";
-import PieChartSection from "../component/GoogleBusiness/PieChartSection";
+import PieChartSection from "../general-components/PieChartSection";
 import KeywordsAnalytics from "../component/GoogleBusiness/KeywordsAnalytics";
 import TotalInteractions from "../component/GoogleBusiness/TotalInteractions";
-import { HiOutlineEnvelope } from "react-icons/hi2";
 import { IoInformationCircleSharp } from "react-icons/io5";
-import { PiPhone } from "react-icons/pi";
 import BusinessHoursDisplay from "../component/GoogleBusiness/BusinessHoursDisplay";
 import { useParams } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
@@ -14,7 +12,7 @@ import { useUser } from "../api/userPermission";
 import { LuPencil, LuPencilLine } from "react-icons/lu";
 import { MdOutlinePermMedia, MdPermMedia } from "react-icons/md";
 import GoogleBusinessUploadModal from "../component/GoogleBusiness/GoogleBusinessUploadModal";
-import EmptyState from "../component/EmptyState";
+import EmptyState from "../general-components/EmptyState";
 
 const GBDashboardByMap = () => {
   const selectedAcc = { value: "accounts/103526686887949354169" };
@@ -71,12 +69,6 @@ const GBDashboardByMap = () => {
       setIsVerified(false);
     }
   }, [verifications]); // Only run this effect when `verifications` changes
-
-  const [activeIndexSearch, setActiveIndexSearch] = useState(0);
-  const onPieEnterSearch = (_, index) => setActiveIndexSearch(index);
-
-  const [activeIndexMap, setActiveIndexMap] = useState(0);
-  const onPieEnterMap = (_, index) => setActiveIndexMap(index);
 
   const [shopActivityStatus, setShopActivityStatus] = useState("");
   const { user } = useUser();
@@ -235,190 +227,196 @@ const GBDashboardByMap = () => {
           </p>
         </div>
       </div>
-      <div className="flex flex-col md:gap-6 lg:gap-8 mx-4 lg:mx-6 md:grid md:grid-cols-6 md:grid-rows-27 lg:grid lg:grid-cols-6 pb-6">
-        <div className="md:col-span-3 md:row-span-6 md:row-start-2 md:col-start-1 lg:col-span-2 lg:row-span-3 lg:col-start-5 rounded-lg bg-white shadow-lg border">
-          <div className="flex flex-col">
-            <div className="p-4">
-              <div className="flex gap-2 justify-between items-center">
-                <p className="text-xl font-medium">Google Business Details</p>
-                <div className="flex gap-2">
-                  {isVerified ? (
-                    <div className="px-2 py-1 bg-green-100 rounded-lg">
-                      <p className="text-green-800">Verified</p>
-                    </div>
-                  ) : null}
-                  {user?.access?.gbDashboardEdit && isVerified && (
-                    <button
-                      onClick={() => handleEditOpen(1)}
-                      className={`flex justify-between items-center p-2 text-lg text-orange-500 text-left transition ease-in delay-190 bg-orange-100 rounded-lg`}
-                    >
-                      {editOpen === 1 ? <LuPencilLine /> : <LuPencil />}
-                    </button>
-                  )}
-                  {user?.access?.gbIsPhotoChange && isVerified && (
-                    <button
-                      onClick={() => handleEditOpen(2)}
-                      className={`flex justify-between items-center py-2 px-2 text-lg text-orange-500 text-left transition ease-in delay-190 bg-orange-100 rounded-lg`}
-                    >
-                      {editOpen === 2 ? (
-                        <MdPermMedia size={20} />
-                      ) : (
-                        <MdOutlinePermMedia size={20} />
-                      )}
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              {user?.access?.gbDashboardEdit && (
-                <div className="flex items-center gap-2 border-2 border-orange-300 p-2 rounded-lg my-4">
-                  <IoInformationCircleSharp color="orange" size={26} />
-                  <p className="text-base">
-                    Edits will appear after at least 10 minutes or more.
-                  </p>
-                </div>
-              )}
-
-              {editOpen === 1 && (
-                <GoogleBusinessModal
-                  isOpen={true}
-                  onClose={() => setEditOpen(null)}
-                  locationId={locationId}
-                  shopTitle={shopTitle}
-                  webUrl={weburl}
-                  phoneNumber={shopPhone.primaryPhone}
-                  shopAddress={shopAddress}
-                />
-              )}
-
-              {editOpen === 2 && (
-                <GoogleBusinessUploadModal
-                  isOpen={true}
-                  onClose={() => setEditOpen(null)}
-                  locationId={locationId}
-                  selectedAcc={selectedAcc}
-                />
-              )}
-
-              <div className="bodrer-t-2">
-                <p className="text-lg p-2">Shop Information</p>
-                <div className="flex justify-between items-center p-2">
-                  <div className="flex">
-                    <p className="text-base text-gray-500">Shop Name</p>
+      <div className="flex gap-6 mx-4 pb-6">
+        <div className="w-2/5 flex flex-col gap-6">
+          {/* Google Business Details */}
+          <div className="flex flex-col rounded-lg bg-white shadow-lg border p-4">
+            <div className="flex gap-2 justify-between items-center">
+              <p className="text-xl font-medium">Google Business Details</p>
+              <div className="flex gap-2">
+                {isVerified ? (
+                  <div className="px-2 py-1 bg-green-100 rounded-lg">
+                    <p className="text-green-800">Verified</p>
                   </div>
-
-                  <p>{shopTitle}</p>
-                </div>
-                <div className="flex justify-between items-center p-2">
-                  <div className="flex">
-                    <p className="text-base text-gray-500">Phone Number</p>
-                  </div>
-
-                  <p>{shopPhone?.primaryPhone}</p>
-                </div>
-                <div className="flex justify-between items-center p-2">
-                  <div className="flex">
-                    <p className="text-base text-gray-500">Website</p>
-                  </div>
-                  <p>{weburl}</p>
-                </div>
-                <div className="flex justify-between gap-12 items-start p-2">
-                  <div className="flex">
-                    <p className="text-base text-gray-500">Address</p>
-                  </div>
-                  <p>{`${shopAddress?.addressLines || ""} ${shopAddress?.locality || ""} ${shopAddress?.postalCode || ""}`}</p>
-                </div>
+                ) : null}
+                {user?.access?.gbDashboardEdit && isVerified && (
+                  <button
+                    onClick={() => handleEditOpen(1)}
+                    className={`flex justify-between items-center py-2 px-2 text-lg text-orange-500 text-left transition ease-in delay-190 bg-orange-100 rounded-lg`}
+                  >
+                    {editOpen === 1 ? <LuPencilLine /> : <LuPencil />}
+                  </button>
+                )}
+                {user?.access?.gbIsPhotoChange && isVerified && (
+                  <button
+                    onClick={() => handleEditOpen(2)}
+                    className={`flex justify-between items-center py-2 px-2 text-lg text-orange-500 text-left transition ease-in delay-190 bg-orange-100 rounded-lg`}
+                  >
+                    {editOpen === 2 ? (
+                      <MdPermMedia size={20} />
+                    ) : (
+                      <MdOutlinePermMedia size={20} />
+                    )}
+                  </button>
+                )}
               </div>
             </div>
+
+            {editOpen === 1 && (
+              <GoogleBusinessModal
+                isOpen={true}
+                onClose={() => setEditOpen(null)}
+                locationId={locationId}
+                shopTitle={shopTitle}
+                webUrl={weburl}
+                phoneNumber={shopPhone.primaryPhone}
+                shopAddress={shopAddress}
+              />
+            )}
+
+            {editOpen === 2 && (
+              <GoogleBusinessUploadModal
+                isOpen={true}
+                onClose={() => setEditOpen(null)}
+                locationId={locationId}
+                selectedAcc={selectedAcc}
+              />
+            )}
+            {user?.access?.gbDashboardEdit && (
+              <div className="flex items-center gap-2 border-2 border-orange-300 p-2 rounded-lg mt-3">
+                <IoInformationCircleSharp color="orange" size={26} />
+                <p className="text-md">
+                  Edits will appear after at least 10 minutes or more.
+                </p>
+              </div>
+            )}
+            <p className="text-lg font-medium pt-2">Shop Information</p>
+            <div className="flex justify-between items-center p-2">
+              <div className="flex">
+                <p className="text-md text-gray-500">Shop Name</p>
+              </div>
+              <p className="font-medium">{shopTitle}</p>
+            </div>
+            <div className="flex justify-between items-center p-2">
+              <div className="flex">
+                <p className="text-md text-gray-500">Phone Number</p>
+              </div>
+              <p className="font-medium">{shopPhone?.primaryPhone}</p>
+            </div>
+            <div className="flex justify-between items-center p-2">
+              <div className="flex">
+                <p className="text-md text-gray-500">Website</p>
+              </div>
+              <p className="font-medium">{weburl}</p>
+            </div>
+            <div className="flex justify-between gap-12 items-start p-2">
+              <div className="flex">
+                <p className="text-md text-gray-500">Address</p>
+              </div>
+              <p className="font-medium">{`${shopAddress?.addressLines || ""} ${shopAddress?.locality || ""} ${shopAddress?.postalCode || ""}`}</p>
+            </div>
+
             <hr />
-            <div className="p-4">
-              <div className="flex justify-between items-center py-2">
-                <span className="text-lg">Opening Hours</span>
-                <div className="flex gap-2 items-center">
-                  {shopActivityStatus === "OPEN" ? (
-                    <p className="text-green-500">Open</p>
-                  ) : shopActivityStatus === "CLOSE" ? (
-                    <p className="text-red-500">Close</p>
-                  ) : shopActivityStatus === "CLOSED_PERMANENTLY" ? (
-                    <p className="text-red-500">Closed Permanently</p>
-                  ) : (
-                    <p></p>
-                  )}
+            <div>
+              <div className="pt-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-lg font-medium">Opening Hours</span>
+                  <div className="flex gap-2 items-center">
+                    {shopActivityStatus === "OPEN" ? (
+                      <p className="text-green-500">Open</p>
+                    ) : shopActivityStatus === "CLOSE" ? (
+                      <p className="text-red-500">Close</p>
+                    ) : shopActivityStatus === "CLOSED_PERMANENTLY" ? (
+                      <p className="text-red-500">Closed Permanently</p>
+                    ) : (
+                      <p></p>
+                    )}
+                  </div>
                 </div>
+
+                <BusinessHoursDisplay locationId={locationId} />
               </div>
-              <BusinessHoursDisplay locationId={locationId} />
             </div>
           </div>
-        </div>
-        <div className="p-4 flex flex-col gap-3 md:col-span-3 md:col-start-1 md:row-span-6 md:row-start-8 lg:row-span-1 lg:col-span-4 lg:row-start-1 rounded-lg bg-white shadow-lg border">
-          <p className="text-xl">{shopTitle}</p>
-          <div className="flex gap-6">
-            <div className="flex gap-2">
-              <div className="flex gap-1 items-center">
-                <PiPhone size={22} color="gray" />
-                <p className="text-base text-gray-500">Phone No.</p>
-              </div>
-              <p>{shopPhone?.primaryPhone}</p>
-            </div>
-            <span className="text-gray-500">|</span>
-            <div className="flex gap-2">
-              <div className="flex gap-1 items-center">
-                <HiOutlineEnvelope size={22} color="gray" />
-                <p className="text-base text-gray-500">Postcode</p>
-              </div>
-              <p>{shopAddress?.postalCode}</p>
-            </div>
+
+          {/* TotalInteractions */}
+          <div className="rounded-lg bg-white shadow-lg border">
+            {!notAllowedWebCallCount ? (
+              <TotalInteractions webCallCount={webCallCount} />
+            ) : (
+              <EmptyState
+                state="bg-no-access"
+                message="You don’t have access to this section."
+                className="py-6"
+              />
+            )}
           </div>
         </div>
-        <div className="p-4 flex flex-col md:col-span-3 md:col-start-1 md:row-span-6 md:row-start-8 lg:row-span-2 lg:col-span-2 lg:row-start-2 rounded-lg bg-white shadow-lg border">
-          {!notAllowedSearchCount ? (
-            <>
-              <p className="text-xl font-medium">By searching on Google</p>
-              <PieChartSection
-                activeIndex={activeIndexSearch}
-                data={googleSearchData}
-                onPieEnter={onPieEnterSearch}
-              />
-            </>
-          ) : (
-            <EmptyState
-              state="bg-no-access"
-              message="You don’t have access to this section."
-              className="py-40"
-            />
-          )}
-        </div>
-        <div className="p-4 flex flex-col md:col-span-3 md:row-span-6 md:row-start-8 md:col-start-4 lg:row-span-2 lg:col-span-2 lg:col-start-3 lg:row-start-2 md:row-start-8 rounded-lg bg-white shadow-lg border">
-          {!notAllowedMapCount ? (
-            <>
-              <p className="text-xl font-medium">By using Google map service</p>
-              <PieChartSection
-                activeIndex={activeIndexMap}
-                data={googleMapData}
-                onPieEnter={onPieEnterMap}
-              />
-            </>
-          ) : (
-            <EmptyState
-              state="bg-no-access"
-              message="You don’t have access to this section."
-              className="py-40"
-            />
-          )}
-        </div>
-        <div className="md:row-start-14 md:row-span-6 md:col-span-6 lg:col-span-4 lg:row-span-2 lg:row-start-4 rounded-lg bg-white shadow-lg border">
-          <KeywordsAnalytics locationId={locationId} />
-        </div>
-        <div className="md:row-start-2 md:col-span-3 md:row-span-6 md:col-start-4 lg:row-start-4 lg:col-span-2 lg:row-span-1 lg:col-start-5 rounded-lg bg-white shadow-lg border">
-          {!notAllowedWebCallCount ? (
-            <TotalInteractions webCallCount={webCallCount} />
-          ) : (
-            <EmptyState
-              state="bg-no-access"
-              message="You don’t have access to this section."
-              className="h-96"
-            />
-          )}
+        <div className="w-3/5 flex flex-col gap-6">
+          <div className="w-full flex gap-6">
+            {/* By searching on Google */}
+            <div className="w-full flex flex-col rounded-lg bg-white shadow-lg border h-[480px]">
+              {!notAllowedSearchCount ? (
+                <>
+                  <p className="text-xl font-medium p-4">
+                    By searching on Google
+                  </p>
+                  <PieChartSection
+                    data={googleSearchData}
+                    variant="center"
+                    innerRadius={100}
+                    outerRadius={130}
+                    groupUnderPercent={0}
+                    showLegend={true}
+                    centerLabelLines={({ name, value, percent }) => [
+                      name,
+                      `${value} user`,
+                      `${(percent * 100).toFixed(2)}%`,
+                    ]}
+                  />
+                </>
+              ) : (
+                <EmptyState
+                  state="bg-no-access"
+                  message="You don’t have access to this section."
+                  className="h-full"
+                />
+              )}
+            </div>
+            {/* By using Google map service */}
+            <div className="w-full h-full flex flex-col rounded-lg bg-white shadow-lg border h-[480px]">
+              {!notAllowedMapCount ? (
+                <>
+                  <p className="text-xl font-medium p-4">
+                    By using Google map service
+                  </p>
+                  <PieChartSection
+                    data={googleMapData}
+                    variant="center"
+                    innerRadius={100}
+                    outerRadius={130}
+                    groupUnderPercent={0}
+                    showLegend={true}
+                    centerLabelLines={({ name, value, percent }) => [
+                      name,
+                      `${value} user`,
+                      `${(percent * 100).toFixed(2)}%`,
+                    ]}
+                  />
+                </>
+              ) : (
+                <EmptyState
+                  state="bg-no-access"
+                  message="You don’t have access to this section."
+                  className="h-full"
+                />
+              )}
+            </div>
+          </div>
+          {/* Keywords Analytics */}
+          <div className="rounded-lg bg-white shadow-lg border">
+            <KeywordsAnalytics locationId={locationId} />
+          </div>
         </div>
       </div>
       <ToastContainer
