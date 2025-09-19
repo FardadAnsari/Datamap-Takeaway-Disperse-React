@@ -4,7 +4,7 @@ import { IoIosArrowRoundBack, IoIosArrowRoundForward } from "react-icons/io";
 import { default as StaticSelect } from "react-select";
 import AutoCompletionMultiSelectStyles from "../AutoCompletionMultiSelectStyles";
 import { ThreeDots } from "react-loader-spinner";
-import EmptyState from "../EmptyState";
+import EmptyState from "../../general-components/EmptyState";
 
 const MONTHS = [
   "January",

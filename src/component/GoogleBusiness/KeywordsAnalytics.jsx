@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import instance from "../../api/api";
-import EmptyState from "../EmptyState";
+import EmptyState from "../../general-components/EmptyState";
 
 const KeywordsAnalytics = ({ locationId }) => {
   const [isLoading, setIsLoading] = useState(false);
@@ -144,7 +144,7 @@ const KeywordsAnalytics = ({ locationId }) => {
                 </table>
 
                 {/* Scrollable body */}
-                <div className="max-h-96 overflow-y-auto">
+                <div className="h-80 overflow-y-auto">
                   <table className="w-full bg-white table-fixed">
                     <tbody>
                       {searchInsights.map((item, index) => (

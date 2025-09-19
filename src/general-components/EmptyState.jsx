@@ -1,5 +1,5 @@
 const EmptyState = ({
-  message = "No data",
+  message = "",
   className = "h-full",
   iconSize = "w-44 h-44",
   state = "",

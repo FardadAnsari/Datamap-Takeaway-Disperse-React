@@ -8,7 +8,7 @@ import {
   YAxis,
   Tooltip,
 } from "recharts";
-import EmptyState from "../EmptyState";
+import EmptyState from "../../general-components/EmptyState";
 
 // Fixed mapping from company label → color
 const COMPANY_COLORS = {

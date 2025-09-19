@@ -12,10 +12,10 @@ import {
 } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import analyzerPins from "../../assets/analyzer-pin/analyzer-pin";
-import PiechartSection from "./PiechartSection";
 import { BiLike, BiDislike } from "react-icons/bi";
 import { ThreeDots } from "react-loader-spinner";
-import EmptyState from "../EmptyState";
+import EmptyState from "../../general-components/EmptyState";
+import PieChartSection from "../../general-components/PieChartSection";
 
 /* ----------------------- UI / MAP CONSTANTS ----------------------- */
 const UI = {
@@ -451,13 +451,21 @@ const ProductAnalysis = ({ isOpen }) => {
                   ) : null}
                 </div>
               </div>
-              <PiechartSection
+              {/* <PiechartSection
                 key={selectedCity}
                 data={cityData.areas.products_in_city.products}
                 topN={8}
                 innerRadius={100}
                 outerRadius={140}
                 onSliceClick={(item) => console.log("clicked:", item)}
+              /> */}
+              <PieChartSection
+                key={selectedCity}
+                data={cityData.areas.products_in_city.products}
+                innerRadius={100}
+                outerRadius={140}
+                topN={8}
+                groupUnderPercent={1}
               />
             </>
           )}
@@ -577,11 +585,17 @@ const ProductAnalysis = ({ isOpen }) => {
                 className="py-40"
               />
             ) : (
-              <PiechartSection
+              // <PiechartSection
+              //   data={postcodeProducts}
+              //   innerRadius={100}
+              //   outerRadius={140}
+              //   onSliceClick={(item) => console.log("postcode slice:", item)}
+              // />
+              <PieChartSection
                 data={postcodeProducts}
                 innerRadius={100}
                 outerRadius={140}
-                onSliceClick={(item) => console.log("postcode slice:", item)}
+                groupUnderPercent={1}
               />
             )}
           </div>

@@ -5,7 +5,7 @@ import instance from "../../api/deviceApi";
 import CountUp from "react-countup";
 import { ThreeDots } from "react-loader-spinner";
 import { MdKeyboardDoubleArrowLeft } from "react-icons/md";
-import EmptyState from "../EmptyState";
+import EmptyState from "../../general-components/EmptyState";
 
 const companyBg = {
   mealzo: "bg-mealzo-check-devices",

@@ -11,7 +11,7 @@ import {
 } from "recharts";
 import { default as StaticSelect } from "react-select";
 import AutoCompletionMultiSelectStyles from "../AutoCompletionMultiSelectStyles";
-import EmptyState from "../EmptyState";
+import EmptyState from "../../general-components/EmptyState";
 
 const monthOpts = [
   { value: 1, label: "January" },
