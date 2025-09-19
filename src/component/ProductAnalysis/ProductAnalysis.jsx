@@ -451,14 +451,6 @@ const ProductAnalysis = ({ isOpen }) => {
                   ) : null}
                 </div>
               </div>
-              {/* <PiechartSection
-                key={selectedCity}
-                data={cityData.areas.products_in_city.products}
-                topN={8}
-                innerRadius={100}
-                outerRadius={140}
-                onSliceClick={(item) => console.log("clicked:", item)}
-              /> */}
               <PieChartSection
                 key={selectedCity}
                 data={cityData.areas.products_in_city.products}
@@ -585,12 +577,6 @@ const ProductAnalysis = ({ isOpen }) => {
                 className="py-40"
               />
             ) : (
-              // <PiechartSection
-              //   data={postcodeProducts}
-              //   innerRadius={100}
-              //   outerRadius={140}
-              //   onSliceClick={(item) => console.log("postcode slice:", item)}
-              // />
               <PieChartSection
                 data={postcodeProducts}
                 innerRadius={100}
