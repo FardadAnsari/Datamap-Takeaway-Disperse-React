@@ -318,10 +318,6 @@ export default function PieChartSection({
           {showLegend && <Legend />}
         </PieChart>
       </ResponsiveContainer>
-
-      {!chartData.length && (
-        <div className="text-center text-sm text-stone-500 mt-2">No data</div>
-      )}
     </div>
   );
 }
