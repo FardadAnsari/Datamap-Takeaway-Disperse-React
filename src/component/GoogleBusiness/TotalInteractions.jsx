@@ -11,7 +11,7 @@ const TotalInteractions = ({ webCallCount }) => {
         <div className="w-1/3 flex flex-col items-center justify-between">
           <div className="flex gap-1 items-center">
             <PiPhoneCallLight size={22} />
-            <p className="text-md">Total Call Clicks</p>
+            <p className="text-md">Call Clicks</p>
           </div>
           <div className="flex justify-center py-2 text-2xl font-medium">
             <CountUp
@@ -24,7 +24,7 @@ const TotalInteractions = ({ webCallCount }) => {
         <div className="w-1/3 flex flex-col items-center justify-between">
           <div className="flex gap-1 items-center">
             <PiCursorClickLight size={22} />
-            <p className="text-md">Total Website Clicks</p>
+            <p className="text-md">Website Clicks</p>
           </div>
           <div className="flex justify-center py-2 text-2xl font-medium">
             <CountUp

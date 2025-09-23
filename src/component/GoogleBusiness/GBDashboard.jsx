@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useForm, Controller } from "react-hook-form";
 import Select from "react-select";
 import AutoCompletionCustomStyles from "../AutoCompletionCustomStyles";
@@ -13,10 +13,23 @@ import { useNavigate } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import { useUser } from "../../api/userPermission";
 import { IoInformationCircleSharp } from "react-icons/io5";
-import { MdOutlinePermMedia } from "react-icons/md";
-import { MdPermMedia } from "react-icons/md";
+import { MdOutlinePermMedia, MdPermMedia, MdVerified } from "react-icons/md";
 import GoogleBusinessUploadModal from "./GoogleBusinessUploadModal";
 import EmptyState from "../../general-components/EmptyState";
+import { ThreeDots } from "react-loader-spinner";
+
+const Loader = ({ className = "", size = 50 }) => (
+  <div className={`grid place-items-center ${className}`}>
+    <ThreeDots
+      visible
+      height={size}
+      width={size}
+      color="#ffa500"
+      radius="9"
+      ariaLabel="loading"
+    />
+  </div>
+);
 
 const GBDashboard = ({ isOpen }) => {
   const { user } = useUser();
@@ -29,33 +42,12 @@ const GBDashboard = ({ isOpen }) => {
 
   const navigate = useNavigate();
 
-  // const [accountList, setAccountList] = useState([]);
   const [businessInfo, setBusinessInfo] = useState([]);
-  // const [isLoadingAccounts, setIsLoadingAccounts] = useState(false);
   const [isLoadingBusinessInfo, setIsLoadingBusinessInfo] = useState(false);
   const [locationId, setLocationId] = useState(null);
 
-  const handleAccountFocus = () => {
-    setValueFilter("businessInformation", null);
-  };
-
   const [editOpen, setEditOpen] = useState(null);
   const [shopTitle, setShopTitle] = useState("");
-
-  const handleEditOpen = (id) => {
-    if (editOpen === id) {
-      setEditOpen(null);
-    } else {
-      setEditOpen(id);
-    }
-  };
-
-  // const [activeIndexSearch, setActiveIndexSearch] = useState(0);
-  // const onPieEnterSearch = (_, index) => setActiveIndexSearch(index);
-
-  // const [activeIndexMap, setActiveIndexMap] = useState(0);
-  // const onPieEnterMap = (_, index) => setActiveIndexMap(index);
-
   const [shopActivityStatus, setShopActivityStatus] = useState("");
 
   const selectedAcc = watchFilter("account");
@@ -63,6 +55,42 @@ const GBDashboard = ({ isOpen }) => {
 
   const [accountList, setAccountList] = useState([]);
   const accessToken = sessionStorage.getItem("accessToken");
+
+  // Section loader flags (Interactions + Pie charts)
+  const [isLoadingSearchCount, setIsLoadingSearchCount] = useState(false);
+  const [isLoadingMapCount, setIsLoadingMapCount] = useState(false);
+  const [isLoadingWebCallCount, setIsLoadingWebCallCount] = useState(false);
+
+  // Detail loaders (Shop info + Hours)
+  const [isLoadingTitle, setIsLoadingTitle] = useState(false);
+  const [isLoadingOpenStatus, setIsLoadingOpenStatus] = useState(false);
+  const [isLoadingAttributes, setIsLoadingAttributes] = useState(false);
+  const [isLoadingVerification, setIsLoadingVerification] = useState(false);
+  const isLoadingShopDetails =
+    isLoadingTitle || isLoadingOpenStatus || isLoadingAttributes;
+
+  // Table loading derived from section loaders (parent-level gate)
+  const isLoadingTable =
+    isLoadingSearchCount || isLoadingMapCount || isLoadingWebCallCount;
+
+  const [shopPhone, setShopPhone] = useState();
+  const [shopAddress, setShopAddress] = useState();
+  const [weburl, setWeburl] = useState();
+
+  const [verifications, setVerifications] = useState([]);
+  const [isVerified, setIsVerified] = useState(false);
+
+  const [noDataSearchCount, setNoDataSearchCount] = useState(false);
+  const [notAllowedSearchCount, setNotAllowedSearchCount] = useState(false);
+  const [searchCount, setSearchCount] = useState({});
+
+  const [noDataMapCount, setNoDataMapCount] = useState(false);
+  const [notAllowedMapCount, setNotAllowedMapCount] = useState(false);
+  const [mapCount, setMapCount] = useState({});
+
+  const [noDataWebCallCount, setNoDataWebCallCount] = useState(false);
+  const [notAllowedWebCallCount, setNotAllowedWebCallCount] = useState(false);
+  const [webCallCount, setWebCallCount] = useState({});
 
   useEffect(() => {
     instance
@@ -72,170 +100,297 @@ const GBDashboard = ({ isOpen }) => {
         },
       })
       .then((response) => {
-        // console.log(response.data);
-        setAccountList(response.data.accounts);
+        setAccountList(response.data.accounts || []);
       })
       .catch((error) => {
         console.error(error);
       });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Business info for selected account (cancelable)
   useEffect(() => {
-    const fetchSelectedBusinessInfo = async () => {
-      if (selectedAcc) {
+    if (!selectedAcc) return;
+
+    const controller = new AbortController();
+    (async () => {
+      try {
         setIsLoadingBusinessInfo(true);
-        const accountId = selectedAcc.value.split("/")[1];
-        if (accountId) {
-          try {
-            const response = await instance.get(
-              `api/v1/google/business-info/front/${accountId}`,
-              {
-                headers: {
-                  Authorization: `Bearer ${accessToken}`,
-                },
-              }
+        const accountId = selectedAcc.value?.split("/")[1];
+        if (!accountId) return;
+
+        const response = await instance.get(
+          `api/v1/google/business-info/front/${accountId}`,
+          {
+            headers: { Authorization: `Bearer ${accessToken}` },
+            signal: controller.signal,
+          }
+        );
+        setBusinessInfo(response.data || []);
+      } catch (error) {
+        if (error.name !== "CanceledError" && error.name !== "AbortError") {
+          console.error(error);
+          const status = error?.response?.status || error?.status;
+          if (status === 401) {
+            toast.error(
+              "Your tokens have been exhausted. Please contact the R&D department to resolve this issue."
             );
-            setBusinessInfo(response.data);
-          } catch (error) {
-            console.error(error);
-            error.status === 401 &&
-              toast.error(
-                "Your tokens have been exhausted. Please contact the R&D department to resolve this issue."
-              ) &&
-              setTimeout(() => {
-                sessionStorage.removeItem("accessToken");
-                navigate("/");
-              }, 5000);
-          } finally {
-            setIsLoadingBusinessInfo(false);
+            setTimeout(() => {
+              sessionStorage.removeItem("accessToken");
+              navigate("/");
+            }, 5000);
           }
         }
+      } finally {
+        setIsLoadingBusinessInfo(false);
       }
-    };
-    fetchSelectedBusinessInfo();
-  }, [selectedAcc]);
+    })();
+
+    return () => controller.abort();
+  }, [selectedAcc, accessToken, navigate]);
 
   useEffect(() => {
-    if (selectedBusInfo) {
-      const id = selectedBusInfo.value.split("/")[1];
-      setLocationId(id);
+    const id = selectedBusInfo?.value?.split("/")[1] || null;
+    setLocationId(id);
+
+    setIsLoadingSearchCount(true);
+    setIsLoadingMapCount(true);
+    setIsLoadingWebCallCount(true); // keeps Interactions consistent too
+
+    setNoDataSearchCount(false);
+    setNoDataMapCount(false);
+    setNoDataWebCallCount(false);
+    setNotAllowedSearchCount(false);
+    setNotAllowedMapCount(false);
+    setNotAllowedWebCallCount(false);
+
+    setSearchCount({});
+    setMapCount({});
+    setWebCallCount({});
+
+    // Details loaders only if we actually have a new id
+    if (id) {
+      setIsLoadingTitle(true);
+      setIsLoadingOpenStatus(true);
+      setIsLoadingAttributes(true);
+
+      // Clear old details while new ones load
+      setShopTitle("");
+      setShopActivityStatus("");
+      setShopPhone(undefined);
+      setShopAddress(undefined);
+      setWeburl(undefined);
     }
   }, [selectedBusInfo]);
 
+  // Title
   useEffect(() => {
     if (selectedBusInfo && locationId) {
+      setIsLoadingTitle(true);
       instance
         .get(`/api/v1/google/get-title/${locationId}`, {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
+          headers: { Authorization: `Bearer ${accessToken}` },
         })
         .then((response) => {
-          // console.log(response.data.location.title);
-
-          setShopTitle(response.data.location.title);
+          setShopTitle(response?.data?.location?.title || "");
         })
         .catch((error) => {
           console.error(error);
-        });
+          setShopTitle("");
+        })
+        .finally(() => setIsLoadingTitle(false));
     }
-  }, [locationId, selectedBusInfo]);
+  }, [locationId, selectedBusInfo, accessToken]);
 
+  // Open status
   useEffect(() => {
     if (selectedBusInfo && locationId) {
+      setIsLoadingOpenStatus(true);
       instance
         .get(`api/v1/google/get-update-openstatus/${locationId}`, {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
+          headers: { Authorization: `Bearer ${accessToken}` },
         })
         .then((response) => {
-          // console.log("open Info:", response.data);
-
-          setShopActivityStatus(response.data.location.openInfo.status);
+          setShopActivityStatus(
+            response?.data?.location?.openInfo?.status || ""
+          );
         })
         .catch((error) => {
           console.error(error);
-        });
+          setShopActivityStatus("");
+        })
+        .finally(() => setIsLoadingOpenStatus(false));
     }
-  }, [locationId, selectedBusInfo]);
+  }, [locationId, selectedBusInfo, accessToken]);
 
-  const [verifications, setVerifications] = useState([]);
-  const [isVerified, setIsVerified] = useState(false);
-
+  // Verifications
   useEffect(() => {
     const fetchVerificationData = async () => {
       if (selectedBusInfo && locationId) {
+        setIsLoadingVerification(true);
         try {
           const response = await instance.get(
-            `api/v1/google/verifications/${locationId}`
+            `api/v1/google/verifications/${locationId}`,
+            { headers: { Authorization: `Bearer ${accessToken}` } }
           );
-          // console.log(response);
-
-          // Handle empty response.data or missing verifications property
           if (response.data && response.data.verifications) {
             setVerifications(response.data.verifications);
           } else {
-            setVerifications([]); // Set verifications to an empty array if data is invalid
+            setVerifications([]);
           }
-
-          // Update isVerified based on response.data
-          if (response.data && Object.keys(response.data).length > 0) {
-            setIsVerified(true);
-          } else {
-            setIsVerified(false);
-          }
+          setIsVerified(!!(response.data && Object.keys(response.data).length));
         } catch (error) {
           console.error(error);
-          setVerifications([]); // Set verifications to an empty array on error
-          setIsVerified(false); // Set isVerified to false on error
+          setVerifications([]);
+          setIsVerified(false);
+        } finally {
+          setIsLoadingVerification(false);
         }
       }
     };
     fetchVerificationData();
-  }, [locationId, selectedBusInfo]);
+  }, [locationId, selectedBusInfo, accessToken]);
 
-  // console.log(verifications);
-  // console.log("verification:", isVerified);
-
-  // Move this logic into a useEffect
   useEffect(() => {
     if (verifications.length > 0 && verifications[0]?.state === "COMPLETED") {
       setIsVerified(true);
     } else {
       setIsVerified(false);
     }
-  }, [verifications]); // Only run this effect when `verifications` changes
+  }, [verifications]);
 
-  const [shopPhone, setShopPhone] = useState();
-  const [shopAddress, setShopAddress] = useState();
-  const [weburl, setWeburl] = useState();
-
+  // Attributes
   useEffect(() => {
     if (selectedBusInfo && locationId) {
+      setIsLoadingAttributes(true);
       instance
         .get(`api/v1/google/get-shop-attribute/${locationId}`, {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
+          headers: { Authorization: `Bearer ${accessToken}` },
         })
         .then((response) => {
-          // console.log(response.data.location);
-
-          setShopPhone(response.data.location.phoneNumbers);
-          setShopAddress(response.data.location.storefrontAddress);
-          setWeburl(response.data.location.websiteUri);
+          setShopPhone(response?.data?.location?.phoneNumbers);
+          setShopAddress(response?.data?.location?.storefrontAddress);
+          setWeburl(response?.data?.location?.websiteUri);
         })
         .catch((error) => {
           console.error(error);
-        });
+          setShopPhone(undefined);
+          setShopAddress(undefined);
+          setWeburl(undefined);
+        })
+        .finally(() => setIsLoadingAttributes(false));
     }
-  }, [locationId, selectedBusInfo]);
+  }, [locationId, selectedBusInfo, accessToken]);
 
-  // const [isLoadingSearchCount, setIsLoadingSearchCount] = useState(false);
-  const [noDataSearchCount, setNoDataSearchCount] = useState(false);
-  const [notAllowedSearchCount, setNotAllowedSearchCount] = useState(false);
-  const [searchCount, setSearchCount] = useState({});
+  // Search count (cancelable)
+  useEffect(() => {
+    if (!selectedBusInfo || !locationId) return;
+    const controller = new AbortController();
+    (async () => {
+      try {
+        setIsLoadingSearchCount(true);
+        const res = await instance.get(
+          `api/v1/google/metric/mob-desk-search-count/${locationId}`,
+          {
+            headers: { Authorization: `Bearer ${accessToken}` },
+            signal: controller.signal,
+          }
+        );
+        setSearchCount(res.data || {});
+        setNoDataSearchCount(false);
+        setNotAllowedSearchCount(false);
+      } catch (error) {
+        if (error.name !== "CanceledError" && error.name !== "AbortError") {
+          console.error(error);
+          const status = error?.response?.status || error?.status;
+          setSearchCount({});
+          setNoDataSearchCount(status === 500);
+          setNotAllowedSearchCount(status === 403);
+        }
+      } finally {
+        setIsLoadingSearchCount(false);
+      }
+    })();
+    return () => controller.abort();
+  }, [locationId, selectedBusInfo, accessToken]);
+
+  // Map count (cancelable)
+  useEffect(() => {
+    if (!selectedBusInfo || !locationId) return;
+    const controller = new AbortController();
+    (async () => {
+      try {
+        setIsLoadingMapCount(true);
+        const res = await instance.get(
+          `/api/v1/google/metric/mob-desk-map-count/${locationId}`,
+          {
+            headers: { Authorization: `Bearer ${accessToken}` },
+            signal: controller.signal,
+          }
+        );
+        setMapCount(res.data || {});
+        setNoDataMapCount(false);
+        setNotAllowedMapCount(false);
+      } catch (error) {
+        if (error.name !== "CanceledError" && error.name !== "AbortError") {
+          console.error(error);
+          const status = error?.response?.status || error?.status;
+          setMapCount({});
+          setNoDataMapCount(status === 500);
+          setNotAllowedMapCount(status === 403);
+        }
+      } finally {
+        setIsLoadingMapCount(false);
+      }
+    })();
+    return () => controller.abort();
+  }, [locationId, selectedBusInfo, accessToken]);
+
+  // Web/Call count (cancelable)
+  useEffect(() => {
+    if (!selectedBusInfo || !locationId) return;
+    const controller = new AbortController();
+    (async () => {
+      try {
+        setIsLoadingWebCallCount(true);
+        const res = await instance.get(
+          `/api/v1/google/metric/web-call-count/${locationId}`,
+          {
+            headers: { Authorization: `Bearer ${accessToken}` },
+            signal: controller.signal,
+          }
+        );
+        setWebCallCount(res?.data || {});
+        setNoDataWebCallCount(false);
+        setNotAllowedWebCallCount(false);
+      } catch (error) {
+        if (error.name !== "CanceledError" && error.name !== "AbortError") {
+          console.error(error);
+          const status = error?.response?.status || error?.status;
+          setWebCallCount({});
+          setNoDataWebCallCount(status === 500);
+          setNotAllowedWebCallCount(status === 403);
+        }
+      } finally {
+        setIsLoadingWebCallCount(false);
+      }
+    })();
+    return () => controller.abort();
+  }, [locationId, selectedBusInfo, accessToken]);
+
+  const accountOptions = useMemo(
+    () =>
+      accountList.map((account) => ({
+        label: account.accountName,
+        value: account.name,
+      })),
+    [accountList]
+  );
+  const businessInfoOptions = useMemo(
+    () => businessInfo.map((info) => ({ value: info.name, label: info.title })),
+    [businessInfo]
+  );
+
   const googleSearchData = [
     {
       name: "Desktop",
@@ -243,82 +398,41 @@ const GBDashboard = ({ isOpen }) => {
     },
     { name: "Mobile", value: searchCount.BUSINESS_IMPRESSIONS_MOBILE_SEARCH },
   ];
-
-  useEffect(() => {
-    if (selectedBusInfo && locationId) {
-      instance
-        .get(`api/v1/google/metric/mob-desk-search-count/${locationId}`, {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        })
-        .then((response) => {
-          // console.log("data for mobile desktop search", response.data);
-          setSearchCount(response.data);
-          setNoDataSearchCount(false);
-        })
-        .catch((error) => {
-          console.error(error);
-          error?.status === 500 && setNoDataSearchCount(true);
-          error?.status === 403 && setNotAllowedSearchCount(true);
-        });
-    }
-  }, [locationId, selectedBusInfo]);
-
-  // const [isLoadingMapCount, setIsLoadingMapCount] = useState(false);
-  const [noDataMapCount, setNoDataMapCount] = useState(false);
-  const [notAllowedMapCount, setNotAllowedMapCount] = useState(false);
-  const [mapCount, setMapCount] = useState({});
   const googleMapData = [
     { name: "Desktop", value: mapCount.BUSINESS_IMPRESSIONS_DESKTOP_MAPS },
     { name: "Mobile", value: mapCount.BUSINESS_IMPRESSIONS_MOBILE_MAPS },
   ];
-  useEffect(() => {
-    if (selectedBusInfo && locationId) {
-      instance
-        .get(`/api/v1/google/metric/mob-desk-map-count/${locationId}`, {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        })
-        .then((response) => {
-          // console.log("data for mobile desktop map", response.data);
-          setMapCount(response.data);
-          setNoDataMapCount(false);
-        })
-        .catch((error) => {
-          console.error(error);
-          error?.status === 500 && setNoDataMapCount(true);
-          error?.status === 403 && setNotAllowedMapCount(true);
-        });
-    }
-  }, [locationId, selectedBusInfo]);
 
-  // const [isLoadingWebCallCount, setIsLoadingWebCallCount] = useState(false);
-  const [noDataWebCallCount, setNoDataWebCallCount] = useState(false);
-  const [notAllowedWebCallCount, setNotAllowedWebCallCount] = useState(false);
-  const [webCallCount, setWebCallCount] = useState({});
+  const addressLines = Array.isArray(shopAddress?.addressLines)
+    ? shopAddress.addressLines.join(", ")
+    : shopAddress?.addressLines || "";
 
-  useEffect(() => {
-    if (selectedBusInfo && locationId) {
-      instance
-        .get(`/api/v1/google/metric/web-call-count/${locationId}`, {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        })
-        .then((response) => {
-          // console.log("data for web call", response.data);
-          setWebCallCount(response?.data);
-          setNoDataWebCallCount(false);
-        })
-        .catch((error) => {
-          console.error(error);
-          error?.status === 500 && setNoDataWebCallCount(true);
-          error?.status === 403 && setNotAllowedWebCallCount(true);
-        });
-    }
-  }, [locationId, selectedBusInfo]);
+  const handleAccountChangeReset = (opt, fieldOnChange) => {
+    fieldOnChange(opt);
+    // Reset dependent state strictly on change
+    setValueFilter("businessInformation", null);
+    setLocationId(null);
+    setBusinessInfo([]);
+    setShopTitle("");
+    setShopActivityStatus("");
+    setShopPhone(undefined);
+    setShopAddress(undefined);
+    setWeburl(undefined);
+    // Clear section data/errors
+    setSearchCount({});
+    setMapCount({});
+    setWebCallCount({});
+    setNoDataSearchCount(false);
+    setNoDataMapCount(false);
+    setNoDataWebCallCount(false);
+    setNotAllowedSearchCount(false);
+    setNotAllowedMapCount(false);
+    setNotAllowedWebCallCount(false);
+    // Show loaders while waiting for new BI selection
+    setIsLoadingSearchCount(true);
+    setIsLoadingMapCount(true);
+    setIsLoadingWebCallCount(true);
+  };
 
   return (
     <div
@@ -341,16 +455,19 @@ const GBDashboard = ({ isOpen }) => {
             <div className="flex gap-2 justify-between items-center">
               <p className="text-xl font-medium">Google Business Details</p>
               <div className="flex gap-2">
-                {selectedBusInfo && isVerified ? (
-                  <div className="px-2 py-1 bg-green-100 rounded-lg">
-                    <p className="text-green-800">Verified</p>
-                  </div>
-                ) : null}
+                {selectedBusInfo &&
+                  (isLoadingVerification ? (
+                    <Loader size={28} />
+                  ) : isVerified ? (
+                    <div className="px-2 py-1 rounded-lg">
+                      <MdVerified color="orange" size={25} />
+                    </div>
+                  ) : null)}
                 {user?.access?.gbDashboardEdit &&
                   selectedBusInfo &&
                   isVerified && (
                     <button
-                      onClick={() => handleEditOpen(1)}
+                      onClick={() => setEditOpen((p) => (p === 1 ? null : 1))}
                       className={`flex justify-between items-center py-2 px-2 text-lg text-orange-500 text-left transition ease-in delay-190 bg-orange-100 rounded-lg`}
                     >
                       {editOpen === 1 ? <LuPencilLine /> : <LuPencil />}
@@ -360,7 +477,7 @@ const GBDashboard = ({ isOpen }) => {
                   selectedBusInfo &&
                   isVerified && (
                     <button
-                      onClick={() => handleEditOpen(2)}
+                      onClick={() => setEditOpen((p) => (p === 2 ? null : 2))}
                       className={`flex justify-between items-center py-2 px-2 text-lg text-orange-500 text-left transition ease-in delay-190 bg-orange-100 rounded-lg`}
                     >
                       {editOpen === 2 ? (
@@ -380,7 +497,7 @@ const GBDashboard = ({ isOpen }) => {
                 locationId={locationId}
                 shopTitle={shopTitle}
                 webUrl={weburl}
-                phoneNumber={shopPhone.primaryPhone}
+                phoneNumber={shopPhone?.primaryPhone}
                 shopAddress={shopAddress}
               />
             )}
@@ -393,6 +510,7 @@ const GBDashboard = ({ isOpen }) => {
                 selectedAcc={selectedAcc}
               />
             )}
+
             {/* Form (dropdowns) */}
             <div className="flex flex-col gap-3 py-2">
               <div className="w-full p-0 m-0">
@@ -403,26 +521,11 @@ const GBDashboard = ({ isOpen }) => {
                   render={({ field }) => (
                     <Select
                       placeholder="Select Account"
-                      onFocus={handleAccountFocus}
-                      classNames={{
-                        control: (state) =>
-                          state.isFocused
-                            ? "border-red-600"
-                            : "border-grey-300",
-                      }}
-                      options={accountList.map((account) => ({
-                        label: account.accountName,
-                        value: account.name,
-                      }))}
-                      value={
-                        field.value
-                          ? {
-                              label: field.value.label,
-                              value: field.value.value,
-                            }
-                          : null
+                      options={accountOptions}
+                      value={field.value}
+                      onChange={(opt) =>
+                        handleAccountChangeReset(opt, field.onChange)
                       }
-                      onChange={field.onChange}
                       isSearchable
                       styles={AutoCompletionCustomStyles}
                     />
@@ -438,21 +541,18 @@ const GBDashboard = ({ isOpen }) => {
                     <Select
                       {...field}
                       placeholder="Select Business Info"
-                      onFocus={handleAccountFocus}
-                      options={businessInfo.map((info) => ({
-                        value: info.name,
-                        label: info.title,
-                      }))}
+                      options={businessInfoOptions}
                       onChange={field.onChange}
                       isSearchable
                       styles={AutoCompletionCustomStyles}
-                      isDisabled={isLoadingBusinessInfo}
+                      isDisabled={!selectedAcc || isLoadingBusinessInfo}
                       isLoading={isLoadingBusinessInfo}
                     />
                   )}
                 />
               </div>
             </div>
+
             {user?.access?.gbDashboardEdit && (
               <div className="flex items-center gap-2 border-2 border-orange-300 p-2 rounded-lg">
                 <IoInformationCircleSharp color="orange" size={26} />
@@ -461,39 +561,40 @@ const GBDashboard = ({ isOpen }) => {
                 </p>
               </div>
             )}
-            <p className="text-lg font-medium pt-2">Shop Information</p>
-            <div className="flex justify-between items-center p-2">
-              <div className="flex">
-                <p className="text-md text-gray-500">Shop Name</p>
-              </div>
 
-              <p className="font-medium">{shopTitle}</p>
-            </div>
-            <div className="flex justify-between items-center p-2">
-              <div className="flex">
-                <p className="text-md text-gray-500">Phone Number</p>
-              </div>
+            {selectedBusInfo ? (
+              isLoadingShopDetails ? (
+                <Loader className="py-40" />
+              ) : (
+                <>
+                  <p className="text-lg font-medium pt-2">Shop Information</p>
+                  <div className="flex justify-between items-center p-2">
+                    <div className="flex">
+                      <p className="text-md text-gray-500">Shop Name</p>
+                    </div>
+                    <p className="font-medium">{shopTitle}</p>
+                  </div>
+                  <div className="flex justify-between items-center p-2">
+                    <div className="flex">
+                      <p className="text-md text-gray-500">Phone Number</p>
+                    </div>
+                    <p className="font-medium">{shopPhone?.primaryPhone}</p>
+                  </div>
+                  <div className="flex justify-between items-center p-2">
+                    <div className="flex">
+                      <p className="text-md text-gray-500">Website</p>
+                    </div>
+                    <p className="font-medium">{weburl}</p>
+                  </div>
+                  <div className="flex justify-between gap-12 items-start p-2">
+                    <div className="flex">
+                      <p className="text-md text-gray-500">Address</p>
+                    </div>
+                    <p className="font-medium">{`${addressLines || ""} ${shopAddress?.locality || ""} ${shopAddress?.postalCode || ""}`}</p>
+                  </div>
 
-              <p className="font-medium">{shopPhone?.primaryPhone}</p>
-            </div>
-            <div className="flex justify-between items-center p-2">
-              <div className="flex">
-                <p className="text-md text-gray-500">Website</p>
-              </div>
-              <p className="font-medium">{weburl}</p>
-            </div>
-            <div className="flex justify-between gap-12 items-start p-2">
-              <div className="flex">
-                <p className="text-md text-gray-500">Address</p>
-              </div>
-              <p className="font-medium">{`${shopAddress?.addressLines || ""} ${shopAddress?.locality || ""} ${shopAddress?.postalCode || ""}`}</p>
-            </div>
-
-            <hr />
-            <div>
-              {selectedBusInfo ? (
-                <div className="pt-2">
-                  {selectedBusInfo && (
+                  <hr />
+                  <div className="pt-2">
                     <div className="flex justify-between items-center">
                       <span className="text-lg font-medium">Opening Hours</span>
                       <div className="flex gap-2 items-center">
@@ -508,41 +609,41 @@ const GBDashboard = ({ isOpen }) => {
                         )}
                       </div>
                     </div>
-                  )}
-                  <BusinessHoursDisplay locationId={locationId} />
-                </div>
-              ) : (
-                <EmptyState
-                  state="bg-empty-state-hours"
-                  message="You have not selected an account or business information."
-                  className="py-6"
-                />
-              )}
-            </div>
+                    <BusinessHoursDisplay locationId={locationId} />
+                  </div>
+                </>
+              )
+            ) : (
+              <EmptyState
+                state="bg-empty-state-hours"
+                message="You have not selected an account or business information."
+                className="py-6"
+              />
+            )}
           </div>
 
           {/* TotalInteractions */}
           <div className="rounded-lg bg-white shadow-lg border">
             {!notAllowedWebCallCount ? (
-              <>
-                {selectedBusInfo ? (
-                  noDataWebCallCount ? (
-                    <EmptyState
-                      state="bg-empty-state-interaction"
-                      message="No data has been received from Google."
-                      className="py-6"
-                    />
-                  ) : (
-                    <TotalInteractions webCallCount={webCallCount} />
-                  )
-                ) : (
+              selectedBusInfo ? (
+                isLoadingWebCallCount ? (
+                  <Loader className="py-16" />
+                ) : noDataWebCallCount ? (
                   <EmptyState
                     state="bg-empty-state-interaction"
-                    message="You have not selected an account or business information."
+                    message="No data has been received from Google."
                     className="py-6"
                   />
-                )}
-              </>
+                ) : (
+                  <TotalInteractions webCallCount={webCallCount} />
+                )
+              ) : (
+                <EmptyState
+                  state="bg-empty-state-interaction"
+                  message="You have not selected an account or business information."
+                  className="py-6"
+                />
+              )
             ) : (
               <EmptyState
                 state="bg-no-access"
@@ -552,47 +653,48 @@ const GBDashboard = ({ isOpen }) => {
             )}
           </div>
         </div>
+
         <div className="w-3/5 flex flex-col gap-6">
           <div className="w-full flex gap-6">
             {/* By searching on Google */}
             <div className="w-full flex flex-col rounded-lg bg-white shadow-lg border h-[480px]">
               {!notAllowedSearchCount ? (
-                <>
-                  {selectedBusInfo ? (
-                    noDataSearchCount ? (
-                      <EmptyState
-                        state="bg-empty-state-piechart"
-                        message="No data has been received from Google."
-                        className="h-full"
-                      />
-                    ) : (
-                      <>
-                        <p className="text-xl font-medium p-4">
-                          By searching on Google
-                        </p>
-                        <PieChartSection
-                          data={googleSearchData}
-                          variant="center"
-                          innerRadius={100}
-                          outerRadius={130}
-                          groupUnderPercent={0}
-                          showLegend={true}
-                          centerLabelLines={({ name, value, percent }) => [
-                            name,
-                            `${value} user`,
-                            `${(percent * 100).toFixed(2)}%`,
-                          ]}
-                        />
-                      </>
-                    )
-                  ) : (
+                selectedBusInfo ? (
+                  isLoadingSearchCount ? (
+                    <Loader className="h-full" />
+                  ) : noDataSearchCount ? (
                     <EmptyState
                       state="bg-empty-state-piechart"
-                      message=" You have not selected an account or business information."
+                      message="No data has been received from Google."
                       className="h-full"
                     />
-                  )}
-                </>
+                  ) : (
+                    <>
+                      <p className="text-xl font-medium p-4">
+                        By searching on Google
+                      </p>
+                      <PieChartSection
+                        data={googleSearchData}
+                        variant="center"
+                        innerRadius={100}
+                        outerRadius={130}
+                        groupUnderPercent={0}
+                        showLegend={true}
+                        centerLabelLines={({ name, value, percent }) => [
+                          name,
+                          `${value} user`,
+                          `${(percent * 100).toFixed(2)}%`,
+                        ]}
+                      />
+                    </>
+                  )
+                ) : (
+                  <EmptyState
+                    state="bg-empty-state-piechart"
+                    message=" You have not selected an account or business information."
+                    className="h-full"
+                  />
+                )
               ) : (
                 <EmptyState
                   state="bg-no-access"
@@ -601,45 +703,46 @@ const GBDashboard = ({ isOpen }) => {
                 />
               )}
             </div>
+
             {/* By using Google map service */}
             <div className="w-full h-full flex flex-col rounded-lg bg-white shadow-lg border h-[480px]">
               {!notAllowedMapCount ? (
-                <>
-                  {selectedBusInfo ? (
-                    noDataMapCount ? (
-                      <EmptyState
-                        state="bg-empty-state-piechart"
-                        message="No data has been received from Google."
-                        className="h-full"
-                      />
-                    ) : (
-                      <>
-                        <p className="text-xl font-medium p-4">
-                          By using Google map service
-                        </p>
-                        <PieChartSection
-                          data={googleMapData}
-                          variant="center"
-                          innerRadius={100}
-                          outerRadius={130}
-                          groupUnderPercent={0}
-                          showLegend={true}
-                          centerLabelLines={({ name, value, percent }) => [
-                            name,
-                            `${value} user`,
-                            `${(percent * 100).toFixed(2)}%`,
-                          ]}
-                        />
-                      </>
-                    )
-                  ) : (
+                selectedBusInfo ? (
+                  isLoadingMapCount ? (
+                    <Loader className="h-full" />
+                  ) : noDataMapCount ? (
                     <EmptyState
                       state="bg-empty-state-piechart"
-                      message="You have not selected an account or business information."
+                      message="No data has been received from Google."
                       className="h-full"
                     />
-                  )}
-                </>
+                  ) : (
+                    <>
+                      <p className="text-xl font-medium p-4">
+                        By using Google map service
+                      </p>
+                      <PieChartSection
+                        data={googleMapData}
+                        variant="center"
+                        innerRadius={100}
+                        outerRadius={130}
+                        groupUnderPercent={0}
+                        showLegend={true}
+                        centerLabelLines={({ name, value, percent }) => [
+                          name,
+                          `${value} user`,
+                          `${(percent * 100).toFixed(2)}%`,
+                        ]}
+                      />
+                    </>
+                  )
+                ) : (
+                  <EmptyState
+                    state="bg-empty-state-piechart"
+                    message="You have not selected an account or business information."
+                    className="h-full"
+                  />
+                )
               ) : (
                 <EmptyState
                   state="bg-no-access"
@@ -649,10 +752,18 @@ const GBDashboard = ({ isOpen }) => {
               )}
             </div>
           </div>
+
           {/* Keywords Analytics */}
           <div className="rounded-lg bg-white shadow-lg border">
             {selectedBusInfo ? (
-              <KeywordsAnalytics locationId={locationId} />
+              isLoadingTable ? (
+                <Loader className="py-36" />
+              ) : (
+                <KeywordsAnalytics
+                  key={locationId || "none"}
+                  locationId={locationId}
+                />
+              )
             ) : (
               <EmptyState
                 state="bg-empty-state-table"
@@ -663,6 +774,7 @@ const GBDashboard = ({ isOpen }) => {
           </div>
         </div>
       </div>
+
       <ToastContainer
         position="top-center"
         autoClose={3000}
