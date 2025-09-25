@@ -362,7 +362,13 @@ const GBDashboardByMap = () => {
                   <div className="flex">
                     <p className="text-md text-gray-500">Website</p>
                   </div>
-                  <p className="font-medium">{weburl}</p>
+                  <a
+                    href={weburl}
+                    target="_blank"
+                    className="text-blue-400 font-base underline decoration-solid"
+                  >
+                    {weburl}
+                  </a>
                 </div>
                 <div className="flex justify-between gap-12 items-start p-2">
                   <div className="flex">
