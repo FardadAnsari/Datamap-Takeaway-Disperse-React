@@ -11,6 +11,7 @@ import {
 } from "recharts";
 import { default as StaticSelect } from "react-select";
 import AutoCompletionMultiSelectStyles from "../AutoCompletionMultiSelectStyles";
+import EmptyState from "../../general-components/EmptyState";
 
 const monthOpts = [
   { value: 1, label: "January" },
@@ -109,14 +110,11 @@ const DailyBarChartSection = ({
 
       {/* Empty state */}
       {!active || filtered.length === 0 || !hasAnyData ? (
-        <div
-          className="mt-2 w-full h-[350px] flex flex-col items-center justify-center border border-dashed border-gray-300 rounded-lg"
-          aria-live="polite"
-          role="status"
-        >
-          <div className="w-44 h-44 bg-cover bg-empty-state-chart"></div>
-          <p className="text-gray-400 text-sm">{emptyText}</p>
-        </div>
+        <EmptyState
+          state="bg-empty-state-chart"
+          className="py-12"
+          message={emptyText}
+        />
       ) : (
         <ResponsiveContainer width="100%" height={350}>
           <BarChart

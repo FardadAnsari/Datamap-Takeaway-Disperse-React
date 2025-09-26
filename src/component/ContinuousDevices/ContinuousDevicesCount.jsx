@@ -253,7 +253,10 @@ const fetchUKArchivePerCompany = async (companies) => {
   const settled = await Promise.allSettled(tasks.map((t) => t.req));
   const grouped = {};
   settled.forEach((res, idx) => {
-    const { label, endpoint } = tasks[idx];
+    const {
+      label,
+      // endpoint
+    } = tasks[idx];
     if (res.status === "fulfilled" && Array.isArray(res.value?.data)) {
       grouped[label] = res.value.data;
       // logFetch(label, endpoint, {}, "success", { rows: grouped[label].length });

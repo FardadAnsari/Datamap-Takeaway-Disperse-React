@@ -24,9 +24,7 @@ const ShopNameEdit = ({ locationId, shopName }) => {
   }, [shopName, reset]);
 
   const onSubmit = async (data) => {
-    const formattedData = {
-      title: data.title,
-    };
+    const formattedData = { title: data.title };
 
     try {
       const accessToken = sessionStorage.getItem("accessToken");
@@ -39,7 +37,7 @@ const ShopNameEdit = ({ locationId, shopName }) => {
           },
         }
       );
-      // console.log("Data successfully submitted:", response.data);
+
       if (response.status === 200) {
         toast.success("Your changes have been applied.");
         reset();
@@ -81,12 +79,18 @@ const ShopNameEdit = ({ locationId, shopName }) => {
         </div>
         <button
           type="submit"
-          className="px-6 py-2 justify-center items-center bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition"
+          aria-busy={isSubmitting}
           disabled={isSubmitting}
+          className={`px-6 py-2 justify-center items-center text-white rounded-lg transition ${
+            isSubmitting
+              ? "bg-orange-400 cursor-not-allowed"
+              : "bg-orange-500 hover:bg-orange-600"
+          }`}
         >
-          Save
+          {isSubmitting ? "Saving..." : "Save"}
         </button>
       </form>
+
       {errors.title && (
         <p className="text-red-500 text-sm mt-1">{errors.title.message}</p>
       )}

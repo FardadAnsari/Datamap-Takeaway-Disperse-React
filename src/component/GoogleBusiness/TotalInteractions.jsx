@@ -5,15 +5,14 @@ import { TbSum } from "react-icons/tb";
 
 const TotalInteractions = ({ webCallCount }) => {
   return (
-    <>
-      <p className="text-xl font-medium caption-top p-2">Total Interactions</p>
-      <div className="flex flex-col gap-3 mx-4">
-        <div className="flex items-center justify-between">
-          <div className="flex gap-2 items-center">
+    <div className="w-full flex flex-col gap-3 p-4">
+      <p className="text-lg font-medium">Total Interactions</p>
+      <div className="w-full flex justfiy-between gap-3">
+        <div className="w-1/3 flex flex-col items-center justify-between">
+          <div className="flex gap-1 items-center">
             <PiPhoneCallLight size={22} />
-            <p className="text-lg">Total Call Clicks</p>
+            <p className="text-md">Call Clicks</p>
           </div>
-
           <div className="flex justify-center py-2 text-2xl font-medium">
             <CountUp
               start={0}
@@ -22,10 +21,10 @@ const TotalInteractions = ({ webCallCount }) => {
             />
           </div>
         </div>
-        <div className="flex items-center justify-between">
-          <div className="flex gap-2 items-center">
+        <div className="w-1/3 flex flex-col items-center justify-between">
+          <div className="flex gap-1 items-center">
             <PiCursorClickLight size={22} />
-            <p className="text-lg">Total Website Clicks</p>
+            <p className="text-md">Website Clicks</p>
           </div>
           <div className="flex justify-center py-2 text-2xl font-medium">
             <CountUp
@@ -35,10 +34,10 @@ const TotalInteractions = ({ webCallCount }) => {
             />
           </div>
         </div>
-        <div className="flex items-center justify-between">
-          <div className="flex gap-2 items-center">
+        <div className="w-1/3 flex flex-col items-center justify-between">
+          <div className="flex gap-1 items-center">
             <TbSum size={22} />
-            <p className="text-lg">Total All</p>
+            <p className="text-md">Total All</p>
           </div>
 
           <div className="flex justify-center py-2 text-2xl font-medium">
@@ -53,7 +52,7 @@ const TotalInteractions = ({ webCallCount }) => {
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

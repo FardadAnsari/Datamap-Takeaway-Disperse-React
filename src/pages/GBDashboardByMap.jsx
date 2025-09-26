@@ -1,19 +1,33 @@
 import { useEffect, useState } from "react";
 import instance from "../api/api";
-import PieChartSection from "../component/GoogleBusiness/PieChartSection";
+import PieChartSection from "../general-components/PieChartSection";
 import KeywordsAnalytics from "../component/GoogleBusiness/KeywordsAnalytics";
 import TotalInteractions from "../component/GoogleBusiness/TotalInteractions";
-import { HiOutlineEnvelope } from "react-icons/hi2";
 import { IoInformationCircleSharp } from "react-icons/io5";
-import { PiPhone } from "react-icons/pi";
 import BusinessHoursDisplay from "../component/GoogleBusiness/BusinessHoursDisplay";
 import { useParams } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import GoogleBusinessModal from "../component/GoogleBusiness/GoogleBusinessModal";
 import { useUser } from "../api/userPermission";
 import { LuPencil, LuPencilLine } from "react-icons/lu";
-import { MdOutlinePermMedia, MdPermMedia } from "react-icons/md";
+import { MdOutlinePermMedia, MdPermMedia, MdVerified } from "react-icons/md";
 import GoogleBusinessUploadModal from "../component/GoogleBusiness/GoogleBusinessUploadModal";
+import EmptyState from "../general-components/EmptyState";
+import { ThreeDots } from "react-loader-spinner";
+
+// --- Loader (same look/feel as in GBDashboard) ---
+const Loader = ({ className = "", size = 50 }) => (
+  <div className={`grid place-items-center ${className}`}>
+    <ThreeDots
+      visible
+      height={size}
+      width={size}
+      color="#ffa500"
+      radius="9"
+      ariaLabel="loading"
+    />
+  </div>
+);
 
 const GBDashboardByMap = () => {
   const selectedAcc = { value: "accounts/103526686887949354169" };
@@ -21,212 +35,236 @@ const GBDashboardByMap = () => {
 
   const [editOpen, setEditOpen] = useState(null);
   const [shopTitle, setShopTitle] = useState("");
-
-  const handleEditOpen = (id) => {
-    if (editOpen === id) {
-      setEditOpen(null);
-    } else {
-      setEditOpen(id);
-    }
-  };
+  const handleEditOpen = (id) =>
+    setEditOpen((prev) => (prev === id ? null : id));
 
   const [verifications, setVerifications] = useState([]);
   const [isVerified, setIsVerified] = useState(true);
-
-  useEffect(() => {
-    const fetchVerificationData = async () => {
-      try {
-        const response = await instance.get(
-          `api/v1/google/verifications/${locationId}`
-        );
-
-        // Handle empty response.data or missing verifications property
-        if (response.data && response.data.verifications) {
-          setVerifications(response.data.verifications);
-        } else {
-          setVerifications([]); // Set verifications to an empty array if data is invalid
-        }
-
-        // Update isVerified based on response.data
-        if (response.data && Object.keys(response.data).length > 0) {
-          setIsVerified(true);
-        } else {
-          setIsVerified(false);
-        }
-      } catch (error) {
-        console.error(error);
-        setVerifications([]); // Set verifications to an empty array on error
-        setIsVerified(false); // Set isVerified to false on error
-      }
-    };
-    fetchVerificationData();
-  }, [locationId]);
-
-  // Move this logic into a useEffect
-  useEffect(() => {
-    if (verifications.length > 0 && verifications[0]?.state === "COMPLETED") {
-      setIsVerified(true);
-    } else {
-      setIsVerified(false);
-    }
-  }, [verifications]); // Only run this effect when `verifications` changes
-
-  const [activeIndexSearch, setActiveIndexSearch] = useState(0);
-  const onPieEnterSearch = (_, index) => setActiveIndexSearch(index);
-
-  const [activeIndexMap, setActiveIndexMap] = useState(0);
-  const onPieEnterMap = (_, index) => setActiveIndexMap(index);
 
   const [shopActivityStatus, setShopActivityStatus] = useState("");
   const { user } = useUser();
 
   const accessToken = sessionStorage.getItem("accessToken");
+
+  // --- NEW: Detail loaders (Shop info + Hours + badge) ---
+  const [isLoadingTitle, setIsLoadingTitle] = useState(false);
+  const [isLoadingOpenStatus, setIsLoadingOpenStatus] = useState(false);
+  const [isLoadingAttributes, setIsLoadingAttributes] = useState(false);
+  const [isLoadingVerification, setIsLoadingVerification] = useState(false);
+  const isLoadingShopDetails =
+    isLoadingTitle || isLoadingOpenStatus || isLoadingAttributes;
+
+  // --- Verifications (with Authorization header) ---
   useEffect(() => {
+    if (!locationId) return;
+    (async () => {
+      setIsLoadingVerification(true);
+      try {
+        const response = await instance.get(
+          `api/v1/google/verifications/${locationId}`,
+          { headers: { Authorization: `Bearer ${accessToken}` } }
+        );
+
+        if (response.data && response.data.verifications) {
+          setVerifications(response.data.verifications);
+        } else {
+          setVerifications([]);
+        }
+        setIsVerified(
+          !!(response.data && Object.keys(response.data).length > 0)
+        );
+      } catch (error) {
+        console.error(error);
+        setVerifications([]);
+        setIsVerified(false);
+      } finally {
+        setIsLoadingVerification(false);
+      }
+    })();
+  }, [locationId, accessToken]);
+
+  useEffect(() => {
+    setIsVerified(
+      verifications.length > 0 && verifications[0]?.state === "COMPLETED"
+    );
+  }, [verifications]);
+
+  // --- Title ---
+  useEffect(() => {
+    if (!locationId) return;
+    setIsLoadingTitle(true);
     instance
       .get(`/api/v1/google/get-title/${locationId}`, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
+        headers: { Authorization: `Bearer ${accessToken}` },
       })
-      .then((response) => {
-        // console.log(response.data.location.title);
-
-        setShopTitle(response.data.location.title);
-        // console.log(shopTitle);
+      .then((response) => setShopTitle(response?.data?.location?.title || ""))
+      .catch((e) => {
+        console.error(e);
+        setShopTitle("");
       })
-      .catch();
-  }, [locationId]);
+      .finally(() => setIsLoadingTitle(false));
+  }, [locationId, accessToken]);
 
+  // --- Open status ---
   useEffect(() => {
+    if (!locationId) return;
+    setIsLoadingOpenStatus(true);
     instance
       .get(`api/v1/google/get-update-openstatus/${locationId}`, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
+        headers: { Authorization: `Bearer ${accessToken}` },
       })
-      .then((response) => {
-        setShopActivityStatus(response.data.location.openInfo.status);
+      .then((response) =>
+        setShopActivityStatus(response?.data?.location?.openInfo?.status || "")
+      )
+      .catch((e) => {
+        console.error(e);
+        setShopActivityStatus("");
       })
-      .catch();
-  }, [locationId]);
+      .finally(() => setIsLoadingOpenStatus(false));
+  }, [locationId, accessToken]);
 
   const [shopPhone, setShopPhone] = useState();
   const [shopAddress, setShopAddress] = useState();
   const [weburl, setWeburl] = useState();
 
+  // --- Attributes ---
   useEffect(() => {
+    if (!locationId) return;
+    setIsLoadingAttributes(true);
     instance
       .get(`api/v1/google/get-shop-attribute/${locationId}`, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
+        headers: { Authorization: `Bearer ${accessToken}` },
       })
       .then((response) => {
-        setShopPhone(response.data.location.phoneNumbers);
-        setShopAddress(response.data.location.storefrontAddress);
-        setWeburl(response.data.location.websiteUri);
-      });
-  }, [locationId]);
+        setShopPhone(response?.data?.location?.phoneNumbers);
+        setShopAddress(response?.data?.location?.storefrontAddress);
+        setWeburl(response?.data?.location?.websiteUri);
+      })
+      .catch((e) => {
+        console.error(e);
+        setShopPhone(undefined);
+        setShopAddress(undefined);
+        setWeburl(undefined);
+      })
+      .finally(() => setIsLoadingAttributes(false));
+  }, [locationId, accessToken]);
 
+  // --- Search count ---
   const [isLoadingSearchCount, setIsLoadingSearchCount] = useState(false);
   const [notAllowedSearchCount, setNotAllowedSearchCount] = useState(false);
   const [searchCount, setSearchCount] = useState({});
-
   useEffect(() => {
-    const fetchSearchData = async () => {
-      setIsLoadingSearchCount(false);
-
+    if (!locationId) return;
+    const controller = new AbortController();
+    (async () => {
       try {
+        setIsLoadingSearchCount(true);
         const response = await instance.get(
           `api/v1/google/metric/mob-desk-search-count/${locationId}`,
           {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-            },
+            headers: { Authorization: `Bearer ${accessToken}` },
+            signal: controller.signal,
           }
         );
-
-        setSearchCount(response.data);
+        setSearchCount(response.data || {});
+        setNotAllowedSearchCount(false);
       } catch (error) {
-        console.error(error);
-        error?.status === 403 && setNotAllowedSearchCount(true);
+        if (error.name !== "CanceledError" && error.name !== "AbortError") {
+          console.error(error);
+          const status = error?.response?.status || error?.status;
+          setNotAllowedSearchCount(status === 403);
+          setSearchCount({});
+        }
       } finally {
-        setIsLoadingSearchCount(true);
+        setIsLoadingSearchCount(false);
       }
-    };
-    fetchSearchData();
-  }, []);
+    })();
+    return () => controller.abort();
+  }, [locationId, accessToken]);
 
+  // --- Map count ---
   const [isLoadingMapCount, setIsLoadingMapCount] = useState(false);
   const [notAllowedMapCount, setNotAllowedMapCount] = useState(false);
   const [mapCount, setMapCount] = useState({});
-
   useEffect(() => {
-    const fetchMapData = async () => {
-      setIsLoadingMapCount(false);
-
+    if (!locationId) return;
+    const controller = new AbortController();
+    (async () => {
       try {
+        setIsLoadingMapCount(true);
         const response = await instance.get(
           `/api/v1/google/metric/mob-desk-map-count/${locationId}`,
           {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-            },
+            headers: { Authorization: `Bearer ${accessToken}` },
+            signal: controller.signal,
           }
         );
-
-        setMapCount(response.data);
+        setMapCount(response.data || {});
+        setNotAllowedMapCount(false);
       } catch (error) {
-        console.error(error);
-        error?.status === 403 && setNotAllowedMapCount(true);
+        if (error.name !== "CanceledError" && error.name !== "AbortError") {
+          console.error(error);
+          const status = error?.response?.status || error?.status;
+          setNotAllowedMapCount(status === 403);
+          setMapCount({});
+        }
       } finally {
-        setIsLoadingMapCount(true);
+        setIsLoadingMapCount(false);
       }
-    };
-    fetchMapData();
-  }, []);
+    })();
+    return () => controller.abort();
+  }, [locationId, accessToken]);
+
+  // --- Web/Call count ---
+  const [isLoadingWebCallCount, setIsLoadingWebCallCount] = useState(false);
+  const [notAllowedWebCallCount, setNotAllowedWebCallCount] = useState(false);
+  const [webCallCount, setWebCallCount] = useState({});
+  useEffect(() => {
+    if (!locationId) return;
+    const controller = new AbortController();
+    (async () => {
+      try {
+        setIsLoadingWebCallCount(true);
+        const response = await instance.get(
+          `/api/v1/google/metric/web-call-count/${locationId}`,
+          {
+            headers: { Authorization: `Bearer ${accessToken}` },
+            signal: controller.signal,
+          }
+        );
+        setWebCallCount(response?.data || {});
+        setNotAllowedWebCallCount(false);
+      } catch (error) {
+        if (error.name !== "CanceledError" && error.name !== "AbortError") {
+          console.error(error);
+          const status = error?.response?.status || error?.status;
+          setNotAllowedWebCallCount(status === 403);
+          setWebCallCount({});
+        }
+      } finally {
+        setIsLoadingWebCallCount(false);
+      }
+    })();
+    return () => controller.abort();
+  }, [locationId, accessToken]);
 
   const googleSearchData = [
     { name: "Desktop", value: searchCount.BUSINESS_IMPRESSIONS_DESKTOP_SEARCH },
     { name: "Mobile", value: searchCount.BUSINESS_IMPRESSIONS_MOBILE_SEARCH },
   ];
-
   const googleMapData = [
     { name: "Desktop", value: mapCount.BUSINESS_IMPRESSIONS_DESKTOP_MAPS },
     { name: "Mobile", value: mapCount.BUSINESS_IMPRESSIONS_MOBILE_MAPS },
   ];
 
-  const [isLoadingWebCallCount, setIsLoadingWebCallCount] = useState(false);
-  const [notAllowedWebCallCount, setNotAllowedWebCallCount] = useState(false);
-  const [webCallCount, setWebCallCount] = useState({});
-
-  useEffect(() => {
-    const fetchWebCallData = async () => {
-      setIsLoadingWebCallCount(false);
-
-      try {
-        const response = await instance.get(
-          `/api/v1/google/metric/web-call-count/${locationId}`,
-          {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-            },
-          }
-        );
-        setWebCallCount(response?.data);
-      } catch (error) {
-        console.error(error);
-        error?.status === 403 && setNotAllowedWebCallCount(true);
-      } finally {
-        setIsLoadingWebCallCount(true);
-      }
-    };
-    fetchWebCallData();
-  }, [locationId]);
+  // Helper for address lines that might be array
+  const addressLines = Array.isArray(shopAddress?.addressLines)
+    ? shopAddress.addressLines.join(", ")
+    : shopAddress?.addressLines || "";
 
   return (
     <div className="max-w-screen flex flex-col h-full bg-white font-sans bg-stone-50">
-      <div className="flex justify-between px-12 py-6 mb-6 border-solid bg-white shadow">
+      <div className="flex justify-between px-12 py-6 mb-6 border-solid bg-white shadow-md">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 bg-cover bg-center bg-google-business"></div>
           <p className="text-xl md:text-xl lg:text-2xl font-medium m-0">
@@ -234,18 +272,22 @@ const GBDashboardByMap = () => {
           </p>
         </div>
       </div>
-      <div className="flex flex-col md:gap-6 lg:gap-8 mx-4 lg:mx-6 md:grid md:grid-cols-6 md:grid-rows-27 lg:grid lg:grid-cols-6  pb-6">
-        <div className="md:col-span-3 md:row-span-6 md:row-start-2 md:col-start-1 lg:col-span-2 lg:row-span-3 lg:col-start-5 rounded-lg bg-white shadow-md">
-          <div className="flex flex-col px-4 pt-4">
-            <div className="h-10 flex gap-2 justify-between items-center pb-4">
+
+      <div className="flex gap-6 mx-4 pb-6">
+        <div className="w-2/5 flex flex-col gap-6">
+          {/* Google Business Details */}
+          <div className="flex flex-col rounded-lg bg-white shadow-lg border p-4">
+            <div className="flex gap-2 justify-between items-center">
               <p className="text-xl font-medium">Google Business Details</p>
               <div className="flex gap-2">
-                {isVerified ? (
-                  <div className="px-2 py-1 bg-green-100 rounded-lg">
-                    <p className="text-green-800">Verified</p>
+                {isLoadingVerification ? (
+                  <Loader size={28} />
+                ) : isVerified ? (
+                  <div className="px-2 py-1 rounded-lg">
+                    <MdVerified color="orange" size={25} />
                   </div>
                 ) : null}
-                {user?.access?.gbDashboardEdit && (
+                {user?.access?.gbDashboardEdit && isVerified && (
                   <button
                     onClick={() => handleEditOpen(1)}
                     className={`flex justify-between items-center py-2 px-2 text-lg text-orange-500 text-left transition ease-in delay-190 bg-orange-100 rounded-lg`}
@@ -267,14 +309,7 @@ const GBDashboardByMap = () => {
                 )}
               </div>
             </div>
-            {user?.access?.gbDashboardEdit && (
-              <div className="flex items-center gap-2 border-2 border-orange-300 p-2 rounded-lg">
-                <IoInformationCircleSharp color="orange" size={26} />
-                <p className="text-base">
-                  Edits will appear after at least 10 minutes or more.
-                </p>
-              </div>
-            )}
+
             {editOpen === 1 && (
               <GoogleBusinessModal
                 isOpen={true}
@@ -282,10 +317,11 @@ const GBDashboardByMap = () => {
                 locationId={locationId}
                 shopTitle={shopTitle}
                 webUrl={weburl}
-                phoneNumber={shopPhone.primaryPhone}
+                phoneNumber={shopPhone?.primaryPhone}
                 shopAddress={shopAddress}
               />
             )}
+
             {editOpen === 2 && (
               <GoogleBusinessUploadModal
                 isOpen={true}
@@ -295,123 +331,172 @@ const GBDashboardByMap = () => {
               />
             )}
 
-            <div className="bodrer-t-2">
-              <p className="text-lg py-2">Shop Information</p>
-              <div className="flex justify-between items-center py-2">
-                <div className="flex">
-                  <p className="text-base text-gray-500">Shop Name</p>
+            {user?.access?.gbDashboardEdit && (
+              <div className="flex items-center gap-2 border-2 border-orange-300 p-2 rounded-lg mt-3">
+                <IoInformationCircleSharp color="orange" size={26} />
+                <p className="text-md">
+                  Edits will appear after at least 10 minutes or more.
+                </p>
+              </div>
+            )}
+
+            {/* Shop Information + Opening Hours gated by loader */}
+            {isLoadingShopDetails ? (
+              <Loader className="py-56" />
+            ) : (
+              <>
+                <p className="text-lg font-medium pt-2">Shop Information</p>
+                <div className="flex justify-between items-center p-2">
+                  <div className="flex">
+                    <p className="text-md text-gray-500">Shop Name</p>
+                  </div>
+                  <p className="font-medium">{shopTitle}</p>
+                </div>
+                <div className="flex justify-between items-center p-2">
+                  <div className="flex">
+                    <p className="text-md text-gray-500">Phone Number</p>
+                  </div>
+                  <p className="font-medium">{shopPhone?.primaryPhone}</p>
+                </div>
+                <div className="flex justify-between items-center p-2">
+                  <div className="flex">
+                    <p className="text-md text-gray-500">Website</p>
+                  </div>
+                  <a
+                    href={weburl}
+                    target="_blank"
+                    className="text-blue-400 font-base underline decoration-solid"
+                  >
+                    {weburl}
+                  </a>
+                </div>
+                <div className="flex justify-between gap-12 items-start p-2">
+                  <div className="flex">
+                    <p className="text-md text-gray-500">Address</p>
+                  </div>
+                  <p className="font-medium">{`${addressLines || ""} ${shopAddress?.locality || ""} ${shopAddress?.postalCode || ""}`}</p>
                 </div>
 
-                <p>{shopTitle}</p>
-              </div>
-              <div className="flex justify-between items-center py-2">
-                <div className="flex">
-                  <p className="text-base text-gray-500">Phone Number</p>
+                <hr />
+                <div>
+                  <div className="pt-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-lg font-medium">Opening Hours</span>
+                      <div className="flex gap-2 items-center">
+                        {shopActivityStatus === "OPEN" ? (
+                          <p className="text-green-500">Open</p>
+                        ) : shopActivityStatus === "CLOSE" ? (
+                          <p className="text-red-500">Close</p>
+                        ) : shopActivityStatus === "CLOSED_PERMANENTLY" ? (
+                          <p className="text-red-500">Closed Permanently</p>
+                        ) : (
+                          <p></p>
+                        )}
+                      </div>
+                    </div>
+                    <BusinessHoursDisplay locationId={locationId} />
+                  </div>
                 </div>
+              </>
+            )}
+          </div>
 
-                <p>{shopPhone?.primaryPhone}</p>
-              </div>
-              <div className="flex justify-between items-center py-2">
-                <div className="flex">
-                  <p className="text-base text-gray-500">Website</p>
-                </div>
-
-                <p>{weburl}</p>
-              </div>
-              <div className="flex justify-between gap-12 items-start py-2">
-                <div className="flex">
-                  <p className="text-base text-gray-500">Address</p>
-                </div>
-                <p>{`${shopAddress?.addressLines || ""} ${shopAddress?.locality || ""} ${shopAddress?.postalCode || ""}`}</p>
-              </div>
-            </div>
-            <div className="border-t-2">
-              <div className="flex justify-between items-center py-2">
-                <span className="text-lg">Opening Hours</span>
-                <div className="flex gap-2 items-center">
-                  {shopActivityStatus === "OPEN" ? (
-                    <p className="text-green-500">Open</p>
-                  ) : shopActivityStatus === "CLOSE" ? (
-                    <p className="text-red-500">Close</p>
-                  ) : shopActivityStatus === "CLOSED_PERMANENTLY" ? (
-                    <p className="text-red-500">Closed Permanently</p>
-                  ) : (
-                    <p></p>
-                  )}
-                </div>
-              </div>
-              <BusinessHoursDisplay locationId={locationId} />
-            </div>
+          {/* TotalInteractions */}
+          <div className="rounded-lg bg-white shadow-lg border">
+            {!notAllowedWebCallCount ? (
+              isLoadingWebCallCount ? (
+                <Loader className="py-16" />
+              ) : (
+                <TotalInteractions webCallCount={webCallCount} />
+              )
+            ) : (
+              <EmptyState
+                state="bg-no-access"
+                message="You don’t have access to this section."
+                className="py-6"
+              />
+            )}
           </div>
         </div>
-        <div className="p-4 flex flex-col gap-3 md:col-span-3 md:col-start-1 md:row-span-6 md:row-start-8 lg:row-span-1 lg:col-span-4 lg:row-start-1 rounded-lg bg-white shadow-md">
-          <p className="text-xl">{shopTitle}</p>
-          <div className="flex gap-6">
-            <div className="flex gap-2">
-              <div className="flex gap-1 items-center">
-                <PiPhone size={22} color="gray" />
-                <p className="text-base text-gray-500">Phone No.</p>
-              </div>
-              <p>{shopPhone?.primaryPhone}</p>
+
+        <div className="w-3/5 flex flex-col gap-6">
+          <div className="w-full flex gap-6">
+            {/* By searching on Google */}
+            <div className="w-full flex flex-col rounded-lg bg-white shadow-lg border h-[480px]">
+              {!notAllowedSearchCount ? (
+                isLoadingSearchCount ? (
+                  <Loader className="h-full" />
+                ) : (
+                  <>
+                    <p className="text-xl font-medium p-4">
+                      By searching on Google
+                    </p>
+                    <PieChartSection
+                      data={googleSearchData}
+                      variant="center"
+                      innerRadius={100}
+                      outerRadius={130}
+                      groupUnderPercent={0}
+                      showLegend={true}
+                      centerLabelLines={({ name, value, percent }) => [
+                        name,
+                        `${value} user`,
+                        `${(percent * 100).toFixed(2)}%`,
+                      ]}
+                    />
+                  </>
+                )
+              ) : (
+                <EmptyState
+                  state="bg-no-access"
+                  message="You don’t have access to this section."
+                  className="h-full"
+                />
+              )}
             </div>
-            <span className="text-gray-500">|</span>
-            <div className="flex gap-2">
-              <div className="flex gap-1 items-center">
-                <HiOutlineEnvelope size={22} color="gray" />
-                <p className="text-base text-gray-500">Postcode</p>
-              </div>
-              <p>{shopAddress?.postalCode}</p>
+
+            {/* By using Google map service */}
+            <div className="w-full h-full flex flex-col rounded-lg bg-white shadow-lg border h-[480px]">
+              {!notAllowedMapCount ? (
+                isLoadingMapCount ? (
+                  <Loader className="h-full" />
+                ) : (
+                  <>
+                    <p className="text-xl font-medium p-4">
+                      By using Google map service
+                    </p>
+                    <PieChartSection
+                      data={googleMapData}
+                      variant="center"
+                      innerRadius={100}
+                      outerRadius={130}
+                      groupUnderPercent={0}
+                      showLegend={true}
+                      centerLabelLines={({ name, value, percent }) => [
+                        name,
+                        `${value} user`,
+                        `${(percent * 100).toFixed(2)}%`,
+                      ]}
+                    />
+                  </>
+                )
+              ) : (
+                <EmptyState
+                  state="bg-no-access"
+                  message="You don’t have access to this section."
+                  className="h-full"
+                />
+              )}
             </div>
           </div>
-        </div>
-        <div className="p-4 flex flex-col md:col-span-3 md:col-start-1 md:row-span-6 md:row-start-8 lg:row-span-2 lg:col-span-2 lg:row-start-2 rounded-lg bg-white shadow-md">
-          {!notAllowedSearchCount ? (
-            <>
-              <p className="text-xl font-medium">By searching on Google</p>
-              <PieChartSection
-                activeIndex={activeIndexSearch}
-                data={googleSearchData}
-                onPieEnter={onPieEnterSearch}
-              />
-            </>
-          ) : (
-            <div className="h-full flex flex-col justify-center items-center">
-              <div className="w-44 h-44 bg-cover bg-center bg-no-access"></div>
-              <p>You don’t access for this section</p>
-            </div>
-          )}
-        </div>
-        <div className="p-4 flex flex-col md:col-span-3 md:row-span-6 md:row-start-8 md:col-start-4 lg:row-span-2 lg:col-span-2 lg:col-start-3 lg:row-start-2 md:row-start-8 rounded-lg bg-white shadow-md">
-          {!notAllowedMapCount ? (
-            <>
-              <p className="text-xl font-medium">By using Google map service</p>
-              <PieChartSection
-                activeIndex={activeIndexMap}
-                data={googleMapData}
-                onPieEnter={onPieEnterMap}
-              />
-            </>
-          ) : (
-            <div className="h-full flex flex-col justify-center items-center">
-              <div className="w-44 h-44 bg-cover bg-center bg-no-access"></div>
-              <p>You don’t access for this section</p>
-            </div>
-          )}
-        </div>
-        <div className="md:row-start-14 md:row-span-6 md:col-span-6 lg:col-span-4 lg:row-span-2 lg:row-start-4 rounded-lg bg-white shadow-md">
-          <KeywordsAnalytics locationId={locationId} />
-        </div>
-        <div className="md:row-start-2 md:col-span-3 md:row-span-6 md:col-start-4 lg:row-start-4 lg:col-span-2 lg:row-span-1 lg:col-start-5 rounded-lg p-2 bg-white shadow-md">
-          {!notAllowedWebCallCount ? (
-            <TotalInteractions webCallCount={webCallCount} />
-          ) : (
-            <div className="flex flex-col justify-center items-center py-4">
-              <div className="w-44 h-44 bg-cover bg-center bg-no-access"></div>
-              <p>You don’t access for this section</p>
-            </div>
-          )}
+
+          {/* Keywords Analytics */}
+          <div className="rounded-lg bg-white shadow-lg border">
+            <KeywordsAnalytics locationId={locationId} />
+          </div>
         </div>
       </div>
+
       <ToastContainer
         position="top-center"
         autoClose={3000}

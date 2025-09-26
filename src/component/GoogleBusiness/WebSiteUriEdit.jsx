@@ -9,7 +9,7 @@ const WebSiteUriEdit = ({ locationId, webUrl }) => {
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isSubmitting },
     reset,
   } = useForm({
     defaultValues: {
@@ -18,41 +18,39 @@ const WebSiteUriEdit = ({ locationId, webUrl }) => {
   });
 
   useEffect(() => {
-    reset({
-      websiteUri: webUrl || "",
-    });
+    reset({ websiteUri: webUrl || "" });
   }, [webUrl, reset]);
 
-  const onSubmit = (data) => {
-    const formattedData = {
-      websiteUri: data.websiteUri,
-    };
+  const onSubmit = async (data) => {
+    const formattedData = { websiteUri: data.websiteUri };
     const accessToken = sessionStorage.getItem("accessToken");
-    instance
-      .post(`/api/v1/google/update-websurl/${locationId}/`, formattedData, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      })
-      .then((response) => {
-        // console.log("Data successfully submitted:", response.data);
-        if (response.status === 200) {
-          toast.success("Your changes have been applied.");
-          reset();
-        } else {
-          toast.error("Error applying changes. Please try again later.");
+
+    try {
+      const response = await instance.post(
+        `/api/v1/google/update-websurl/${locationId}/`,
+        formattedData,
+        {
+          headers: { Authorization: `Bearer ${accessToken}` },
         }
-      })
-      .catch((error) => {
-        console.error(error);
-        error.status === 401 &&
-          toast.error(
-            "Your tokens have been exhausted. Please contact the R&D department to resolve this issue."
-          ) &&
-          setTimeout(() => {
-            navigate("/login");
-          }, 5000);
-      });
+      );
+
+      if (response.status === 200) {
+        toast.success("Your changes have been applied.");
+        reset();
+      } else {
+        toast.error("Error applying changes. Please try again later.");
+      }
+    } catch (error) {
+      console.error(error);
+      if (error.response?.status === 401) {
+        toast.error(
+          "Your tokens have been exhausted. Please contact the R&D department to resolve this issue."
+        );
+        setTimeout(() => navigate("/login"), 5000);
+      } else {
+        toast.error("Error applying changes. Please try again later.");
+      }
+    }
   };
 
   return (
@@ -64,19 +62,31 @@ const WebSiteUriEdit = ({ locationId, webUrl }) => {
         <label>Website</label>
         <input
           type="text"
-          {...register("websiteUri", { required: true })}
-          className="border-gray-300 p-2 rounded-lg"
+          {...register("websiteUri", { required: "Website URL is required" })}
+          className={`border ${
+            errors.websiteUri ? "border-red-500" : "border-gray-300"
+          } p-2 rounded-lg`}
           placeholder="Enter new website URL"
+          disabled={isSubmitting}
         />
+        {errors.websiteUri && (
+          <span className="text-red-500 text-sm mt-1">
+            {errors.websiteUri.message}
+          </span>
+        )}
       </div>
-      {errors.websiteUri && (
-        <span className="text-red-500">This field is required</span>
-      )}
+
       <button
         type="submit"
-        className="px-6 py-2 justify-center items-center bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition"
+        aria-busy={isSubmitting}
+        disabled={isSubmitting}
+        className={`px-6 py-2 justify-center items-center text-white rounded-lg transition ${
+          isSubmitting
+            ? "bg-orange-400 cursor-not-allowed"
+            : "bg-orange-500 hover:bg-orange-600"
+        }`}
       >
-        Save
+        {isSubmitting ? "Saving..." : "Save"}
       </button>
     </form>
   );

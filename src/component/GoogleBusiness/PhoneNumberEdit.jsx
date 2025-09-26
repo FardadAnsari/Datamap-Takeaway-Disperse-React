@@ -10,7 +10,7 @@ const PhoneNumberEdit = ({ locationId, phoneNumber }) => {
     register,
     handleSubmit,
     reset,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm({
     defaultValues: {
       primaryPhone: phoneNumber,
@@ -21,38 +21,41 @@ const PhoneNumberEdit = ({ locationId, phoneNumber }) => {
     reset({ primaryPhone: phoneNumber });
   }, [phoneNumber, reset]);
 
-  const onSubmit = (data) => {
+  const onSubmit = async (data) => {
     const formattedData = {
       phoneNumbers: {
         primaryPhone: data.primaryPhone,
       },
     };
+
     const accessToken = sessionStorage.getItem("accessToken");
-    instance
-      .post(`/api/v1/google/update-phonenumber/${locationId}/`, formattedData, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      })
-      .then((response) => {
-        // console.log("Data successfully submitted:", response.data);
-        if (response.status === 200) {
-          toast.success("Your changes have been applied.");
-          reset();
-        } else {
-          toast.error("Error applying changes. Please try again later.");
+
+    try {
+      const response = await instance.post(
+        `/api/v1/google/update-phonenumber/${locationId}/`,
+        formattedData,
+        {
+          headers: { Authorization: `Bearer ${accessToken}` },
         }
-      })
-      .catch((error) => {
-        console.error(error);
-        error.status === 401 &&
-          toast.error(
-            "Your tokens have been exhausted. Please contact the R&D department to resolve this issue."
-          ) &&
-          setTimeout(() => {
-            navigate("/login");
-          }, 5000);
-      });
+      );
+
+      if (response.status === 200) {
+        toast.success("Your changes have been applied.");
+        reset();
+      } else {
+        toast.error("Error applying changes. Please try again later.");
+      }
+    } catch (error) {
+      console.error(error);
+      if (error.response?.status === 401) {
+        toast.error(
+          "Your tokens have been exhausted. Please contact the R&D department to resolve this issue."
+        );
+        setTimeout(() => navigate("/login"), 5000);
+      } else {
+        toast.error("Error applying changes. Please try again later.");
+      }
+    }
   };
 
   return (
@@ -72,17 +75,33 @@ const PhoneNumberEdit = ({ locationId, phoneNumber }) => {
                 message: "Only numbers are allowed.",
               },
             })}
-            className={`border ${errors.primaryPhone ? "border-red-500" : "border-gray-300"} rounded-lg p-2`}
-            defaultValue={phoneNumber}
+            className={`border ${
+              errors.primaryPhone ? "border-red-500" : "border-gray-300"
+            } rounded-lg p-2`}
+            placeholder="Enter phone number"
+            disabled={isSubmitting}
           />
+          {errors.primaryPhone && (
+            <p className="text-red-500 text-sm mt-1">
+              {errors.primaryPhone.message}
+            </p>
+          )}
         </div>
+
         <button
           type="submit"
-          className="px-6 py-2 justify-center items-center bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition"
+          aria-busy={isSubmitting}
+          disabled={isSubmitting}
+          className={`px-6 py-2 justify-center items-center text-white rounded-lg transition ${
+            isSubmitting
+              ? "bg-orange-400 cursor-not-allowed"
+              : "bg-orange-500 hover:bg-orange-600"
+          }`}
         >
-          Save
+          {isSubmitting ? "Saving..." : "Save"}
         </button>
       </form>
+
       <ToastContainer
         position="top-center"
         autoClose={3000}
@@ -95,11 +114,6 @@ const PhoneNumberEdit = ({ locationId, phoneNumber }) => {
         pauseOnHover
         theme="light"
       />
-      {errors.primaryPhone && (
-        <p className="text-red-500 text-sm mt-1">
-          {errors.primaryPhone.message}
-        </p>
-      )}
     </>
   );
 };
