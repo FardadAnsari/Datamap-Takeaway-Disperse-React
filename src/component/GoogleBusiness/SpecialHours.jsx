@@ -1,7 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { FaChevronLeft, FaChevronRight, FaRegTrashAlt } from "react-icons/fa";
 import { LuPencil } from "react-icons/lu";
+import Select from "react-select";
 import instance from "../../api/api";
+import AutoCompletionCustomStyles from "../AutoCompletionCustomStyles";
+import EmptyState from "../../general-components/EmptyState";
+import { toast, ToastContainer } from "react-toastify";
 
 // ---------- helpers ----------
 const pad2 = (n) => String(n).padStart(2, "0");
@@ -33,7 +37,7 @@ const toInt = (v, fallback = 0) => {
   return Number.isFinite(n) ? n : fallback;
 };
 
-// ---------- NEW: Skeleton line (same style you used elsewhere) ----------
+// ---------- Skeleton line ----------
 const SkeletonLine = ({ className = "" }) => (
   <div
     className={`w-full h-4 rounded bg-gray-200/80 animate-pulse ${className}`}
@@ -92,6 +96,36 @@ function MiniCalendar({ value, onChange, markedDates = [] }) {
     return markedDates.includes(iso);
   };
 
+  // ---- react-select options & common props ----
+  const monthOptions = useMemo(
+    () =>
+      [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec",
+      ].map((nm, i) => ({ value: i, label: nm })),
+    []
+  );
+
+  // Center the list around the current year like your original code (y-5 .. y+5)
+  const yearOptions = useMemo(
+    () =>
+      Array.from({ length: 11 }, (_, i) => y - 5 + i).map((yy) => ({
+        value: yy,
+        label: String(yy),
+      })),
+    [y]
+  );
+
   return (
     <div className="rounded-2xl border p-3">
       <div className="flex items-center justify-between mb-2">
@@ -103,41 +137,25 @@ function MiniCalendar({ value, onChange, markedDates = [] }) {
         </button>
 
         <div className="flex items-center gap-2">
-          <select
-            className="border rounded px-2 py-1"
-            value={m}
-            onChange={(e) => setM(+e.target.value)}
-          >
-            {[
-              "Jan",
-              "Feb",
-              "Mar",
-              "Apr",
-              "May",
-              "Jun",
-              "Jul",
-              "Aug",
-              "Sep",
-              "Oct",
-              "Nov",
-              "Dec",
-            ].map((nm, i) => (
-              <option key={nm} value={i}>
-                {nm}
-              </option>
-            ))}
-          </select>
-          <select
-            className="border rounded px-2 py-1"
-            value={y}
-            onChange={(e) => setY(+e.target.value)}
-          >
-            {Array.from({ length: 11 }, (_, i) => y - 5 + i).map((yy) => (
-              <option key={yy} value={yy}>
-                {yy}
-              </option>
-            ))}
-          </select>
+          {/* Month */}
+          <Select
+            styles={AutoCompletionCustomStyles}
+            className="w-24"
+            value={monthOptions.find((o) => o.value === m) || null}
+            onChange={(opt) => setM(opt?.value ?? m)}
+            options={monthOptions}
+            placeholder="Month"
+          />
+
+          {/* Year */}
+          <Select
+            styles={AutoCompletionCustomStyles}
+            className="w-24"
+            value={yearOptions.find((o) => o.value === y) || null}
+            onChange={(opt) => setY(opt?.value ?? y)}
+            options={yearOptions}
+            placeholder="Year"
+          />
         </div>
 
         <button className="p-2 rounded hover:bg-gray-100" onClick={() => go(1)}>
@@ -208,21 +226,32 @@ export default function SpecialHours({ locationId }) {
   const [closeHour, setCloseHour] = useState("");
   const [closeMin, setCloseMin] = useState("");
 
-  const hours = Array.from({ length: 24 }, (_, h) => pad2(h));
-  const mins = [
-    "00",
-    "05",
-    "10",
-    "15",
-    "20",
-    "25",
-    "30",
-    "35",
-    "40",
-    "45",
-    "50",
-    "55",
-  ];
+  const hourOptions = useMemo(
+    () =>
+      Array.from({ length: 24 }, (_, h) => {
+        const v = pad2(h);
+        return { value: v, label: v };
+      }),
+    []
+  );
+  const minOptions = useMemo(
+    () =>
+      [
+        "00",
+        "05",
+        "10",
+        "15",
+        "20",
+        "25",
+        "30",
+        "35",
+        "40",
+        "45",
+        "50",
+        "55",
+      ].map((m) => ({ value: m, label: m })),
+    []
+  );
 
   // load existing (specific to your API)
   useEffect(() => {
@@ -265,7 +294,7 @@ export default function SpecialHours({ locationId }) {
     setClosed(!!ex.closed);
     if (!ex.closed) {
       setOpenHour(ex.opens?.slice(0, 2) || "");
-      setOpenMin(ex.opens?.slice[(3, 5)] || "");
+      setOpenMin(ex.opens?.slice(3, 5) || "");
       setCloseHour(ex.closes?.slice(0, 2) || "");
       setCloseMin(ex.closes?.slice(3, 5) || "");
     } else {
@@ -345,9 +374,8 @@ export default function SpecialHours({ locationId }) {
     try {
       const specialHourPeriods = entries.map((e) => {
         const startDate = toDateObjFromISO(e.date);
-        if (e.closed) {
-          return { startDate, closed: true };
-        }
+        if (e.closed) return { startDate, closed: true };
+
         const [ohS, omS] = (e.opens || "0:0").split(":");
         const [chS, cmS] = (e.closes || "0:0").split(":");
         const oh = toInt(ohS, 0);
@@ -371,170 +399,176 @@ export default function SpecialHours({ locationId }) {
         { headers: { Authorization: `Bearer ${accessToken}` } }
       );
       setDirty(false);
-      alert("Special hours saved.");
+      toast.success("Special hours saved.");
     } catch (e) {
       console.error(e);
-      alert("Failed to save special hours.");
+      toast.error("Failed to save special hours.");
     }
   };
 
   return (
-    <div className="h-96 space-y-4 overflow-y-auto">
-      {/* calendar + inputs */}
-      <MiniCalendar value={date} onChange={setDate} markedDates={markedDates} />
-
-      <div className="flex flex-col gap-3">
-        {/* Opens at */}
-        <div className="flex items-center gap-3">
-          <span className="w-24 text-sm text-gray-700">Opens at:</span>
-          <select
-            className="border rounded px-2 py-2 w-28"
-            value={openHour}
-            disabled={closed}
-            onChange={(e) => setOpenHour(e.target.value)}
-          >
-            <option value="">Hour</option>
-            {hours.map((h) => (
-              <option key={h} value={h}>
-                {h}
-              </option>
-            ))}
-          </select>
-          <select
-            className="border rounded px-2 py-2 w-28"
-            value={openMin}
-            disabled={closed}
-            onChange={(e) => setOpenMin(e.target.value)}
-          >
-            <option value="">Min</option>
-            {mins.map((m) => (
-              <option key={m} value={m}>
-                {m}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Closes at */}
-        <div className="flex items-center gap-3">
-          <span className="w-24 text-sm text-gray-700">Closes at:</span>
-          <select
-            className="border rounded px-2 py-2 w-28"
-            value={closeHour}
-            disabled={closed}
-            onChange={(e) => setCloseHour(e.target.value)}
-          >
-            <option value="">Hour</option>
-            {hours.map((h) => (
-              <option key={h} value={h}>
-                {h}
-              </option>
-            ))}
-          </select>
-          <select
-            className="border rounded px-2 py-2 w-28"
-            value={closeMin}
-            disabled={closed}
-            onChange={(e) => setCloseMin(e.target.value)}
-          >
-            <option value="">Min</option>
-            {mins.map((m) => (
-              <option key={m} value={m}>
-                {m}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
-
-      <label className="inline-flex items-center gap-2 text-sm">
-        <input
-          type="checkbox"
-          checked={closed}
-          onChange={(e) => setClosed(e.target.checked)}
+    <div className="h-96 flexx flex-col">
+      <div className="h-80 space-y-4 overflow-y-auto py-4">
+        {/* calendar + inputs */}
+        <MiniCalendar
+          value={date}
+          onChange={setDate}
+          markedDates={markedDates}
         />
-        Close the day
-      </label>
 
-      {timeError && <p className="text-xs text-rose-600">{timeError}</p>}
+        <div className="flex flex-col gap-3">
+          {/* Opens at */}
+          <div className="flex items-center gap-3">
+            <span className="w-24 text-sm text-gray-700">Opens at:</span>
 
-      <button
-        onClick={addOrReplace}
-        disabled={!canAdd}
-        className={`w-full px-4 py-3 rounded ${
-          canAdd
-            ? "bg-orange-400 text-white hover:opacity-90"
-            : "bg-gray-200 text-gray-500 cursor-not-allowed"
-        }`}
-      >
-        Add Hours
-      </button>
+            <Select
+              styles={AutoCompletionCustomStyles}
+              className="w-28"
+              placeholder="Hour"
+              value={hourOptions.find((o) => o.value === openHour) || null}
+              onChange={(opt) => setOpenHour(opt?.value || "")}
+              isDisabled={closed}
+              options={hourOptions}
+            />
 
-      {/* list */}
-      {loading ? (
-        <div className="rounded h-60 overflow-y-auto divide-y">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="w-80 flex space-x-2 p-3">
-              <SkeletonLine className="w-56" />
-              <SkeletonLine className="w-24" />
-            </div>
-          ))}
+            <Select
+              styles={AutoCompletionCustomStyles}
+              className="w-28"
+              placeholder="Min"
+              value={minOptions.find((o) => o.value === openMin) || null}
+              onChange={(opt) => setOpenMin(opt?.value || "")}
+              isDisabled={closed}
+              options={minOptions}
+            />
+          </div>
+
+          {/* Closes at */}
+          <div className="flex items-center gap-3">
+            <span className="w-24 text-sm text-gray-700">Closes at:</span>
+
+            <Select
+              styles={AutoCompletionCustomStyles}
+              className="w-28"
+              placeholder="Hour"
+              value={hourOptions.find((o) => o.value === closeHour) || null}
+              onChange={(opt) => setCloseHour(opt?.value || "")}
+              isDisabled={closed}
+              options={hourOptions}
+            />
+
+            <Select
+              styles={AutoCompletionCustomStyles}
+              className="w-28"
+              placeholder="Min"
+              value={minOptions.find((o) => o.value === closeMin) || null}
+              onChange={(opt) => setCloseMin(opt?.value || "")}
+              isDisabled={closed}
+              options={minOptions}
+            />
+          </div>
         </div>
-      ) : entries.length === 0 ? (
-        <div className="py-8 text-center text-gray-600">
-          There are no special hours.
-        </div>
-      ) : (
-        <div className="rounded h-60 overflow-y-auto">
-          {entries.map((e) => (
-            <div
-              key={e.id}
-              className="flex items-center justify-between p-3 border-b last:border-b-0"
-            >
-              <div className="w-80 flex items-center justify-between">
-                <div className="font-medium">{fmtDatePretty(e.date)}</div>
-                <div className="text-sm text-gray-600">
-                  {e.closed ? (
-                    <span className="text-red-500">Closed</span>
-                  ) : (
-                    `${e.opens} – ${e.closes}`
-                  )}
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  className="p-2 rounded hover:bg-gray-100"
-                  onClick={() => editRow(e)}
-                  title="Edit"
-                >
-                  <LuPencil />
-                </button>
-                <button
-                  className="p-2 rounded hover:bg-gray-100 text-rose-600"
-                  onClick={() => remove(e.id)}
-                  title="Delete"
-                >
-                  <FaRegTrashAlt />
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
 
-      <div className="flex justify-end">
+        <label className="inline-flex items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={closed}
+            onChange={(e) => setClosed(e.target.checked)}
+          />
+          Close the day
+        </label>
+
+        {timeError && <p className="text-xs text-rose-600">{timeError}</p>}
+
         <button
-          onClick={saveAll}
-          disabled={!dirty}
-          className={`w-full px-4 py-3 rounded text-white ${
-            dirty
-              ? "bg-orange-400 hover:opacity-90"
-              : "bg-gray-300 cursor-not-allowed"
+          onClick={addOrReplace}
+          disabled={!canAdd}
+          className={`w-full px-4 py-3 rounded ${
+            canAdd
+              ? "bg-orange-400 text-white hover:opacity-90"
+              : "bg-gray-200 text-gray-500 cursor-not-allowed"
           }`}
         >
-          Save Changes
+          Add Hours
         </button>
+
+        {/* list */}
+        {loading ? (
+          <div className="rounded h-60 overflow-y-auto divide-y">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="p-4">
+                <div className="w-full flex space-x-2 ">
+                  <SkeletonLine className="w-24" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : entries.length === 0 ? (
+          <EmptyState
+            state="bg-empty-state-hour"
+            message="There are no special hours."
+            className="h-56"
+          />
+        ) : (
+          <div className="rounded-lg border h-60 overflow-y-auto m-4">
+            {entries.map((e) => (
+              <div
+                key={e.id}
+                className="flex items-center justify-between p-3 border rounded-lg m-2"
+              >
+                <div className="w-80 flex items-center justify-between">
+                  <div className="font-medium">{fmtDatePretty(e.date)}</div>
+                  <div className="text-sm text-gray-600">
+                    {e.closed ? (
+                      <span className="text-red-500">Closed</span>
+                    ) : (
+                      `${e.opens} – ${e.closes}`
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    className="p-2 rounded hover:bg-gray-100"
+                    onClick={() => editRow(e)}
+                    title="Edit"
+                  >
+                    <LuPencil />
+                  </button>
+                  <button
+                    className="p-2 rounded hover:bg-gray-100 text-rose-600"
+                    onClick={() => remove(e.id)}
+                    title="Delete"
+                  >
+                    <FaRegTrashAlt />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
+      <button
+        onClick={saveAll}
+        disabled={!dirty}
+        className={`w-full px-4 py-3 rounded text-white ${
+          dirty
+            ? "bg-orange-400 hover:opacity-90"
+            : "bg-gray-300 cursor-not-allowed"
+        }`}
+      >
+        Save Changes
+      </button>
+      <ToastContainer
+        position="top-center"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
     </div>
   );
 }
