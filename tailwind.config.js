@@ -68,6 +68,7 @@ export default {
         "empty-state-chart": "url('/empty-states/empty-state-chart.svg')",
         "empty-state-piechart": "url('/empty-states/empty-state-piechart.svg')",
         "empty-state-card": "url('/empty-states/empty-state-card.svg')",
+        "empty-state-hour": "url('/empty-states/empty-state-hour.svg')",
         "empty-state-hours": "url('/empty-states/empty-state-hours.svg')",
         "empty-state-interaction":
           "url('/empty-states/empty-state-interaction.svg')",

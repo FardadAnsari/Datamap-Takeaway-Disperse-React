@@ -5,6 +5,7 @@ import ShopNameEdit from "./ShopNameEdit";
 import WebSiteUriEdit from "./WebSiteUriEdit";
 import PhoneNumberEdit from "./PhoneNumberEdit";
 import BusinessHoursEdit from "./BusinessHoursEdit";
+import SpecialHours from "./SpecialHours";
 
 const GoogleBusinessModal = ({
   isOpen,
@@ -52,9 +53,22 @@ const GoogleBusinessModal = ({
           >
             Shop Information
           </button>
+          <button
+            className={`flex-1 px-4 py-2 text-center focus:outline-none rounded ${
+              activeTab === "specialHours"
+                ? "bg-black text-white"
+                : "text-gray-700"
+            }`}
+            onClick={() => setActiveTab("specialHours")}
+          >
+            Special Hours
+          </button>
         </div>
 
         <div className="flex flex-col gap-4">
+          {activeTab === "specialHours" && (
+            <SpecialHours locationId={locationId} />
+          )}
           {activeTab === "shopInfo" && (
             <div className="flex flex-col gap-4">
               <ShopNameEdit locationId={locationId} shopName={shopTitle} />
