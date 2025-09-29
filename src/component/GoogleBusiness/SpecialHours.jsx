@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useForm, Controller } from "react-hook-form";
 import { FaChevronLeft, FaChevronRight, FaRegTrashAlt } from "react-icons/fa";
 import { LuPencil } from "react-icons/lu";
 import Select from "react-select";
@@ -96,7 +97,6 @@ function MiniCalendar({ value, onChange, markedDates = [] }) {
     return markedDates.includes(iso);
   };
 
-  // ---- react-select options & common props ----
   const monthOptions = useMemo(
     () =>
       [
@@ -116,7 +116,7 @@ function MiniCalendar({ value, onChange, markedDates = [] }) {
     []
   );
 
-  // Center the list around the current year like your original code (y-5 .. y+5)
+  // Center the list around the current year (y-5 .. y+5)
   const yearOptions = useMemo(
     () =>
       Array.from({ length: 11 }, (_, i) => y - 5 + i).map((yy) => ({
@@ -132,6 +132,7 @@ function MiniCalendar({ value, onChange, markedDates = [] }) {
         <button
           className="p-2 rounded hover:bg-gray-100"
           onClick={() => go(-1)}
+          type="button"
         >
           <FaChevronLeft />
         </button>
@@ -158,7 +159,11 @@ function MiniCalendar({ value, onChange, markedDates = [] }) {
           />
         </div>
 
-        <button className="p-2 rounded hover:bg-gray-100" onClick={() => go(1)}>
+        <button
+          className="p-2 rounded hover:bg-gray-100"
+          onClick={() => go(1)}
+          type="button"
+        >
           <FaChevronRight />
         </button>
       </div>
@@ -176,6 +181,7 @@ function MiniCalendar({ value, onChange, markedDates = [] }) {
           d ? (
             <button
               key={idx}
+              type="button"
               onClick={() =>
                 onChange(
                   `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`
@@ -218,13 +224,33 @@ export default function SpecialHours({ locationId }) {
   const [entries, setEntries] = useState([]); // [{id?, date, closed, opens, closes}]
   const markedDates = useMemo(() => entries.map((e) => e.date), [entries]);
 
-  // form
-  const [date, setDate] = useState("");
-  const [closed, setClosed] = useState(false);
-  const [openHour, setOpenHour] = useState("");
-  const [openMin, setOpenMin] = useState("");
-  const [closeHour, setCloseHour] = useState("");
-  const [closeMin, setCloseMin] = useState("");
+  // react-hook-form for the small form
+  const {
+    control,
+    register,
+    watch,
+    setValue,
+    reset,
+    getValues,
+    handleSubmit,
+    formState: { isSubmitting },
+  } = useForm({
+    defaultValues: {
+      date: "",
+      closed: false,
+      openHour: "",
+      openMin: "",
+      closeHour: "",
+      closeMin: "",
+    },
+  });
+
+  const date = watch("date");
+  const closed = watch("closed");
+  const openHour = watch("openHour");
+  const openMin = watch("openMin");
+  const closeHour = watch("closeHour");
+  const closeMin = watch("closeMin");
 
   const hourOptions = useMemo(
     () =>
@@ -249,7 +275,10 @@ export default function SpecialHours({ locationId }) {
         "45",
         "50",
         "55",
-      ].map((m) => ({ value: m, label: m })),
+      ].map((m) => ({
+        value: m,
+        label: m,
+      })),
     []
   );
 
@@ -284,28 +313,38 @@ export default function SpecialHours({ locationId }) {
     if (!date) return;
     const ex = entries.find((e) => e.date === date);
     if (!ex) {
-      setClosed(false);
-      setOpenHour("");
-      setOpenMin("");
-      setCloseHour("");
-      setCloseMin("");
+      reset({
+        date,
+        closed: false,
+        openHour: "",
+        openMin: "",
+        closeHour: "",
+        closeMin: "",
+      });
       return;
     }
-    setClosed(!!ex.closed);
     if (!ex.closed) {
-      setOpenHour(ex.opens?.slice(0, 2) || "");
-      setOpenMin(ex.opens?.slice(3, 5) || "");
-      setCloseHour(ex.closes?.slice(0, 2) || "");
-      setCloseMin(ex.closes?.slice(3, 5) || "");
+      reset({
+        date: ex.date,
+        closed: !!ex.closed,
+        openHour: ex.opens?.slice(0, 2) || "",
+        openMin: ex.opens?.slice(3, 5) || "",
+        closeHour: ex.closes?.slice(0, 2) || "",
+        closeMin: ex.closes?.slice(3, 5) || "",
+      });
     } else {
-      setOpenHour("");
-      setOpenMin("");
-      setCloseHour("");
-      setCloseMin("");
+      reset({
+        date: ex.date,
+        closed: true,
+        openHour: "",
+        openMin: "",
+        closeHour: "",
+        closeMin: "",
+      });
     }
-  }, [date, entries]);
+  }, [date, entries, reset]);
 
-  // validation
+  // validation (kept identical to original logic)
   const timeError =
     !closed &&
     openHour &&
@@ -321,24 +360,27 @@ export default function SpecialHours({ locationId }) {
     (closed || (openHour && openMin && closeHour && closeMin && !timeError));
 
   const resetForm = () => {
-    setDate("");
-    setClosed(false);
-    setOpenHour("");
-    setOpenMin("");
-    setCloseHour("");
-    setCloseMin("");
+    reset({
+      date: "",
+      closed: false,
+      openHour: "",
+      openMin: "",
+      closeHour: "",
+      closeMin: "",
+    });
   };
 
   const addOrReplace = () => {
     if (!canAdd) return;
+    const vals = getValues();
     const next = [...entries];
-    const idx = next.findIndex((e) => e.date === date);
+    const idx = next.findIndex((e) => e.date === vals.date);
     const row = {
       id: idx !== -1 ? next[idx].id : `row-${Date.now()}`,
-      date,
-      closed,
-      opens: closed ? "" : toTime(openHour, openMin),
-      closes: closed ? "" : toTime(closeHour, closeMin),
+      date: vals.date,
+      closed: !!vals.closed,
+      opens: vals.closed ? "" : toTime(vals.openHour, vals.openMin),
+      closes: vals.closed ? "" : toTime(vals.closeHour, vals.closeMin),
     };
     if (idx !== -1) next[idx] = row;
     else next.push(row);
@@ -349,18 +391,18 @@ export default function SpecialHours({ locationId }) {
   };
 
   const editRow = (r) => {
-    setDate(r.date);
-    setClosed(!!r.closed);
+    setValue("date", r.date);
+    setValue("closed", !!r.closed);
     if (!r.closed) {
-      setOpenHour(r.opens?.slice(0, 2) || "");
-      setOpenMin(r.opens?.slice(3, 5) || "");
-      setCloseHour(r.closes?.slice(0, 2) || "");
-      setCloseMin(r.closes?.slice(3, 5) || "");
+      setValue("openHour", r.opens?.slice(0, 2) || "");
+      setValue("openMin", r.opens?.slice(3, 5) || "");
+      setValue("closeHour", r.closes?.slice(0, 2) || "");
+      setValue("closeMin", r.closes?.slice(3, 5) || "");
     } else {
-      setOpenHour("");
-      setOpenMin("");
-      setCloseHour("");
-      setCloseMin("");
+      setValue("openHour", "");
+      setValue("openMin", "");
+      setValue("closeHour", "");
+      setValue("closeMin", "");
     }
   };
 
@@ -371,192 +413,227 @@ export default function SpecialHours({ locationId }) {
 
   // PATCH payload (numbers for hours/minutes)
   const saveAll = async () => {
+    const specialHourPeriods = entries.map((e) => {
+      const startDate = toDateObjFromISO(e.date);
+      if (e.closed) return { startDate, closed: true };
+
+      const [ohS, omS] = (e.opens || "0:0").split(":");
+      const [chS, cmS] = (e.closes || "0:0").split(":");
+      const oh = toInt(ohS, 0);
+      const om = toInt(omS, 0);
+      const ch = toInt(chS, 0);
+      const cm = toInt(cmS, 0);
+
+      return {
+        startDate,
+        endDate: { ...startDate }, // same-day window
+        openTime: { hours: oh, minutes: om }, // integers
+        closeTime: { hours: ch, minutes: cm }, // integers
+      };
+    });
+
+    const payload = { specialHours: { specialHourPeriods } };
+
     try {
-      const specialHourPeriods = entries.map((e) => {
-        const startDate = toDateObjFromISO(e.date);
-        if (e.closed) return { startDate, closed: true };
-
-        const [ohS, omS] = (e.opens || "0:0").split(":");
-        const [chS, cmS] = (e.closes || "0:0").split(":");
-        const oh = toInt(ohS, 0);
-        const om = toInt(omS, 0);
-        const ch = toInt(chS, 0);
-        const cm = toInt(cmS, 0);
-
-        return {
-          startDate,
-          endDate: { ...startDate }, // same-day window
-          openTime: { hours: oh, minutes: om }, // integers
-          closeTime: { hours: ch, minutes: cm }, // integers
-        };
-      });
-
-      const payload = { specialHours: { specialHourPeriods } };
-
       await instance.patch(
         `/api/v1/google/locations/${locationId}/special-hours/`,
         payload,
         { headers: { Authorization: `Bearer ${accessToken}` } }
       );
       setDirty(false);
-      toast.success("Special hours saved.");
+      toast.success("Your changes have been applied.");
     } catch (e) {
       console.error(e);
       toast.error("Failed to save special hours.");
+      throw e;
     }
   };
 
   return (
-    <div className="h-96 flexx flex-col">
-      <div className="h-80 space-y-4 overflow-y-auto py-4">
-        {/* calendar + inputs */}
-        <MiniCalendar
-          value={date}
-          onChange={setDate}
-          markedDates={markedDates}
-        />
-
-        <div className="flex flex-col gap-3">
-          {/* Opens at */}
-          <div className="flex items-center gap-3">
-            <span className="w-24 text-sm text-gray-700">Opens at:</span>
-
-            <Select
-              styles={AutoCompletionCustomStyles}
-              className="w-28"
-              placeholder="Hour"
-              value={hourOptions.find((o) => o.value === openHour) || null}
-              onChange={(opt) => setOpenHour(opt?.value || "")}
-              isDisabled={closed}
-              options={hourOptions}
-            />
-
-            <Select
-              styles={AutoCompletionCustomStyles}
-              className="w-28"
-              placeholder="Min"
-              value={minOptions.find((o) => o.value === openMin) || null}
-              onChange={(opt) => setOpenMin(opt?.value || "")}
-              isDisabled={closed}
-              options={minOptions}
-            />
-          </div>
-
-          {/* Closes at */}
-          <div className="flex items-center gap-3">
-            <span className="w-24 text-sm text-gray-700">Closes at:</span>
-
-            <Select
-              styles={AutoCompletionCustomStyles}
-              className="w-28"
-              placeholder="Hour"
-              value={hourOptions.find((o) => o.value === closeHour) || null}
-              onChange={(opt) => setCloseHour(opt?.value || "")}
-              isDisabled={closed}
-              options={hourOptions}
-            />
-
-            <Select
-              styles={AutoCompletionCustomStyles}
-              className="w-28"
-              placeholder="Min"
-              value={minOptions.find((o) => o.value === closeMin) || null}
-              onChange={(opt) => setCloseMin(opt?.value || "")}
-              isDisabled={closed}
-              options={minOptions}
-            />
-          </div>
+    <form
+      className="h-96 flex flex-col"
+      onSubmit={handleSubmit(async () => {
+        await saveAll();
+      })}
+    >
+      <div className="flex flex-col gap-3 overflow-y-auto">
+        {/* calendar */}
+        <div className="mx-2">
+          <MiniCalendar
+            value={date}
+            onChange={(v) => setValue("date", v)}
+            markedDates={markedDates}
+          />
         </div>
+        {/* Opens at */}
+        <div className="flex items-center gap-3 mx-2">
+          <span className="w-24 text-sm text-gray-700">Opens at:</span>
 
-        <label className="inline-flex items-center gap-2 text-sm">
+          <Controller
+            name="openHour"
+            control={control}
+            render={({ field: { value, onChange } }) => (
+              <Select
+                styles={AutoCompletionCustomStyles}
+                className="w-28"
+                placeholder="Hour"
+                value={hourOptions.find((o) => o.value === value) || null}
+                onChange={(opt) => onChange(opt?.value || "")}
+                isDisabled={closed || isSubmitting}
+                options={hourOptions}
+              />
+            )}
+          />
+
+          <Controller
+            name="openMin"
+            control={control}
+            render={({ field: { value, onChange } }) => (
+              <Select
+                styles={AutoCompletionCustomStyles}
+                className="w-28"
+                placeholder="Min"
+                value={minOptions.find((o) => o.value === value) || null}
+                onChange={(opt) => onChange(opt?.value || "")}
+                isDisabled={closed || isSubmitting}
+                options={minOptions}
+              />
+            )}
+          />
+        </div>
+        {/* Closes at */}
+        <div className="flex items-center gap-3 mx-2">
+          <span className="w-24 text-sm text-gray-700">Closes at:</span>
+
+          <Controller
+            name="closeHour"
+            control={control}
+            render={({ field: { value, onChange } }) => (
+              <Select
+                styles={AutoCompletionCustomStyles}
+                className="w-28"
+                placeholder="Hour"
+                value={hourOptions.find((o) => o.value === value) || null}
+                onChange={(opt) => onChange(opt?.value || "")}
+                isDisabled={closed || isSubmitting}
+                options={hourOptions}
+              />
+            )}
+          />
+
+          <Controller
+            name="closeMin"
+            control={control}
+            render={({ field: { value, onChange } }) => (
+              <Select
+                styles={AutoCompletionCustomStyles}
+                className="w-28"
+                placeholder="Min"
+                value={minOptions.find((o) => o.value === value) || null}
+                onChange={(opt) => onChange(opt?.value || "")}
+                isDisabled={closed || isSubmitting}
+                options={minOptions}
+              />
+            )}
+          />
+        </div>
+        <label className="inline-flex items-center gap-2 text-sm mx-2">
           <input
+            className="h-4 w-4 text-orange-600 border-gray-500 rounded focus:ring-orange-500 accent-orange-400"
             type="checkbox"
-            checked={closed}
-            onChange={(e) => setClosed(e.target.checked)}
+            {...register("closed")}
+            disabled={isSubmitting}
           />
           Close the day
         </label>
-
         {timeError && <p className="text-xs text-rose-600">{timeError}</p>}
-
         <button
+          type="button"
           onClick={addOrReplace}
-          disabled={!canAdd}
-          className={`w-full px-4 py-3 rounded ${
-            canAdd
-              ? "bg-orange-400 text-white hover:opacity-90"
-              : "bg-gray-200 text-gray-500 cursor-not-allowed"
+          disabled={!canAdd || isSubmitting}
+          className={`mx-2 px-4 py-3 self-start px-12 py-2 text-white rounded-lg ${
+            !canAdd || isSubmitting
+              ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+              : "bg-orange-400 text-white hover:opacity-90"
           }`}
         >
           Add Hours
         </button>
-
         {/* list */}
-        {loading ? (
-          <div className="rounded h-60 overflow-y-auto divide-y">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="p-4">
-                <div className="w-full flex space-x-2 ">
-                  <SkeletonLine className="w-24" />
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : entries.length === 0 ? (
-          <EmptyState
-            state="bg-empty-state-hour"
-            message="There are no special hours."
-            className="h-56"
-          />
-        ) : (
-          <div className="rounded-lg border h-60 overflow-y-auto m-4">
-            {entries.map((e) => (
-              <div
-                key={e.id}
-                className="flex items-center justify-between p-3 border rounded-lg m-2"
-              >
-                <div className="w-80 flex items-center justify-between">
-                  <div className="font-medium">{fmtDatePretty(e.date)}</div>
-                  <div className="text-sm text-gray-600">
-                    {e.closed ? (
-                      <span className="text-red-500">Closed</span>
-                    ) : (
-                      `${e.opens} – ${e.closes}`
-                    )}
+        <div className="mx-2">
+          {loading ? (
+            <div className="rounded h-60 overflow-y-auto divide-y">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="p-4">
+                  <div className="w-full flex space-x-2">
+                    <SkeletonLine className="w-24" />
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    className="p-2 rounded hover:bg-gray-100"
-                    onClick={() => editRow(e)}
-                    title="Edit"
-                  >
-                    <LuPencil />
-                  </button>
-                  <button
-                    className="p-2 rounded hover:bg-gray-100 text-rose-600"
-                    onClick={() => remove(e.id)}
-                    title="Delete"
-                  >
-                    <FaRegTrashAlt />
-                  </button>
+              ))}
+            </div>
+          ) : entries.length === 0 ? (
+            <EmptyState
+              state="bg-empty-state-hour"
+              message="There are no special hours."
+              className="h-56"
+            />
+          ) : (
+            <div className="rounded-lg border h-60 overflow-y-auto">
+              {entries.map((e) => (
+                <div
+                  key={e.id}
+                  className="flex items-center justify-between p-3 border rounded-lg m-2"
+                >
+                  <div className="w-80 flex items-center justify-between">
+                    <div className="font-medium">{fmtDatePretty(e.date)}</div>
+                    <div className="text-sm text-gray-600">
+                      {e.closed ? (
+                        <span className="text-red-500">Closed</span>
+                      ) : (
+                        `${e.opens} – ${e.closes}`
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      className="p-2 rounded hover:bg-gray-100"
+                      onClick={() => editRow(e)}
+                      title="Edit"
+                      disabled={isSubmitting}
+                    >
+                      <LuPencil />
+                    </button>
+                    <button
+                      type="button"
+                      className="p-2 rounded hover:bg-gray-100 text-rose-600"
+                      onClick={() => remove(e.id)}
+                      title="Delete"
+                      disabled={isSubmitting}
+                    >
+                      <FaRegTrashAlt />
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
+              ))}
+            </div>
+          )}
+        </div>
       </div>
+
       <button
-        onClick={saveAll}
-        disabled={!dirty}
-        className={`w-full px-4 py-3 rounded text-white ${
-          dirty
-            ? "bg-orange-400 hover:opacity-90"
-            : "bg-gray-300 cursor-not-allowed"
+        type="submit"
+        disabled={!dirty || isSubmitting}
+        aria-busy={isSubmitting}
+        className={`self-end px-12 py-2 mt-4 text-white rounded-lg ${
+          !dirty || isSubmitting
+            ? "bg-orange-400 cursor-not-allowed"
+            : "bg-orange-500 hover:bg-orange-600"
         }`}
       >
-        Save Changes
+        {isSubmitting ? "Saving..." : "Save"}
       </button>
+
       <ToastContainer
         position="top-center"
         autoClose={3000}
@@ -569,6 +646,6 @@ export default function SpecialHours({ locationId }) {
         pauseOnHover
         theme="light"
       />
-    </div>
+    </form>
   );
 }
