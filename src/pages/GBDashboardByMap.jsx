@@ -14,6 +14,8 @@ import { MdOutlinePermMedia, MdPermMedia, MdVerified } from "react-icons/md";
 import GoogleBusinessUploadModal from "../component/GoogleBusiness/GoogleBusinessUploadModal";
 import EmptyState from "../general-components/EmptyState";
 import { ThreeDots } from "react-loader-spinner";
+import { createPortal } from "react-dom";
+import { IoIosStar, IoMdContacts } from "react-icons/io";
 
 // --- Loader (same look/feel as in GBDashboard) ---
 const Loader = ({ className = "", size = 50 }) => (
@@ -50,7 +52,9 @@ const GBDashboardByMap = () => {
   const [isLoadingTitle, setIsLoadingTitle] = useState(false);
   const [isLoadingOpenStatus, setIsLoadingOpenStatus] = useState(false);
   const [isLoadingAttributes, setIsLoadingAttributes] = useState(false);
+  const [isLoadingReview, setIsLoadingReview] = useState(false);
   const [isLoadingVerification, setIsLoadingVerification] = useState(false);
+  const [isLoadingAdmins, setIsLoadingAdmins] = useState(false);
   const isLoadingShopDetails =
     isLoadingTitle || isLoadingOpenStatus || isLoadingAttributes;
 
@@ -89,7 +93,34 @@ const GBDashboardByMap = () => {
     );
   }, [verifications]);
 
-  // --- Title ---
+  const [showAdmins, setShowAdmins] = useState(false);
+  const [admins, setAdmins] = useState([]);
+
+  //Admins
+  useEffect(() => {
+    if (locationId) {
+      setIsLoadingAdmins(true);
+      instance
+        .get(`api/v1/google/admins/location/${locationId}`, {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        })
+        .then((response) => {
+          console.log(response);
+          setAdmins(response.data.admins);
+        })
+        .catch((error) => {
+          console.error(error);
+        })
+        .finally(() => setIsLoadingAdmins(false));
+    }
+  }, [locationId, accessToken]);
+
+  useEffect(() => {
+    setShowAdmins(false);
+    setAdmins([]);
+  }, [locationId]);
+
+  //Title
   useEffect(() => {
     if (!locationId) return;
     setIsLoadingTitle(true);
@@ -105,7 +136,7 @@ const GBDashboardByMap = () => {
       .finally(() => setIsLoadingTitle(false));
   }, [locationId, accessToken]);
 
-  // --- Open status ---
+  //Open status
   useEffect(() => {
     if (!locationId) return;
     setIsLoadingOpenStatus(true);
@@ -123,11 +154,11 @@ const GBDashboardByMap = () => {
       .finally(() => setIsLoadingOpenStatus(false));
   }, [locationId, accessToken]);
 
+  //Attributes
   const [shopPhone, setShopPhone] = useState();
   const [shopAddress, setShopAddress] = useState();
   const [weburl, setWeburl] = useState();
 
-  // --- Attributes ---
   useEffect(() => {
     if (!locationId) return;
     setIsLoadingAttributes(true);
@@ -149,7 +180,33 @@ const GBDashboardByMap = () => {
       .finally(() => setIsLoadingAttributes(false));
   }, [locationId, accessToken]);
 
-  // --- Search count ---
+  //Review & Rate
+  const [rate, setRate] = useState();
+  const [review, setReview] = useState();
+
+  useEffect(() => {
+    if (locationId) {
+      const accountId = selectedAcc.value?.split("/")[1];
+      setIsLoadingReview(true);
+      instance
+        .get(
+          `api/v1/google/accounts/reviews-summary/${accountId}/locations/${locationId}`,
+          {
+            headers: { Authorization: `Bearer ${accessToken}` },
+          }
+        )
+        .then((response) => {
+          setRate(response.data.averageRating);
+          setReview(response.data.totalReviewCount);
+        })
+        .catch((error) => {
+          console.error(error);
+        })
+        .finally(() => setIsLoadingReview(false));
+    }
+  }, [locationId, accessToken]);
+
+  //Search count
   const [isLoadingSearchCount, setIsLoadingSearchCount] = useState(false);
   const [notAllowedSearchCount, setNotAllowedSearchCount] = useState(false);
   const [searchCount, setSearchCount] = useState({});
@@ -376,7 +433,17 @@ const GBDashboardByMap = () => {
                   </div>
                   <p className="font-medium">{`${addressLines || ""} ${shopAddress?.locality || ""} ${shopAddress?.postalCode || ""}`}</p>
                 </div>
-
+                <hr />
+                <p className="text-lg font-medium pt-2">User Feedback</p>
+                <div className="flex justify-between p-2">
+                  <p className="text-md text-gray-500">
+                    Overall rating with {review} reviews:
+                  </p>
+                  <div className="flex gap-1">
+                    <p className="font-medium">{rate?.toFixed(1)}</p>
+                    <IoIosStar color="gold" size={20} />
+                  </div>
+                </div>
                 <hr />
                 <div>
                   <div className="pt-2">
@@ -496,7 +563,50 @@ const GBDashboardByMap = () => {
           </div>
         </div>
       </div>
+      {createPortal(
+        <>
+          {/* Admins FAB */}
+          <button
+            type="button"
+            onClick={() => setShowAdmins((v) => !v)}
+            className={`fixed bottom-8 right-8 w-12 h-12 rounded-full grid place-items-center shadow-xl z-[1000]
+        bg-orange-500 hover:bg-orange-600 cursor-pointer bg-gray-300
+        text-white transition`}
+          >
+            <IoMdContacts size={24} />
+          </button>
 
+          {/* Floating admins panel */}
+          {showAdmins && (
+            <div className="fixed bottom-24 right-8 w-64 bg-white rounded-xl shadow-2xl border z-[1000] overflow-hidden">
+              <div className="px-4 py-2 text-sm font-semibold border-b">
+                Admins
+              </div>
+              <div className="max-h-72 overflow-auto">
+                {isLoadingAdmins ? (
+                  <Loader className="py-6" size={30} />
+                ) : admins.length ? (
+                  admins.map((a, i) => (
+                    <div key={i} className="px-4 py-3 border-b last:border-0">
+                      <div className="text-sm font-medium">
+                        {a?.admin || a?.name || a?.email?.split("@")[0] || "—"}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {a?.role || "Admin"}
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="px-4 py-4 text-sm text-gray-500">
+                    No admins found.
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </>,
+        document.body
+      )}
       <ToastContainer
         position="top-center"
         autoClose={3000}
