@@ -551,10 +551,10 @@ export default function SpecialHours({ locationId }) {
           type="button"
           onClick={addOrReplace}
           disabled={!canAdd || isSubmitting}
-          className={`mx-2 px-4 py-3 self-start px-12 py-2 text-white rounded-lg ${
+          className={`mx-2 px-4 py-2 self-start px-12 py-2 text-white rounded-lg ${
             !canAdd || isSubmitting
               ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-              : "bg-orange-400 text-white hover:opacity-90"
+              : "bg-orange-400 text-white hover:bg-orange-600"
           }`}
         >
           Add Hours

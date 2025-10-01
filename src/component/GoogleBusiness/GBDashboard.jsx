@@ -282,7 +282,7 @@ const GBDashboard = ({ isOpen }) => {
           headers: { Authorization: `Bearer ${accessToken}` },
         })
         .then((response) => {
-          console.log("admin", response);
+          // console.log("admin", response);
           setAdmins(response.data.admins);
         })
         .catch((error) => {

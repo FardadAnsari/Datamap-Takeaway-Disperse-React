@@ -166,7 +166,7 @@ const BusinessHoursEdit = ({ locationId }) => {
     locationId && (
       <FormProvider {...methods}>
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col h-96">
-          <div className="flex flex-col w-full gap-4 overflow-y-auto mb-4">
+          <div className="flex flex-col w-full gap-4 overflow-y-auto mb-4 px-2">
             {fields.map((day, dayIndex) => {
               const isClosed = watch(`hours.${dayIndex}.isClosed`);
               return (
