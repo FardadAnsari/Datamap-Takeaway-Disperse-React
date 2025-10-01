@@ -6,6 +6,7 @@ import WebSiteUriEdit from "./WebSiteUriEdit";
 import PhoneNumberEdit from "./PhoneNumberEdit";
 import BusinessHoursEdit from "./BusinessHoursEdit";
 import SpecialHours from "./SpecialHours";
+import SocialProfilesEdit from "./SocialProfilesEdit";
 
 const GoogleBusinessModal = ({
   isOpen,
@@ -21,10 +22,7 @@ const GoogleBusinessModal = ({
   if (!isOpen) return null;
 
   const modalContent = (
-    <div
-      className="fixed inset-0 bg-black bg-opacity-70 
-                 flex items-center justify-center z-50"
-    >
+    <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
       <div className="bg-white w-full max-w-2xl mx-4 rounded-lg shadow-lg relative p-6">
         <p className="text-xl font-bold pb-4">Google Business Details</p>
         <button
@@ -70,7 +68,7 @@ const GoogleBusinessModal = ({
             <SpecialHours locationId={locationId} />
           )}
           {activeTab === "shopInfo" && (
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-4 overflow-y-auto max-h-96 px-2">
               <ShopNameEdit locationId={locationId} shopName={shopTitle} />
               <WebSiteUriEdit locationId={locationId} webUrl={webUrl} />
               <PhoneNumberEdit
@@ -83,6 +81,7 @@ const GoogleBusinessModal = ({
                   {`${shopAddress?.addressLines || ""} ${shopAddress?.locality || ""} ${shopAddress?.postalCode || ""}`}
                 </p>
               </div>
+              <SocialProfilesEdit locationId={locationId} />
             </div>
           )}
 
