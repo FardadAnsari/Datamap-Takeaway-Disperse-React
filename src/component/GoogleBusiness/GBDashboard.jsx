@@ -17,7 +17,7 @@ import { MdOutlinePermMedia, MdPermMedia, MdVerified } from "react-icons/md";
 import GoogleBusinessUploadModal from "./GoogleBusinessUploadModal";
 import EmptyState from "../../general-components/EmptyState";
 import { ThreeDots } from "react-loader-spinner";
-import { IoMdContacts } from "react-icons/io";
+import { IoIosStar, IoMdContacts } from "react-icons/io";
 import { createPortal } from "react-dom";
 
 const Loader = ({ className = "", size = 50 }) => (
@@ -276,18 +276,19 @@ const GBDashboard = ({ isOpen }) => {
   //Admins
   useEffect(() => {
     if (selectedBusInfo && locationId) {
-      setIsLoadingReview(true);
+      setIsLoadingAdmins(true);
       instance
         .get(`api/v1/google/admins/location/${locationId}`, {
           headers: { Authorization: `Bearer ${accessToken}` },
         })
         .then((response) => {
-          console.log(response);
+          console.log("admin", response);
           setAdmins(response.data.admins);
         })
         .catch((error) => {
           console.error(error);
-        });
+        })
+        .finally(() => setIsLoadingAdmins(false));
     }
   }, [locationId, selectedBusInfo, accessToken]);
 
@@ -311,15 +312,12 @@ const GBDashboard = ({ isOpen }) => {
         })
         .catch((error) => {
           console.error(error);
-          setShopPhone(undefined);
-          setShopAddress(undefined);
-          setWeburl(undefined);
         })
         .finally(() => setIsLoadingAttributes(false));
     }
   }, [locationId, selectedBusInfo, accessToken]);
 
-  //Review & Rate
+  // Review & Rate
   useEffect(() => {
     if (selectedBusInfo && locationId) {
       const accountId = selectedAcc.value?.split("/")[1];
@@ -342,7 +340,7 @@ const GBDashboard = ({ isOpen }) => {
     }
   }, [locationId, selectedBusInfo, accessToken]);
 
-  // Search count (cancelable)
+  // Search count
   useEffect(() => {
     if (!selectedBusInfo || !locationId) return;
     const controller = new AbortController();
@@ -374,7 +372,7 @@ const GBDashboard = ({ isOpen }) => {
     return () => controller.abort();
   }, [locationId, selectedBusInfo, accessToken]);
 
-  // Map count (cancelable)
+  // Map count
   useEffect(() => {
     if (!selectedBusInfo || !locationId) return;
     const controller = new AbortController();
@@ -406,7 +404,7 @@ const GBDashboard = ({ isOpen }) => {
     return () => controller.abort();
   }, [locationId, selectedBusInfo, accessToken]);
 
-  // Web/Call count (cancelable)
+  // Web/Call count
   useEffect(() => {
     if (!selectedBusInfo || !locationId) return;
     const controller = new AbortController();
@@ -665,7 +663,10 @@ const GBDashboard = ({ isOpen }) => {
                     <p className="text-md text-gray-500">
                       Overall rating with {review} reviews:
                     </p>
-                    <p className="font-medium">{rate?.toFixed(1)}</p>
+                    <div className="flex gap-1">
+                      <p className="font-medium">{rate?.toFixed(1)}</p>
+                      <IoIosStar color="gold" size={20} />
+                    </div>
                   </div>
                   <hr />
                   <div className="pt-2">
@@ -849,56 +850,55 @@ const GBDashboard = ({ isOpen }) => {
         </div>
       </div>
 
-      {createPortal(
-        <>
-          {/* Admins */}
-          <button
-            type="button"
-            onClick={() => setShowAdmins((v) => !v)}
-            disabled={!selectedBusInfo}
-            title={
-              selectedBusInfo
-                ? "Show location admins"
-                : "Select a location first"
-            }
-            className={`fixed bottom-8 right-8 w-12 h-12 rounded-full grid place-items-center shadow-xl z-[1000]
+      {isOpen &&
+        createPortal(
+          <>
+            {/* Admins FAB */}
+            <button
+              type="button"
+              onClick={() => setShowAdmins((v) => !v)}
+              disabled={!selectedBusInfo}
+              title={
+                selectedBusInfo
+                  ? "Show location admins"
+                  : "Select a location first"
+              }
+              className={`fixed bottom-8 right-8 w-12 h-12 rounded-full grid place-items-center shadow-xl z-[1000]
         ${selectedBusInfo ? "bg-orange-500 hover:bg-orange-600 cursor-pointer" : "bg-gray-300 cursor-not-allowed"}
         text-white transition`}
-          >
-            <IoMdContacts size={24} />
-          </button>
+            >
+              <IoMdContacts size={24} />
+            </button>
 
-          {/* Floating admins panel */}
-          {showAdmins && (
-            <div className="fixed bottom-24 right-8 w-64 bg-white rounded-xl shadow-2xl border z-[1000] overflow-hidden">
-              <div className="px-4 py-2 text-sm font-semibold border-b">
-                Admins
-              </div>
-              <div className="max-h-72 overflow-auto">
-                {isLoadingAdmins ? (
-                  <Loader className="py-6" size={30} />
-                ) : admins.length ? (
-                  admins.map((a, i) => (
-                    <div key={i} className="px-4 py-3 border-b last:border-0">
-                      <div className="text-sm font-medium">
-                        {a?.admin || a?.name || a?.email?.split("@")[0] || "—"}
+            {/* Floating admins panel */}
+            {showAdmins && (
+              <div className="fixed bottom-24 right-8 w-64 bg-white rounded-xl shadow-2xl border z-[1000] overflow-hidden">
+                <div className="px-4 py-2 text-sm font-semibold border-b">
+                  Admins
+                </div>
+                <div className="max-h-72 overflow-auto">
+                  {isLoadingAdmins ? (
+                    <Loader className="py-6" size={30} />
+                  ) : admins.length ? (
+                    admins.map((a, i) => (
+                      <div key={i} className="px-4 py-3 border-b last:border-0">
+                        <div className="text-sm font-medium">{a?.admin}</div>
+                        <div className="text-xs text-gray-500">
+                          {a?.role || "Admin"}
+                        </div>
                       </div>
-                      <div className="text-xs text-gray-500">
-                        {a?.role || "Admin"}
-                      </div>
+                    ))
+                  ) : (
+                    <div className="px-4 py-4 text-sm text-gray-500">
+                      No admins found.
                     </div>
-                  ))
-                ) : (
-                  <div className="px-4 py-4 text-sm text-gray-500">
-                    No admins found.
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
-            </div>
-          )}
-        </>,
-        document.body
-      )}
+            )}
+          </>,
+          document.body
+        )}
       <ToastContainer
         position="top-center"
         autoClose={3000}
