@@ -19,6 +19,7 @@ import EmptyState from "../../general-components/EmptyState";
 import { ThreeDots } from "react-loader-spinner";
 import { IoIosStar, IoMdContacts } from "react-icons/io";
 import { createPortal } from "react-dom";
+import GBAdmins from "./GBAdmins";
 
 const Loader = ({ className = "", size = 50 }) => (
   <div className={`grid place-items-center ${className}`}>
@@ -272,25 +273,6 @@ const GBDashboard = ({ isOpen }) => {
       setIsVerified(false);
     }
   }, [verifications]);
-
-  //Admins
-  useEffect(() => {
-    if (selectedBusInfo && locationId) {
-      setIsLoadingAdmins(true);
-      instance
-        .get(`api/v1/google/admins/location/${locationId}`, {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        })
-        .then((response) => {
-          // console.log("admin", response);
-          setAdmins(response.data.admins);
-        })
-        .catch((error) => {
-          console.error(error);
-        })
-        .finally(() => setIsLoadingAdmins(false));
-    }
-  }, [locationId, selectedBusInfo, accessToken]);
 
   useEffect(() => {
     setShowAdmins(false);
@@ -853,49 +835,19 @@ const GBDashboard = ({ isOpen }) => {
       {isOpen &&
         createPortal(
           <>
-            {/* Admins FAB */}
+            {/* Admins */}
             <button
               type="button"
               onClick={() => setShowAdmins((v) => !v)}
               disabled={!selectedBusInfo}
-              title={
-                selectedBusInfo
-                  ? "Show location admins"
-                  : "Select a location first"
-              }
               className={`fixed bottom-8 right-8 w-12 h-12 rounded-full grid place-items-center shadow-xl z-[1000]
-        ${selectedBusInfo ? "bg-orange-500 hover:bg-orange-600 cursor-pointer" : "bg-gray-300 cursor-not-allowed"}
-        text-white transition`}
+    ${selectedBusInfo ? "bg-orange-500 hover:bg-orange-600 cursor-pointer" : "bg-gray-300 cursor-not-allowed"}
+    text-white transition`}
             >
               <IoMdContacts size={24} />
             </button>
 
-            {/* Floating admins panel */}
-            {showAdmins && (
-              <div className="fixed bottom-24 right-8 w-64 bg-white rounded-xl shadow-2xl border z-[1000] overflow-hidden">
-                <div className="px-4 py-2 text-sm font-semibold border-b">
-                  Admins
-                </div>
-                <div className="max-h-72 overflow-auto">
-                  {isLoadingAdmins ? (
-                    <Loader className="py-6" size={30} />
-                  ) : admins.length ? (
-                    admins.map((a, i) => (
-                      <div key={i} className="px-4 py-3 border-b last:border-0">
-                        <div className="text-sm font-medium">{a?.admin}</div>
-                        <div className="text-xs text-gray-500">
-                          {a?.role || "Admin"}
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="px-4 py-4 text-sm text-gray-500">
-                      No admins found.
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
+            <GBAdmins isOpen={showAdmins} locationId={locationId} />
           </>,
           document.body
         )}
