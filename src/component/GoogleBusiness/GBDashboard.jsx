@@ -34,6 +34,76 @@ const Loader = ({ className = "", size = 50 }) => (
   </div>
 );
 
+// --- error helpers ---
+const isAbort = (e) => e?.name === "CanceledError" || e?.name === "AbortError";
+const getErrorKind = (e) => {
+  if (isAbort(e)) return { kind: "aborted", status: null };
+  const status = e?.response?.status;
+  if (!status) return { kind: "network", status: null };
+  if (status === 401) return { kind: "unauthorized", status };
+  if (status === 403) return { kind: "forbidden", status };
+  if (status === 404 || status === 204) return { kind: "no_data", status };
+  if (status === 429) return { kind: "rate_limited", status };
+  if (status >= 500) return { kind: "server", status };
+  return { kind: "unknown", status };
+};
+
+// Generic gate that decides what to render for a section
+const SectionGate = ({
+  selected, // has business/location been selected?
+  loading, // is section loading?
+  notAllowed, // 403
+  networkErr, // network/transport fail (no response)
+  noData, // 204/404/5xx treated as no data
+  stateClass, // EmptyState bg class for this section
+  noSelectionMsg,
+  noAccessMsg = "You don’t have access to this section.",
+  networkMsg = "Network error. Please check your connection and try again.",
+  noDataMsg = "No data has been received from Google.",
+  loaderClass = "py-16",
+  emptyClass = "py-6", // <<— NEW: controls EmptyState padding/height per section
+  children,
+}) => {
+  if (!selected) {
+    return (
+      <EmptyState
+        state={stateClass}
+        message={noSelectionMsg}
+        className={emptyClass}
+      />
+    );
+  }
+  if (loading) return <Loader className={loaderClass} />;
+  if (notAllowed) {
+    return (
+      <EmptyState
+        state="bg-no-access"
+        message={noAccessMsg}
+        className={emptyClass}
+      />
+    );
+  }
+  if (networkErr) {
+    return (
+      <EmptyState
+        state={stateClass}
+        message={networkMsg}
+        className={emptyClass}
+      />
+    );
+  }
+  if (noData) {
+    return (
+      <EmptyState
+        state={stateClass}
+        message={noDataMsg}
+        className={emptyClass}
+      />
+    );
+  }
+  return children;
+};
+
 const GBDashboard = ({ isOpen }) => {
   const { user } = useUser();
 
@@ -84,27 +154,34 @@ const GBDashboard = ({ isOpen }) => {
   const [shopAddress, setShopAddress] = useState();
   const [weburl, setWeburl] = useState();
 
-  const [review, setReview] = useState();
-  const [rate, setRate] = useState();
+  const [review, setReview] = useState(null);
+  const [rate, setRate] = useState(null);
 
   const [verifications, setVerifications] = useState([]);
   const [isVerified, setIsVerified] = useState(false);
 
   const [showAdmins, setShowAdmins] = useState(false);
-  const [admins, setAdmins] = useState([]);
-  const [isLoadingAdmins, setIsLoadingAdmins] = useState(false);
 
+  // ----- Error flags (charts) -----
   const [noDataSearchCount, setNoDataSearchCount] = useState(false);
   const [notAllowedSearchCount, setNotAllowedSearchCount] = useState(false);
+  const [networkErrSearchCount, setNetworkErrSearchCount] = useState(false);
   const [searchCount, setSearchCount] = useState({});
 
   const [noDataMapCount, setNoDataMapCount] = useState(false);
   const [notAllowedMapCount, setNotAllowedMapCount] = useState(false);
+  const [networkErrMapCount, setNetworkErrMapCount] = useState(false);
   const [mapCount, setMapCount] = useState({});
 
   const [noDataWebCallCount, setNoDataWebCallCount] = useState(false);
   const [notAllowedWebCallCount, setNotAllowedWebCallCount] = useState(false);
+  const [networkErrWebCallCount, setNetworkErrWebCallCount] = useState(false);
   const [webCallCount, setWebCallCount] = useState({});
+
+  // ----- Error flags (details) -----
+  const [networkErrTitle, setNetworkErrTitle] = useState(false);
+  const [networkErrOpenStatus, setNetworkErrOpenStatus] = useState(false);
+  const [networkErrAttributes, setNetworkErrAttributes] = useState(false);
 
   useEffect(() => {
     instance
@@ -122,7 +199,7 @@ const GBDashboard = ({ isOpen }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Business info for selected account (cancelable)
+  // Business info for selected account
   useEffect(() => {
     if (!selectedAcc) return;
 
@@ -142,10 +219,10 @@ const GBDashboard = ({ isOpen }) => {
         );
         setBusinessInfo(response.data || []);
       } catch (error) {
-        if (error.name !== "CanceledError" && error.name !== "AbortError") {
+        if (!isAbort(error)) {
           console.error(error);
-          const status = error?.response?.status || error?.status;
-          if (status === 401) {
+          const { kind } = getErrorKind(error);
+          if (kind === "unauthorized") {
             toast.error(
               "Your tokens have been exhausted. Please contact the R&D department to resolve this issue."
             );
@@ -167,20 +244,29 @@ const GBDashboard = ({ isOpen }) => {
     const id = selectedBusInfo?.value?.split("/")[1] || null;
     setLocationId(id);
 
+    // Start loading for charts
     setIsLoadingSearchCount(true);
     setIsLoadingMapCount(true);
-    setIsLoadingWebCallCount(true); // keeps Interactions consistent too
+    setIsLoadingWebCallCount(true);
 
+    // Reset chart errors and data
     setNoDataSearchCount(false);
     setNoDataMapCount(false);
     setNoDataWebCallCount(false);
     setNotAllowedSearchCount(false);
     setNotAllowedMapCount(false);
     setNotAllowedWebCallCount(false);
-
+    setNetworkErrSearchCount(false);
+    setNetworkErrMapCount(false);
+    setNetworkErrWebCallCount(false);
     setSearchCount({});
     setMapCount({});
     setWebCallCount({});
+
+    // Reset detail-level network errors
+    setNetworkErrTitle(false);
+    setNetworkErrOpenStatus(false);
+    setNetworkErrAttributes(false);
 
     // Details loaders only if we actually have a new id
     if (id) {
@@ -188,6 +274,7 @@ const GBDashboard = ({ isOpen }) => {
       setIsLoadingOpenStatus(true);
       setIsLoadingAttributes(true);
       setIsLoadingReview(true);
+      setIsLoadingVerification(true);
 
       // Clear old details while new ones load
       setShopTitle("");
@@ -195,75 +282,90 @@ const GBDashboard = ({ isOpen }) => {
       setShopPhone(undefined);
       setShopAddress(undefined);
       setWeburl(undefined);
+      setRate(null);
+      setReview(null);
+      setVerifications([]);
+      setIsVerified(false);
     }
   }, [selectedBusInfo]);
 
   // Title
   useEffect(() => {
-    if (selectedBusInfo && locationId) {
-      setIsLoadingTitle(true);
-      instance
-        .get(`/api/v1/google/get-title/${locationId}`, {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        })
-        .then((response) => {
-          setShopTitle(response?.data?.location?.title || "");
-        })
-        .catch((error) => {
-          console.error(error);
-          setShopTitle("");
-        })
-        .finally(() => setIsLoadingTitle(false));
-    }
+    if (!selectedBusInfo || !locationId) return;
+    const controller = new AbortController();
+    setIsLoadingTitle(true);
+    setNetworkErrTitle(false);
+    instance
+      .get(`/api/v1/google/get-title/${locationId}`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+        signal: controller.signal,
+      })
+      .then((response) => {
+        if (controller.signal.aborted) return;
+        setShopTitle(response?.data?.location?.title || "");
+      })
+      .catch((error) => {
+        if (isAbort(error)) return;
+        console.error(error);
+        const { kind } = getErrorKind(error);
+        if (kind === "network") setNetworkErrTitle(true);
+        setShopTitle("");
+      })
+      .finally(() => setIsLoadingTitle(false));
+    return () => controller.abort();
   }, [locationId, selectedBusInfo, accessToken]);
 
   // Open status
   useEffect(() => {
-    if (selectedBusInfo && locationId) {
-      setIsLoadingOpenStatus(true);
-      instance
-        .get(`api/v1/google/get-update-openstatus/${locationId}`, {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        })
-        .then((response) => {
-          setShopActivityStatus(
-            response?.data?.location?.openInfo?.status || ""
-          );
-        })
-        .catch((error) => {
-          console.error(error);
-          setShopActivityStatus("");
-        })
-        .finally(() => setIsLoadingOpenStatus(false));
-    }
+    if (!selectedBusInfo || !locationId) return;
+    const controller = new AbortController();
+    setIsLoadingOpenStatus(true);
+    setNetworkErrOpenStatus(false);
+    instance
+      .get(`/api/v1/google/get-update-openstatus/${locationId}`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+        signal: controller.signal,
+      })
+      .then((response) => {
+        if (controller.signal.aborted) return;
+        setShopActivityStatus(response?.data?.location?.openInfo?.status || "");
+      })
+      .catch((error) => {
+        if (isAbort(error)) return;
+        console.error(error);
+        const { kind } = getErrorKind(error);
+        if (kind === "network") setNetworkErrOpenStatus(true);
+        setShopActivityStatus("");
+      })
+      .finally(() => setIsLoadingOpenStatus(false));
+    return () => controller.abort();
   }, [locationId, selectedBusInfo, accessToken]);
 
   // Verifications
   useEffect(() => {
-    const fetchVerificationData = async () => {
-      if (selectedBusInfo && locationId) {
-        setIsLoadingVerification(true);
-        try {
-          const response = await instance.get(
-            `api/v1/google/verifications/${locationId}`,
-            { headers: { Authorization: `Bearer ${accessToken}` } }
-          );
-          if (response.data && response.data.verifications) {
-            setVerifications(response.data.verifications);
-          } else {
-            setVerifications([]);
-          }
-          setIsVerified(!!(response.data && Object.keys(response.data).length));
-        } catch (error) {
-          console.error(error);
-          setVerifications([]);
-          setIsVerified(false);
-        } finally {
-          setIsLoadingVerification(false);
-        }
-      }
-    };
-    fetchVerificationData();
+    if (!selectedBusInfo || !locationId) return;
+    const controller = new AbortController();
+    setIsLoadingVerification(true);
+    instance
+      .get(`/api/v1/google/verifications/${locationId}`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+        signal: controller.signal,
+      })
+      .then((response) => {
+        if (controller.signal.aborted) return;
+        const v = response?.data?.verifications ?? [];
+        setVerifications(v);
+        setIsVerified(v[0]?.state === "COMPLETED");
+      })
+      .catch((error) => {
+        if (isAbort(error)) return;
+        console.error(error);
+        const { kind } = getErrorKind(error);
+        if (kind === "network") setVerifications([]);
+        setIsVerified(false);
+      })
+      .finally(() => setIsLoadingVerification(false));
+    return () => controller.abort();
   }, [locationId, selectedBusInfo, accessToken]);
 
   useEffect(() => {
@@ -276,53 +378,72 @@ const GBDashboard = ({ isOpen }) => {
 
   useEffect(() => {
     setShowAdmins(false);
-    setAdmins([]);
   }, [locationId]);
 
   // Attributes
   useEffect(() => {
-    if (selectedBusInfo && locationId) {
-      setIsLoadingAttributes(true);
-      instance
-        .get(`api/v1/google/get-shop-attribute/${locationId}`, {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        })
-        .then((response) => {
-          setShopPhone(response?.data?.location?.phoneNumbers);
-          setShopAddress(response?.data?.location?.storefrontAddress);
-          setWeburl(response?.data?.location?.websiteUri);
-        })
-        .catch((error) => {
-          console.error(error);
-        })
-        .finally(() => setIsLoadingAttributes(false));
-    }
+    if (!selectedBusInfo || !locationId) return;
+    const controller = new AbortController();
+    setIsLoadingAttributes(true);
+    setNetworkErrAttributes(false);
+    instance
+      .get(`/api/v1/google/get-shop-attribute/${locationId}`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+        signal: controller.signal,
+      })
+      .then((response) => {
+        if (controller.signal.aborted) return;
+        setShopPhone(response?.data?.location?.phoneNumbers);
+        setShopAddress(response?.data?.location?.storefrontAddress);
+        setWeburl(response?.data?.location?.websiteUri);
+      })
+      .catch((error) => {
+        if (isAbort(error)) return;
+        console.error(error);
+        const { kind } = getErrorKind(error);
+        if (kind === "network") setNetworkErrAttributes(true);
+      })
+      .finally(() => setIsLoadingAttributes(false));
+    return () => controller.abort();
   }, [locationId, selectedBusInfo, accessToken]);
 
   // Review & Rate
   useEffect(() => {
-    if (selectedBusInfo && locationId) {
-      const accountId = selectedAcc.value?.split("/")[1];
-      setIsLoadingReview(true);
-      instance
-        .get(
-          `api/v1/google/accounts/reviews-summary/${accountId}/locations/${locationId}`,
-          {
-            headers: { Authorization: `Bearer ${accessToken}` },
-          }
-        )
-        .then((response) => {
-          console.log(response);
-
-          setRate(response.data.averageRating);
-          setReview(response.data.totalReviewCount);
-        })
-        .catch((error) => {
-          console.error(error);
-        })
-        .finally(() => setIsLoadingReview(false));
-    }
-  }, [locationId, selectedBusInfo, accessToken]);
+    if (!selectedBusInfo || !locationId || !selectedAcc) return;
+    const controller = new AbortController();
+    const accountId = selectedAcc.value?.split("/")[1];
+    setIsLoadingReview(true);
+    instance
+      .get(
+        `/api/v1/google/accounts/reviews-summary/${accountId}/locations/${locationId}`,
+        {
+          headers: { Authorization: `Bearer ${accessToken}` },
+          signal: controller.signal,
+        }
+      )
+      .then((response) => {
+        if (controller.signal.aborted) return;
+        setRate(
+          typeof response?.data?.averageRating === "number"
+            ? response.data.averageRating
+            : null
+        );
+        setReview(
+          typeof response?.data?.totalReviewCount === "number"
+            ? response.data.totalReviewCount
+            : null
+        );
+      })
+      .catch((error) => {
+        if (isAbort(error)) return;
+        console.error(error);
+        const { kind } = getErrorKind(error);
+        if (kind === "network") setRate(null);
+        setReview(null);
+      })
+      .finally(() => setIsLoadingReview(false));
+    return () => controller.abort();
+  }, [locationId, selectedBusInfo, selectedAcc, accessToken]);
 
   // Search count
   useEffect(() => {
@@ -331,6 +452,7 @@ const GBDashboard = ({ isOpen }) => {
     (async () => {
       try {
         setIsLoadingSearchCount(true);
+        setNetworkErrSearchCount(false);
         const res = await instance.get(
           `api/v1/google/metric/mob-desk-search-count/${locationId}`,
           {
@@ -338,16 +460,28 @@ const GBDashboard = ({ isOpen }) => {
             signal: controller.signal,
           }
         );
+        if (controller.signal.aborted) return;
         setSearchCount(res.data || {});
         setNoDataSearchCount(false);
         setNotAllowedSearchCount(false);
       } catch (error) {
-        if (error.name !== "CanceledError" && error.name !== "AbortError") {
+        if (!isAbort(error)) {
           console.error(error);
-          const status = error?.response?.status || error?.status;
+          const { kind } = getErrorKind(error);
           setSearchCount({});
-          setNoDataSearchCount(status === 500);
-          setNotAllowedSearchCount(status === 403);
+          if (kind === "forbidden") {
+            setNotAllowedSearchCount(true);
+            setNoDataSearchCount(false);
+            setNetworkErrSearchCount(false);
+          } else if (kind === "no_data" || kind === "server") {
+            setNoDataSearchCount(true);
+            setNotAllowedSearchCount(false);
+            setNetworkErrSearchCount(false);
+          } else if (kind === "network") {
+            setNetworkErrSearchCount(true);
+            setNoDataSearchCount(false);
+            setNotAllowedSearchCount(false);
+          }
         }
       } finally {
         setIsLoadingSearchCount(false);
@@ -363,6 +497,7 @@ const GBDashboard = ({ isOpen }) => {
     (async () => {
       try {
         setIsLoadingMapCount(true);
+        setNetworkErrMapCount(false);
         const res = await instance.get(
           `/api/v1/google/metric/mob-desk-map-count/${locationId}`,
           {
@@ -370,16 +505,28 @@ const GBDashboard = ({ isOpen }) => {
             signal: controller.signal,
           }
         );
+        if (controller.signal.aborted) return;
         setMapCount(res.data || {});
         setNoDataMapCount(false);
         setNotAllowedMapCount(false);
       } catch (error) {
-        if (error.name !== "CanceledError" && error.name !== "AbortError") {
+        if (!isAbort(error)) {
           console.error(error);
-          const status = error?.response?.status || error?.status;
+          const { kind } = getErrorKind(error);
           setMapCount({});
-          setNoDataMapCount(status === 500);
-          setNotAllowedMapCount(status === 403);
+          if (kind === "forbidden") {
+            setNotAllowedMapCount(true);
+            setNoDataMapCount(false);
+            setNetworkErrMapCount(false);
+          } else if (kind === "no_data" || kind === "server") {
+            setNoDataMapCount(true);
+            setNotAllowedMapCount(false);
+            setNetworkErrMapCount(false);
+          } else if (kind === "network") {
+            setNetworkErrMapCount(true);
+            setNoDataMapCount(false);
+            setNotAllowedMapCount(false);
+          }
         }
       } finally {
         setIsLoadingMapCount(false);
@@ -395,6 +542,7 @@ const GBDashboard = ({ isOpen }) => {
     (async () => {
       try {
         setIsLoadingWebCallCount(true);
+        setNetworkErrWebCallCount(false);
         const res = await instance.get(
           `/api/v1/google/metric/web-call-count/${locationId}`,
           {
@@ -402,16 +550,28 @@ const GBDashboard = ({ isOpen }) => {
             signal: controller.signal,
           }
         );
+        if (controller.signal.aborted) return;
         setWebCallCount(res?.data || {});
         setNoDataWebCallCount(false);
         setNotAllowedWebCallCount(false);
       } catch (error) {
-        if (error.name !== "CanceledError" && error.name !== "AbortError") {
+        if (!isAbort(error)) {
           console.error(error);
-          const status = error?.response?.status || error?.status;
+          const { kind } = getErrorKind(error);
           setWebCallCount({});
-          setNoDataWebCallCount(status === 500);
-          setNotAllowedWebCallCount(status === 403);
+          if (kind === "forbidden") {
+            setNotAllowedWebCallCount(true);
+            setNoDataWebCallCount(false);
+            setNetworkErrWebCallCount(false);
+          } else if (kind === "no_data" || kind === "server") {
+            setNoDataWebCallCount(true);
+            setNotAllowedWebCallCount(false);
+            setNetworkErrWebCallCount(false);
+          } else if (kind === "network") {
+            setNetworkErrWebCallCount(true);
+            setNoDataWebCallCount(false);
+            setNotAllowedWebCallCount(false);
+          }
         }
       } finally {
         setIsLoadingWebCallCount(false);
@@ -460,6 +620,10 @@ const GBDashboard = ({ isOpen }) => {
     setShopPhone(undefined);
     setShopAddress(undefined);
     setWeburl(undefined);
+    setRate(null);
+    setReview(null);
+    setVerifications([]);
+    setIsVerified(false);
     // Clear section data/errors
     setSearchCount({});
     setMapCount({});
@@ -470,15 +634,29 @@ const GBDashboard = ({ isOpen }) => {
     setNotAllowedSearchCount(false);
     setNotAllowedMapCount(false);
     setNotAllowedWebCallCount(false);
+    setNetworkErrSearchCount(false);
+    setNetworkErrMapCount(false);
+    setNetworkErrWebCallCount(false);
     // Show loaders while waiting for new BI selection
     setIsLoadingSearchCount(true);
     setIsLoadingMapCount(true);
     setIsLoadingWebCallCount(true);
+
+    // Reset detail network flags
+    setNetworkErrTitle(false);
+    setNetworkErrOpenStatus(false);
+    setNetworkErrAttributes(false);
   };
+
+  // Aggregate: if any core detail API hit a network error, show details empty state
+  const detailsNetworkErr =
+    networkErrTitle || networkErrOpenStatus || networkErrAttributes;
 
   return (
     <div
-      className={`max-w-screen w-[calc(100%-80px)] absolute top-0 left-20 flex flex-col h-full ${editOpen ? "overflow-y-hidden" : "overflow-y-auto"} bg-white z-40 transition-transform duration-700 ease-in-out ${
+      className={`max-w-screen w-[calc(100%-80px)] absolute top-0 left-20 flex flex-col h-full ${
+        editOpen ? "overflow-y-hidden" : "overflow-y-auto"
+      } bg-white z-40 transition-transform duration-700 ease-in-out ${
         isOpen ? "translate-x-0" : "-translate-x-full"
       } font-sans bg-stone-50`}
     >
@@ -607,6 +785,12 @@ const GBDashboard = ({ isOpen }) => {
             {selectedBusInfo ? (
               isLoadingShopDetails ? (
                 <Loader className="py-40" />
+              ) : detailsNetworkErr ? (
+                <EmptyState
+                  state="bg-empty-state-hours"
+                  message="We couldn’t load shop details due to a network issue. Please check your connection and try again."
+                  className="py-6"
+                />
               ) : (
                 <>
                   <p className="text-lg font-medium pt-2">Shop Information</p>
@@ -626,22 +810,29 @@ const GBDashboard = ({ isOpen }) => {
                     <div className="flex">
                       <p className="text-md text-gray-500 text">Website</p>
                     </div>
-                    <a
-                      href={weburl}
-                      target="_blank"
-                      className="text-blue-400 font-base underline decoration-solid"
-                    >
-                      {weburl}
-                    </a>
+                    {weburl ? (
+                      <a
+                        href={weburl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-400 font-base underline decoration-solid"
+                      >
+                        {weburl}
+                      </a>
+                    ) : (
+                      <span className="font-medium">—</span>
+                    )}
                   </div>
                   <div className="flex justify-between gap-12 items-start p-2">
                     <div className="flex">
                       <p className="text-md text-gray-500">Address</p>
                     </div>
-                    <p className="font-medium">{`${addressLines || ""} ${shopAddress?.locality || ""} ${shopAddress?.postalCode || ""}`}</p>
+                    <p className="font-medium">{`${addressLines || ""} ${
+                      shopAddress?.locality || ""
+                    } ${shopAddress?.postalCode || ""}`}</p>
                   </div>
 
-                  {rate && review && (
+                  {Number.isFinite(rate) && Number.isInteger(review) && (
                     <>
                       <hr />
                       <p className="text-lg font-medium pt-2">User Feedback</p>
@@ -650,7 +841,7 @@ const GBDashboard = ({ isOpen }) => {
                           Overall rating with {review} reviews:
                         </p>
                         <div className="flex gap-1">
-                          <p className="font-medium">{rate?.toFixed(1)}</p>
+                          <p className="font-medium">{rate.toFixed(1)}</p>
                           <IoIosStar color="gold" size={20} />
                         </div>
                       </div>
@@ -663,16 +854,17 @@ const GBDashboard = ({ isOpen }) => {
                       <div className="flex gap-2 items-center">
                         {shopActivityStatus === "OPEN" ? (
                           <p className="text-green-500">Open</p>
-                        ) : shopActivityStatus === "CLOSE" ? (
-                          <p className="text-red-500">Close</p>
+                        ) : shopActivityStatus === "CLOSED" ? (
+                          <p className="text-red-500">Closed</p>
                         ) : shopActivityStatus === "CLOSED_PERMANENTLY" ? (
                           <p className="text-red-500">Closed Permanently</p>
-                        ) : (
-                          <p></p>
-                        )}
+                        ) : null}
                       </div>
                     </div>
-                    <BusinessHoursDisplay locationId={locationId} />
+                    <BusinessHoursDisplay
+                      key={locationId || "none"}
+                      locationId={locationId}
+                    />
                   </div>
                 </>
               )
@@ -687,132 +879,90 @@ const GBDashboard = ({ isOpen }) => {
 
           {/* TotalInteractions */}
           <div className="rounded-lg bg-white shadow-lg border">
-            {!notAllowedWebCallCount ? (
-              selectedBusInfo ? (
-                isLoadingWebCallCount ? (
-                  <Loader className="py-16" />
-                ) : noDataWebCallCount ? (
-                  <EmptyState
-                    state="bg-empty-state-interaction"
-                    message="No data has been received from Google."
-                    className="py-6"
-                  />
-                ) : (
-                  <TotalInteractions webCallCount={webCallCount} />
-                )
-              ) : (
-                <EmptyState
-                  state="bg-empty-state-interaction"
-                  message="You have not selected an account or business information."
-                  className="py-6"
-                />
-              )
-            ) : (
-              <EmptyState
-                state="bg-no-access"
-                message="You don’t have access to this section."
-                className="py-6"
-              />
-            )}
+            <SectionGate
+              selected={!!selectedBusInfo}
+              loading={isLoadingWebCallCount}
+              notAllowed={notAllowedWebCallCount}
+              networkErr={networkErrWebCallCount}
+              noData={noDataWebCallCount}
+              stateClass="bg-empty-state-interaction"
+              noSelectionMsg="You have not selected an account or business information."
+              loaderClass="py-16"
+              emptyClass="py-10" // <<— tailored padding for this card
+            >
+              <TotalInteractions webCallCount={webCallCount} />
+            </SectionGate>
           </div>
         </div>
 
         <div className="w-3/5 flex flex-col gap-6">
           <div className="w-full flex gap-6">
             {/* By searching on Google */}
-            <div className="w-full flex flex-col rounded-lg bg-white shadow-lg border h-[480px]">
-              {!notAllowedSearchCount ? (
-                selectedBusInfo ? (
-                  isLoadingSearchCount ? (
-                    <Loader className="h-full" />
-                  ) : noDataSearchCount ? (
-                    <EmptyState
-                      state="bg-empty-state-piechart"
-                      message="No data has been received from Google."
-                      className="h-full"
-                    />
-                  ) : (
-                    <>
-                      <p className="text-xl font-medium p-4">
-                        By searching on Google
-                      </p>
-                      <PieChartSection
-                        data={googleSearchData}
-                        variant="center"
-                        innerRadius={100}
-                        outerRadius={130}
-                        groupUnderPercent={0}
-                        showLegend={true}
-                        centerLabelLines={({ name, value, percent }) => [
-                          name,
-                          `${value} user`,
-                          `${(percent * 100).toFixed(2)}%`,
-                        ]}
-                      />
-                    </>
-                  )
-                ) : (
-                  <EmptyState
-                    state="bg-empty-state-piechart"
-                    message=" You have not selected an account or business information."
-                    className="h-full"
+            <div className="w-full h-full flex flex-col rounded-lg bg-white shadow-lg border h-[480px]">
+              <SectionGate
+                selected={!!selectedBusInfo}
+                loading={isLoadingSearchCount}
+                notAllowed={notAllowedSearchCount}
+                networkErr={networkErrSearchCount}
+                noData={noDataSearchCount}
+                stateClass="bg-empty-state-piechart"
+                noSelectionMsg="You have not selected an account or business information."
+                loaderClass="h-full py-44"
+                emptyClass="h-full py-32" // <<— full height + custom padding
+              >
+                <>
+                  <p className="text-xl font-medium p-4">
+                    By searching on Google
+                  </p>
+                  <PieChartSection
+                    data={googleSearchData}
+                    variant="center"
+                    innerRadius={100}
+                    outerRadius={130}
+                    groupUnderPercent={0}
+                    showLegend={true}
+                    centerLabelLines={({ name, value, percent }) => [
+                      name,
+                      `${value} user`,
+                      `${(percent * 100).toFixed(2)}%`,
+                    ]}
                   />
-                )
-              ) : (
-                <EmptyState
-                  state="bg-no-access"
-                  message="You don’t have access to this section."
-                  className="h-full"
-                />
-              )}
+                </>
+              </SectionGate>
             </div>
 
             {/* By using Google map service */}
             <div className="w-full h-full flex flex-col rounded-lg bg-white shadow-lg border h-[480px]">
-              {!notAllowedMapCount ? (
-                selectedBusInfo ? (
-                  isLoadingMapCount ? (
-                    <Loader className="h-full" />
-                  ) : noDataMapCount ? (
-                    <EmptyState
-                      state="bg-empty-state-piechart"
-                      message="No data has been received from Google."
-                      className="h-full"
-                    />
-                  ) : (
-                    <>
-                      <p className="text-xl font-medium p-4">
-                        By using Google map service
-                      </p>
-                      <PieChartSection
-                        data={googleMapData}
-                        variant="center"
-                        innerRadius={100}
-                        outerRadius={130}
-                        groupUnderPercent={0}
-                        showLegend={true}
-                        centerLabelLines={({ name, value, percent }) => [
-                          name,
-                          `${value} user`,
-                          `${(percent * 100).toFixed(2)}%`,
-                        ]}
-                      />
-                    </>
-                  )
-                ) : (
-                  <EmptyState
-                    state="bg-empty-state-piechart"
-                    message="You have not selected an account or business information."
-                    className="h-full"
+              <SectionGate
+                selected={!!selectedBusInfo}
+                loading={isLoadingMapCount}
+                notAllowed={notAllowedMapCount}
+                networkErr={networkErrMapCount}
+                noData={noDataMapCount}
+                stateClass="bg-empty-state-piechart"
+                noSelectionMsg="You have not selected an account or business information."
+                loaderClass="h-full py-44"
+                emptyClass="h-full py-32" // <<— different padding here
+              >
+                <>
+                  <p className="text-xl font-medium p-4">
+                    By using Google map service
+                  </p>
+                  <PieChartSection
+                    data={googleMapData}
+                    variant="center"
+                    innerRadius={100}
+                    outerRadius={130}
+                    groupUnderPercent={0}
+                    showLegend={true}
+                    centerLabelLines={({ name, value, percent }) => [
+                      name,
+                      `${value} user`,
+                      `${(percent * 100).toFixed(2)}%`,
+                    ]}
                   />
-                )
-              ) : (
-                <EmptyState
-                  state="bg-no-access"
-                  message="You don’t have access to this section."
-                  className="h-full"
-                />
-              )}
+                </>
+              </SectionGate>
             </div>
           </div>
 
@@ -847,7 +997,11 @@ const GBDashboard = ({ isOpen }) => {
               onClick={() => setShowAdmins((v) => !v)}
               disabled={!selectedBusInfo}
               className={`fixed bottom-8 right-8 w-12 h-12 rounded-full grid place-items-center shadow-xl z-[1000]
-    ${selectedBusInfo ? "bg-orange-500 hover:bg-orange-600 cursor-pointer" : "bg-gray-300 cursor-not-allowed"}
+    ${
+      selectedBusInfo
+        ? "bg-orange-500 hover:bg-orange-600 cursor-pointer"
+        : "bg-gray-300 cursor-not-allowed"
+    }
     text-white transition`}
             >
               <IoMdContacts size={24} />

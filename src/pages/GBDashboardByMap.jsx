@@ -402,6 +402,7 @@ const GBDashboardByMap = () => {
                   <a
                     href={weburl}
                     target="_blank"
+                    rel="noopener noreferrer"
                     className="text-blue-400 font-base underline decoration-solid"
                   >
                     {weburl}
