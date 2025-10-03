@@ -312,6 +312,8 @@ const GBDashboard = ({ isOpen }) => {
           }
         )
         .then((response) => {
+          console.log(response);
+
           setRate(response.data.averageRating);
           setReview(response.data.totalReviewCount);
         })
@@ -639,17 +641,21 @@ const GBDashboard = ({ isOpen }) => {
                     <p className="font-medium">{`${addressLines || ""} ${shopAddress?.locality || ""} ${shopAddress?.postalCode || ""}`}</p>
                   </div>
 
-                  <hr />
-                  <p className="text-lg font-medium pt-2">User Feedback</p>
-                  <div className="flex justify-between p-2">
-                    <p className="text-md text-gray-500">
-                      Overall rating with {review} reviews:
-                    </p>
-                    <div className="flex gap-1">
-                      <p className="font-medium">{rate?.toFixed(1)}</p>
-                      <IoIosStar color="gold" size={20} />
-                    </div>
-                  </div>
+                  {rate && review && (
+                    <>
+                      <hr />
+                      <p className="text-lg font-medium pt-2">User Feedback</p>
+                      <div className="flex justify-between p-2">
+                        <p className="text-md text-gray-500">
+                          Overall rating with {review} reviews:
+                        </p>
+                        <div className="flex gap-1">
+                          <p className="font-medium">{rate?.toFixed(1)}</p>
+                          <IoIosStar color="gold" size={20} />
+                        </div>
+                      </div>
+                    </>
+                  )}
                   <hr />
                   <div className="pt-2">
                     <div className="flex justify-between items-center">

@@ -413,17 +413,21 @@ const GBDashboardByMap = () => {
                   </div>
                   <p className="font-medium">{`${addressLines || ""} ${shopAddress?.locality || ""} ${shopAddress?.postalCode || ""}`}</p>
                 </div>
-                <hr />
-                <p className="text-lg font-medium pt-2">User Feedback</p>
-                <div className="flex justify-between p-2">
-                  <p className="text-md text-gray-500">
-                    Overall rating with {review} reviews:
-                  </p>
-                  <div className="flex gap-1">
-                    <p className="font-medium">{rate?.toFixed(1)}</p>
-                    <IoIosStar color="gold" size={20} />
-                  </div>
-                </div>
+                {rate && review && (
+                  <>
+                    <hr />
+                    <p className="text-lg font-medium pt-2">User Feedback</p>
+                    <div className="flex justify-between p-2">
+                      <p className="text-md text-gray-500">
+                        Overall rating with {review} reviews:
+                      </p>
+                      <div className="flex gap-1">
+                        <p className="font-medium">{rate?.toFixed(1)}</p>
+                        <IoIosStar color="gold" size={20} />
+                      </div>
+                    </div>
+                  </>
+                )}
                 <hr />
                 <div>
                   <div className="pt-2">
